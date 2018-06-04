@@ -3,7 +3,7 @@ import numpy as np
 
 import pyximport
 pyximport.install()
-import findPeaks
+from . import findPeaks
 
 class Block:
     '''A block is one recording session.'''
@@ -54,9 +54,16 @@ class Block:
         '''The path in the HDF file corresponding to this block.'''
         return "/data/"+self.genotype+"/"+self.mouseNumber+"/"+self.date+"/"
     
-    def findPeaks(self, method="donahue"):
-        '''Find "peaks" in the calcium traces.'''
-        return findPeaks.findPeaks(self.readCaTraces(), method)
+    def findPeaks(self, method="donahue", shape="wide"):
+        '''Find "peaks" in the calcium traces.
+        
+        Arguments:
+        method --- The method used to find the peaks
+        shape --- Either "wide" or "long". Wide form is compatible with
+                  caTraces and deconvolvedTraces, while long form is more
+                  memory efficient for this sparse signal.
+        '''
+        return findPeaks.findPeaks(self.readCaTraces(), method=method, shape=shape)
     
     def readSensorValues(self, slim=True, onlyRecording=True, reindexFrameNo=True):
         '''Read the sensor values (LEDs and Beams) from this block.
