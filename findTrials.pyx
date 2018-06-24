@@ -11,14 +11,14 @@ cdef list _findTrials(cnp.int_t[:,:] beams, cnp.int_t[:,:] leds, cnp.int_t[:] re
     cdef Py_ssize_t i=0, T = beams.shape[0]
     cdef cnp.int_t enterCenter, exitCenter, enterSide, exitSide, reward
     cdef Py_UNICODE chosenPort, rewardedPort
-    cdef cnp.int_t successfulInit
+    cdef cnp.int_t successfulInit, successfulEnd
     cdef list trials = []
     
     #T is number of frames
     while i<T:
         
         #Find when center led was turned on
-        while i<T and (leds[i, center] == 0 or beams[i, center] == 1): i += 1
+        #while i<T and leds[i, center] == 0: i += 1 #or beams[i, center] == 1
             
         #Find when entering center port
         while i<T and beams[i, center] == 0: i += 1
@@ -30,6 +30,9 @@ cdef list _findTrials(cnp.int_t[:,:] beams, cnp.int_t[:,:] leds, cnp.int_t[:] re
         
         #Was the center led turned off?
         successfulInit = (i<T and leds[i, center] == 0)
+        
+        if successfulInit and (leds[i, left] == 0 or leds[i, right] == 0):
+            raise Exception("LED assumption violated")
         
         #Until one port is entered
         while i<T:
@@ -48,24 +51,39 @@ cdef list _findTrials(cnp.int_t[:,:] beams, cnp.int_t[:,:] leds, cnp.int_t[:] re
                     while i<T and beams[i, right]==1: i+=1
                 exitSide = i
                 if i>=T: break
+                    
+                successfulEnd = (leds[i, center] == 1)
+                
                 #Any rewards?
                 reward = rewardNo[exitSide] - rewardNo[enterSide]
-                trials.append((time[enterCenter], time[exitCenter], successfulInit, time[enterSide], time[exitSide], chosenPort, rewardPort[enterSide], reward))
+                trials.append((time[enterCenter], time[exitCenter], successfulInit, time[enterSide], time[exitSide], successfulEnd, chosenPort, rewardPort[enterSide], reward))
                 break
                 
             #Center port
             if beams[i, center]==1:
-                trials.append((time[enterCenter], time[exitCenter], successfulInit, -1, -1, u"C", rewardPort[i], 0))
+                trials.append((time[enterCenter], time[exitCenter], successfulInit, -1, -1, -1, u"C", rewardPort[i], 0))
                 break
                 
             i += 1
     return trials
 
-def findTrials(sensorValues):
+def findTrials(sensorValues, timeColumn="frameNo"):
+    '''Estimate all trial attempts, including incorrectly initialized ones.
+    
+    Arguments:
+    sensorValues --- A Pandas Dataframe as given by block.readSensorValues()
+    timeColumn --- The column of sensorValues to use as time measurement. Recommended
+                   options are "time" and "frameNo", depending on whether it will
+                   later be matched with calcium recordings. Possibly other columns
+                   could be used as well (trialNo?), but this is untested.
+    
+    Returns:
+    A Pandas Dataframe where each row is a trial attempt.
+    '''
     res = _findTrials(sensorValues[["beamL","beamC", "beamR"]].values,
                       sensorValues[["ledL","ledC", "ledR"]].values,
                       sensorValues.rewardNo.values,
                       sensorValues.rewardP.values,
-                      sensorValues.frameNo.values)
-    return pd.DataFrame(res, columns=["enterCenter", "exitCenter", "successfulInit",
-                                      "enterSide", "exitSide", "chosenPort", "rewardedPort", "reward"])
+                      sensorValues[timeColumn].values)
+    return pd.DataFrame(res, columns=["enterCenter", "exitCenter", "successfulInit", "enterSide", "exitSide",
+                                      "successfulEnd", "chosenPort", "rewardedPort", "reward"])
