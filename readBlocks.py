@@ -3,7 +3,7 @@ import numpy as np
 
 import pyximport
 pyximport.install()
-from . import findPeaks
+import findPeaks
 from . import findTrials
 
 class Block:
