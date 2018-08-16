@@ -4,6 +4,7 @@ import numpy as np
 import pyximport
 pyximport.install()
 from . import findPeaks
+from . import findTrials
 
 class Block:
     '''A block is one recording session.'''
@@ -96,6 +97,66 @@ class Block:
         if reindexFrameNo:
             sensorValues.frameNo -= sensorValues.frameNo.iloc[0]
         return sensorValues
+    
+    def findTrials(self, timeColumn="frameNo", onlyRecording=True):
+        '''Use the sensor values to find *trials*, i.e. center port entries optionally followed by 
+        side port entries. Also indicates whether the trial was initialized correctly and whether it
+        was rewarded.
+        
+        Arguments:
+        timeColumn -- The column of sensorValues to use as time measurement. Recommended
+                      options are "time" and "frameNo", depending on whether it will
+                      later be matched with calcium recordings. Possibly other columns
+                      could be used as well (trialNo?), but this is untested.
+        onlyRecording -- Only include the part of this block from which there is also calcium video
+                         recorded.
+                         
+        Returns:
+        A Pandas Dataframe where each row is a trial attempt.
+        
+        See also:
+        findTrials.findTrials
+        '''
+        findTrials.findTrials(self.readSensorValues(onlyRecording=onlyRecording), timeColumn=timeColumn)
+        
+    def calcTunings(self, event="exitCenter", splitCriterion="reward==True", windowSize=10, sampleBy=["chosenPort", "reward"]):
+        '''Calculate tunings of each neuron in this block using the Donahue method. 
+        
+        Arguments:
+        event -- The event to which to align the activity. Should be one of "enterCenter",
+                 "exitCenter", "enterSide", "exitSide".
+        splitCriterion -- The criterion to compare, will be passed on to pandas.DataFrame.eval
+                          and should be a boolean expression.
+        windowSize -- The duration after the event during which to look for peaks, specified as an
+                      integer number of frames. Each frame is 50ms, thus default 10 frames is 500ms.
+        sampleBy -- To compensate for different number of trials, subsample the set of trials so
+                    that all combinations of these columns occur equally often. If None, don't subsample.
+        '''
+        import statsmodels.stats.proportion
+        
+        peaks = block.findPeaks()
+        trials = findTrials.findTrials(block.otherBlock.readSensorValues())
+        trials.query("successfulEnd==1", True)
+        trials.reward = trials.reward > 0
+        
+        if sampleBy is not None:
+            cases = trials.groupby(sampleBy)
+            #The smallest case
+            minNum = cases.size().min()
+            #Sample minNum for all cases
+            trials = cases.apply(pd.DataFrame.sample, minNum).reset_index(level=[0,1], drop=True).sort_index()
+            
+        avgPerTrial = pd.concat([peaks.iloc[i:i+windowSize].sum() > 0 for i in trials[event]], 1).T
+        avgPerTrial.index = trials.index.copy()
+
+        split = trials.eval(splitCriterion)
+        A = avgPerTrial[split==True].sum()
+        B = avgPerTrial[split==False].sum()
+
+        test = statsmodels.stats.proportion.proportions_ztest
+        tunings = np.array([test(p, (len(A), len(B)))[0] for p in zip(A,B)])
+
+        return tunings
 
 def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None, date=None, recording=None):
     '''Generator of all experimental blocks stored in a HDF file.
