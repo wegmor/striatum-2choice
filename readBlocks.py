@@ -3,7 +3,7 @@ import numpy as np
 
 import pyximport
 pyximport.install()
-import findPeaks
+from . import findPeaks
 from . import findTrials
 
 class Block:
@@ -117,9 +117,9 @@ class Block:
         See also:
         findTrials.findTrials
         '''
-        findTrials.findTrials(self.readSensorValues(onlyRecording=onlyRecording), timeColumn=timeColumn)
+        return findTrials.findTrials(self.readSensorValues(onlyRecording=onlyRecording), timeColumn=timeColumn)
         
-    def calcTunings(self, event="exitCenter", splitCriterion="reward==True", windowSize=10, sampleBy=["chosenPort", "reward"]):
+    def calcTunings(self, event="exitSide", splitCriterion="reward==True", windowSize=10, sampleBy=["chosenPort", "reward"]):
         '''Calculate tunings of each neuron in this block using the Donahue method. 
         
         Arguments:
@@ -131,11 +131,14 @@ class Block:
                       integer number of frames. Each frame is 50ms, thus default 10 frames is 500ms.
         sampleBy -- To compensate for different number of trials, subsample the set of trials so
                     that all combinations of these columns occur equally often. If None, don't subsample.
+                    
+        Returns:
+        A numpy array with the Z-statistic for each individual neuron
         '''
         import statsmodels.stats.proportion
         
-        peaks = block.findPeaks()
-        trials = findTrials.findTrials(block.otherBlock.readSensorValues())
+        peaks = self.findPeaks()
+        trials = self.findTrials()
         trials.query("successfulEnd==1", True)
         trials.reward = trials.reward > 0
         
