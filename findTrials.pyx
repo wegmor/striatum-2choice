@@ -6,11 +6,19 @@ cdef enum:
     center=1
     right=2
 
+cdef tuple _findPrevEntry(cnp.int_t[:,:] beams, Py_ssize_t i):
+    while i>0:
+        if beams[i-1, left] == 1: return (u"L", i)
+        if beams[i-1, center] == 1: return (u"C", i)
+        if beams[i-1, right] == 1: return (u"R", i)
+        i -= 1
+    return (u"N", -1)
+    
 cdef list _findTrials(cnp.int_t[:,:] beams, cnp.int_t[:,:] leds, cnp.int_t[:] rewardNo,
                  cnp.ndarray rewardPort, cnp.ndarray time):
     cdef Py_ssize_t i=0, T = beams.shape[0]
-    cdef cnp.int_t enterCenter, exitCenter, enterSide, exitSide, reward
-    cdef Py_UNICODE chosenPort, rewardedPort
+    cdef cnp.int_t prevExit, enterCenter, exitCenter, enterSide, exitSide, reward
+    cdef Py_UNICODE prevPort, chosenPort, rewardedPort
     cdef cnp.int_t successfulInit, successfulEnd
     cdef list trials = []
     
@@ -56,12 +64,17 @@ cdef list _findTrials(cnp.int_t[:,:] beams, cnp.int_t[:,:] leds, cnp.int_t[:] re
                 
                 #Any rewards?
                 reward = rewardNo[exitSide] - rewardNo[enterSide]
-                trials.append((time[enterCenter], time[exitCenter], successfulInit, time[enterSide], time[exitSide], successfulEnd, chosenPort, rewardPort[enterSide], reward))
+                
+                prevPort, prevExit = _findPrevEntry(beams, enterCenter)
+                trials.append((prevPort, time[prevExit], time[enterCenter], time[exitCenter], successfulInit,
+                               time[enterSide], time[exitSide], successfulEnd, chosenPort,
+                               rewardPort[enterSide], reward))
                 break
                 
             #Center port
             if beams[i, center]==1:
-                trials.append((time[enterCenter], time[exitCenter], successfulInit, -1, -1, -1, u"C", rewardPort[i], 0))
+                prevPort, prevExit = _findPrevEntry(beams, enterCenter)
+                trials.append((prevPort, time[prevExit], time[enterCenter], time[exitCenter], successfulInit, -1, -1, -1, u"C", rewardPort[i], 0))
                 break
                 
             i += 1
@@ -85,5 +98,6 @@ def findTrials(sensorValues, timeColumn="frameNo"):
                       sensorValues.rewardNo.values,
                       sensorValues.rewardP.values,
                       sensorValues[timeColumn].values)
-    return pd.DataFrame(res, columns=["enterCenter", "exitCenter", "successfulInit", "enterSide", "exitSide",
-                                      "successfulEnd", "chosenPort", "rewardedPort", "reward"])
+    return pd.DataFrame(res, columns=["previousPort", "exitPrevious", "enterCenter", "exitCenter",
+                                      "successfulCenter", "enterSide", "exitSide",
+                                      "successfulSide", "chosenPort", "rewardedPort", "reward"])
