@@ -98,6 +98,9 @@ class Block:
             sensorValues.frameNo -= sensorValues.frameNo.iloc[0]
         return sensorValues
     
+    def readTracking(self):
+        return pd.read_hdf(self.hdfFile, self.getPath()+'tracking')
+
     def findTrials(self, timeColumn="frameNo", onlyRecording=True):
         '''Use the sensor values to find *trials*, i.e. center port entries optionally followed by 
         side port entries. Also indicates whether the trial was initialized correctly and whether it
@@ -160,6 +163,48 @@ class Block:
         tunings = np.array([test(p, (len(A), len(B)))[0] for p in zip(A,B)])
 
         return tunings
+    
+    def calcActionsPerFrame(self, trials=None):
+        '''Reshape the 'trials' dataframe of this block to one row per frame. Useful
+        for stretching the behavior before averaging.
+        
+        Arguments:
+        trials -- The trials data frame to use. If None, use the trials from this block.
+        
+        Returns:
+        A dataframe where each row describes the action taken at a given frame.
+        '''
+        frameNo = 0
+        res = []
+        if trials is None:
+            trials = self.findTrials()
+        trials["previousRewarded"] = trials.reward.shift(-1)
+        if trials.exitPrevious.iloc[0] > 50000: trials.exitPrevious.iloc[0] = -1
+        for t in trials.itertuples():
+            while frameNo<t.exitPrevious:
+                res.append((frameNo, "other", "none", -1, -1, t.previousRewarded))
+                frameNo += 1
+            while frameNo<t.enterCenter:
+                res.append((frameNo, "sideToCenter", t.previousPort, t.exitPrevious, t.enterCenter, t.previousRewarded))
+                frameNo += 1
+            while frameNo<t.exitCenter:
+                res.append((frameNo, "inPort", "C", t.enterCenter, t.exitCenter, t.reward))
+                frameNo += 1
+            if t.successfulSide != 1: continue
+            while frameNo<t.enterSide:
+                res.append((frameNo, "centerToSide", t.chosenPort, t.exitCenter, t.enterSide, t.reward))
+                frameNo += 1
+            while frameNo<t.exitSide:
+                res.append((frameNo, "inPort", t.chosenPort, t.enterSide, t.exitSide, t.reward))
+                frameNo += 1
+        totLen = self.readSensorValues().shape[0]
+        while frameNo<totLen:
+            res.append((frameNo, "other", "none", -1, -1, -1))
+            frameNo += 1
+        res = pd.DataFrame(res, columns=["frameNo", "action", "port", "actionStart", "actionStop", "rewarded"]).set_index("frameNo")
+        res["actionDuration"] = res.eval("(actionStop - actionStart)")
+        res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
+        return res
 
 def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None, date=None, recording=None):
     '''Generator of all experimental blocks stored in a HDF file.
