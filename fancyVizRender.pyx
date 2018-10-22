@@ -1,5 +1,5 @@
 cimport numpy as cnp
-from libc.math cimport sqrt, cos, sin
+from libc.math cimport sqrt, cos, sin, isnan
 
 import matplotlib.pyplot as plt
 import matplotlib.patches
@@ -123,6 +123,32 @@ def headDirDensity(headDir, likeli, trace):
     return _headDirDensity(headDir.values, likeli.values, trace.values)
 
 cdef tuple _bodyDirDensity(cnp.float_t[:] bodyDir,
+                            cnp.float_t[:] projectedSpeed,
+                            cnp.float_t[:] likeli,
+                            cnp.float_t[:] trace
+                           ):
+    cdef cnp.ndarray[cnp.float_t, ndim=2] kde = np.zeros((301,301))
+    cdef cnp.ndarray[cnp.float_t, ndim=2] tracker = np.zeros((301, 301))
+    cdef Py_ssize_t i, N, r, c
+    cdef cnp.float_t radius
+    N = min(bodyDir.shape[0], trace.shape[0])
+    for i in range(1,N):
+        if likeli[i] > 0.1:
+            radius = 1 + projectedSpeed[i] / 50.0
+            if radius < 0.5:
+                radius = 0.5
+            elif radius > 1.5:
+                radius = 1.5
+            c = <Py_ssize_t>(cos(bodyDir[i])*100*radius + 150)
+            r = <Py_ssize_t>(sin(bodyDir[i])*100*radius + 150)
+            kde[r, c] += trace[i]
+            tracker[r, c] += 1
+    return kde, tracker
+
+def bodyDirDensity(bodyDir, projectedSpeed, likeli, trace):
+    return _bodyDirDensity(bodyDir.values, projectedSpeed.values, likeli.values, trace.values)
+
+cdef tuple _bodyTurnDensity(cnp.float_t[:] bodyTurn,
                                     cnp.float_t[:] likeli,
                                     cnp.float_t[:] trace
                                    ):
@@ -130,17 +156,17 @@ cdef tuple _bodyDirDensity(cnp.float_t[:] bodyDir,
     cdef cnp.ndarray[cnp.float_t, ndim=2] tracker = np.zeros((301, 301))
     cdef Py_ssize_t i, N, r, c
     cdef cnp.float_t radius=1
-    N = min(bodyDir.shape[0], trace.shape[0])
+    N = min(bodyTurn.shape[0], trace.shape[0])
     for i in range(1,N):
         if likeli[i] > 0.1:
-            c = <Py_ssize_t>(cos(bodyDir[i])*100*radius + 150)
-            r = <Py_ssize_t>(sin(bodyDir[i])*100*radius + 150)
+            c = <Py_ssize_t>(cos(bodyTurn[i])*100*radius + 150)
+            r = <Py_ssize_t>(sin(bodyTurn[i])*100*radius + 150)
             kde[r, c] += trace[i]
             tracker[r, c] += 1
     return kde, tracker
 
-def bodyDirDensity(bodyDir, likeli, trace):
-    return _bodyDirDensity(bodyDir.values, likeli.values, trace.values)
+def bodyTurnDensity(bodyTurn, likeli, trace):
+    return _bodyTurnDensity(bodyTurn.values, likeli.values, trace.values)
 
 #plt.axis("off")
     
@@ -166,7 +192,7 @@ def drawHeadDirBackground():
     
     #1
     plt.plot([0,1],[0,0], 'k--')
-    plt.axis("scaled")
+    plt.axis("equal")
     plt.axis("off")
 
 def drawTaskBackground():
@@ -262,8 +288,8 @@ def calcProjectedSpeed(tracking):
     proj = (velVec.x*bodyVec.x + velVec.y*bodyVec.y) / np.sqrt((bodyVec.x**2 + bodyVec.y**2))
     return proj
 
-def plotBodyDirectionDensity(bodyDirections, likelihood, trace, sat=0.5, smoothing=6, arrows=False):
-    de, tracker = bodyDirDensity(bodyDirections, likelihood, trace)
+def plotBodyDirectionDensity(bodyDirections, projectedSpeed, likelihood, trace, sat=0.5, smoothing=6):
+    de, tracker = bodyDirDensity(bodyDirections, projectedSpeed, likelihood, trace)
     tracker = scipy.ndimage.gaussian_filter(tracker, smoothing)
     de = scipy.ndimage.gaussian_filter(de, smoothing)
     de /= tracker * sat
@@ -274,9 +300,100 @@ def plotBodyDirectionDensity(bodyDirections, likelihood, trace, sat=0.5, smoothi
     colors = plt.cm.RdYlBu_r(de*0.5 + 0.5)
     colors[:,:,3] = np.clip(tracker, 0, 1)
     
-    if arrows:
-        arcArrow(1, -0.1, -2)
-        arcArrow(1 , 0.1, 2)
     plt.imshow(colors, vmin=-sat, vmax=sat, cmap="RdYlBu_r", interpolation="nearest", extent=(-1.5,1.5,-1.5,1.5))
     plt.axis("off")
-    plt.axis("scaled")
+    plt.axis("equal")
+
+def plotBodyTurnDensity(turningSpeed, likelihood, trace, sat=0.5, smoothing=6):
+    de, tracker = bodyTurnDensity(turningSpeed, likelihood, trace)
+    tracker = scipy.ndimage.gaussian_filter(tracker, smoothing)
+    de = scipy.ndimage.gaussian_filter(de, smoothing)
+    de /= tracker * sat
+    de = np.clip(de,-1,1)
+
+    tracker /= tracker.max()*0.01
+    #absDe = np.abs(de).astype(np.float)
+    colors = plt.cm.RdYlBu_r(de*0.5 + 0.5)
+    colors[:,:,3] = np.clip(tracker, 0, 1)
+    
+    arcArrow(1, -0.1, -2)
+    arcArrow(1 , 0.1, 2)
+    plt.imshow(colors, vmin=-sat, vmax=sat, cmap="RdYlBu_r", interpolation="nearest", extent=(-1.5,1.5,-1.5,1.5))
+    plt.axis("off")
+    plt.axis("equal")
+
+cdef cnp.ndarray _calcGazePoint(cnp.float_t[:,:] leftEar, cnp.float_t[:,:] rightEar):
+    cdef Py_ssize_t i, N=leftEar.shape[0]
+    cdef cnp.float_t head_x, head_y
+    cdef cnp.float_t headVec_x, headVec_y, head_vec_len
+    cdef cnp.float_t normal_x, normal_y
+    cdef cnp.float_t alpha_top, alpha_bottom, alpha_left, alpha_right
+    cdef cnp.float_t inter_top, inter_bottom, inter_left, inter_right
+    cdef cnp.ndarray[cnp.float_t, ndim=2] res = np.zeros((N, 2))
+    for i in range(N):
+        head_x = 0.5*(leftEar[i,0] + rightEar[i,0])
+        head_y = 0.5*(leftEar[i,1] + rightEar[i,1])
+        headVec_x = rightEar[i,0] - leftEar[i,0]
+        headVec_y = rightEar[i,1] - leftEar[i,1]
+        head_vec_len = sqrt(headVec_x*headVec_x + headVec_y*headVec_y)
+        normal_x =  headVec_y / head_vec_len
+        normal_y = -headVec_x / head_vec_len
+        alpha_top = (50 - head_y) / normal_y
+        alpha_bottom = (250 - head_y) / normal_y
+        alpha_left = (75 - head_x) / normal_x
+        alpha_right = (290 - head_x) / normal_x
+        inter_top = head_x + alpha_top*normal_x
+        inter_bottom = head_x + alpha_bottom*normal_x
+        inter_left = head_y + alpha_left*normal_y
+        inter_right = head_y + alpha_right*normal_y
+        if alpha_top >= 0 and inter_top > 75 and inter_top < 290:
+            res[i, 0] = inter_top
+            res[i, 1] = 50
+        elif alpha_bottom >= 0 and inter_bottom > 75 and inter_bottom < 290:
+            res[i, 0] = inter_bottom
+            res[i, 1] = 250
+        elif alpha_left >= 0 and inter_left > 50 and inter_left < 250:
+            res[i, 0] = 75
+            res[i, 1] = inter_left
+        elif alpha_right >= 0 and inter_right > 50 and inter_right < 250:
+            res[i, 0] = 290
+            res[i, 1] = inter_right
+        else:
+            res[i, 0] = np.nan
+            res[i, 1] = np.nan
+    return res
+
+def calcGazePoint(tracking):
+    return _calcGazePoint(tracking["leftEar"][["x","y"]].values,
+                          tracking["rightEar"][["x","y"]].values)
+
+cdef tuple _gazePoint(cnp.float_t[:,:] intersectionPoints,
+                      cnp.float_t[:] trace
+                      ):
+    cdef cnp.ndarray[cnp.float_t, ndim=2] kde = np.zeros((304,400))
+    cdef cnp.ndarray[cnp.float_t, ndim=2] tracker = np.zeros((304, 400))
+    cdef Py_ssize_t i, N, r, c
+    cdef cnp.float_t radius=1, npNan=np.nan 
+    N = min(intersectionPoints.shape[0], trace.shape[0])
+    for i in range(1,N):
+        if isnan(intersectionPoints[i,0]) or isnan(intersectionPoints[i,1]):
+            continue
+        c = <Py_ssize_t>intersectionPoints[i,0]
+        r = <Py_ssize_t>intersectionPoints[i,1]
+        kde[r, c] += trace[i]
+        tracker[r, c] += 1
+    return kde, tracker
+
+def plotGazePoint(gazePoints, trace, sat=0.5, smoothing=3):
+    de, tracker = _gazePoint(gazePoints, trace)
+    tracker = scipy.ndimage.gaussian_filter(tracker, smoothing)
+    de = scipy.ndimage.gaussian_filter(de, smoothing)
+    de /= tracker * sat
+    de = np.clip(de,-1,1)
+
+    tracker /= tracker.max()*0.00002
+    #absDe = np.abs(de).astype(np.float)
+    colors = plt.cm.RdYlBu_r(de*0.5 + 0.5)
+    colors[:,:,3] = np.clip(tracker, 0, 1)
+    plt.imshow(colors, vmin=-sat, vmax=sat, cmap="RdYlBu_r", interpolation="nearest")
+    plt.axis("off")
