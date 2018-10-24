@@ -201,10 +201,10 @@ class Block:
         while frameNo<totLen:
             res.append((frameNo, "other", "none", -1, -1, -1))
             frameNo += 1
-        res = pd.DataFrame(res, columns=["frameNo", "action", "port", "actionStart", "actionStop", "rewarded"]).set_index("frameNo")
+        res = pd.DataFrame(res, columns=["frameNo", "action", "port", "actionStart", "actionStop", "rewarded"])
         res["actionDuration"] = res.eval("(actionStop - actionStart)")
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
-        return res
+        return res.set_index("frameNo")
 
 def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None, date=None, recording=None):
     '''Generator of all experimental blocks stored in a HDF file.
