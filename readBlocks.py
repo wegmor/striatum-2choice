@@ -6,6 +6,7 @@ pyximport.install()
 from . import findPeaks
 from . import findTrials
 
+
 class Block:
     '''A block is one recording session.'''
     def __init__(self, hdfFile, path):
@@ -99,7 +100,12 @@ class Block:
         return sensorValues
     
     def readTracking(self):
-        return pd.read_hdf(self.hdfFile, self.getPath()+'tracking')
+        tracking = pd.read_hdf(self.hdfFile, self.getPath()+'tracking')
+        if hasEmptyFirstFrame[str(self)]:
+            tracking = tracking.iloc[1:]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        return tracking
 
     def findTrials(self, timeColumn="frameNo", onlyRecording=True):
         '''Use the sensor values to find *trials*, i.e. center port entries optionally followed by 
@@ -227,3 +233,32 @@ def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None
             recOk = recording is None or s.recording == recording or s.recording in recording
             if all((genOk, numOk, datOk, recOk)):
                 yield s
+                
+#I manually checked whether the first frame is an empty one for each video:          
+hasEmptyFirstFrame = {
+    'd1_3517_180404':    False,
+    'd1_3517_180329':    False,
+    'a2a_3241_180405':   True,
+    'a2a_3241_180403':   False,
+    'a2a_3241_180326':   True,
+    'a2a_3242_180330':   False,
+    'a2a_3244_180410':   False,
+    'a2a_3244_180405':   True,
+    'a2a_3244_180330':   True,
+    'a2a_3245_180405':   True,
+    'a2a_3245_180410':   False,
+    'a2a_3245_180403':   False,
+    'oprm1_3323_180409': False,
+    'oprm1_3321_180409': True,
+    'oprm1_3517_180403': True,
+    'oprm1_3582_180404': False,
+    'oprm1_3581_180402': False,
+    'oprm1_3323_180331': False,
+    'oprm1_3321_180331': False,
+    'oprm1_3582_180329': False,
+    'oprm1_3572_180329': False,
+    'oprm1_3572_180403': True,
+    'oprm1_3582_180327': False,
+    'oprm1_3323_180327': False,
+    'oprm1_3321_180327': False
+}
