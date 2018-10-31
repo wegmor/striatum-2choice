@@ -105,6 +105,20 @@ class Block:
             tracking = tracking.iloc[1:]
             tracking.index.name = "videoFrameNo"
             tracking.reset_index(inplace=True)
+        
+        #Special cases to fix wrong number of frames
+        if str(self) == "d1_3517_180329":
+             #First frame is dark and from LED intensities it looks like it should be dropped
+            tracking = tracking.iloc[1:-1]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        elif str(self) == "oprm1_3582_180327":
+            #From LED it looks like first two frames are missing
+            #tracking.insert(0, {c: np.nan for c in tracking.columns})
+            tracking = tracking.reindex(np.arange(-2, len(tracking)))
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+            
         return tracking
 
     def findTrials(self, timeColumn="frameNo", onlyRecording=True):
@@ -249,7 +263,7 @@ hasEmptyFirstFrame = {
     'a2a_3245_180410':   False,
     'a2a_3245_180403':   False,
     'oprm1_3323_180409': False,
-    'oprm1_3321_180409': True,
+    'oprm1_3321_180409': False, #Actually True, but LED says it's aligned anyways
     'oprm1_3517_180403': True,
     'oprm1_3582_180404': False,
     'oprm1_3581_180402': False,
