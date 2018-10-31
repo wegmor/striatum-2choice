@@ -39,9 +39,9 @@ class SchematicIntensityPlot(IntensityPlot):
                            extent=(-5,5,-2.5,2.5), zorder=-100000)
         plt.xlim(-5,5)
         plt.ylim(-2.75,2.5)
-        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
+        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="C1", facecolor="none", lw=2, zorder=-10000)
+        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="C4", facecolor="none", lw=2, zorder=-10000)
+        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="C2", facecolor="none", lw=2, zorder=-10000)
         plt.gca().add_artist(elLeft)
         plt.gca().add_artist(elCenter)
         plt.gca().add_artist(elRight)
@@ -55,6 +55,10 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.arrow(-3.9,1.1,-0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
+        drawWaterDrop(plt.gca(), np.array([-3, -0.5]), 0.3)
+        drawWaterDrop(plt.gca(), np.array([3, -0.5]), 0.3)
+        drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+        drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
     def setDefaultCoordinates(self, block):
@@ -208,6 +212,91 @@ class GazePointPlot(IntensityPlot):
         gazePoint  = trackingGeometryUtils.calcGazePoint(tracking)
         self.setCoordinates(gazePoint.values, mask)
         
+class TimePlot(IntensityPlot):
+    def __init__(self, block=None, smoothing=1.5, positionFilter="x<230"):
+        self.smoothing = smoothing
+        self.canvasSize = (21, 400)
+        if block is not None:
+            self.setDefaultCoordinates(block, positionFilter)
+            
+    def draw(self, trace, saturation=0.5, ax=None, xlabel="Time [minutes]"):
+        IntensityPlot.draw(self, trace, saturation, ax, extent=(0,len(trace),0,20))
+        sns.despine(ax=ax, left=True, bottom=True)
+        plt.xticks(60*20*np.arange(0,61,15), ["%dm"%t for t in np.arange(0,61,15)])
+        plt.yticks((4,16), ("Other area", "Task area"))
+        plt.xlabel(xlabel)
+        plt.axis("auto")
+        #plt.axis("off")
+        
+    def setDefaultCoordinates(self, block, positionFilter):
+        tracking = block.readTracking()
+        headCoordinates = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
+        likelihood = tracking[[("leftEar", "likelihood"),
+                               ("rightEar", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        mask = likelihood.values>0.9
+        xx = np.linspace(0,400,len(mask),endpoint=False)
+        yy = 4.0 + 12.0*headCoordinates.eval(positionFilter).values
+        self.setCoordinates(np.vstack((xx,yy)).T, mask)
+        
+class AllCombinedPlot:
+    def __init__(self, block):
+        self.schematic = SchematicIntensityPlot(block)
+        self.tracking = TrackingIntensityPlot(block)
+        self.bodyDirectionInTask = BodyDirectionPlot(block, positionFilter="x>=230")
+        self.bodyTurnInTask = BodyTurnPlot(block, positionFilter="x>=230")
+        self.headTurnInTask = HeadTurnPlot(block, positionFilter="x>=230")
+        self.gazePointInTask = GazePointPlot(block, positionFilter="x>=230")
+        self.bodyDirectionOutOfTask = BodyDirectionPlot(block, positionFilter="x<230")
+        self.bodyTurnOutOfTask = BodyTurnPlot(block, positionFilter="x<230")
+        self.headTurnOutOfTask = HeadTurnPlot(block, positionFilter="x<230")
+        self.gazePointOutOfTask = GazePointPlot(block, positionFilter="x<230")
+        self.time = TimePlot(block, positionFilter="x<230")
+        
+    def draw(self, trace, title, saturation=0.5, traceLabel="Deconvolved activity [z-score]", fig=None):
+        if fig is None:
+            fig = plt.figure(figsize=(7.5, 7.5))
+        plt.subplot2grid((18,16), ((0,0)), colspan=9, rowspan=8)
+        self.schematic.draw(trace, saturation=saturation)
+        plt.subplot2grid((18,16), ((0,9)), colspan=5, rowspan=8)
+        self.tracking.draw(trace, saturation=saturation)
+
+        plt.subplot2grid((18,16), ((8,1)), colspan=13, rowspan=1)
+        plt.gca().xaxis.set_ticks_position('top')
+        self.time.draw(trace, saturation=saturation, xlabel="")
+        
+        
+        plt.subplot2grid((18,16), ((10,0)), colspan=4, rowspan=4)
+        self.bodyDirectionInTask.draw(trace, saturation=saturation)
+        plt.text(-2,0,"Task area", fontsize=14, rotation="vertical", verticalalignment="center")
+        plt.title("Body\ndirection", fontsize=10, pad=0)
+        plt.subplot2grid((18,16), ((10,4)), colspan=4, rowspan=4)
+        self.bodyTurnInTask.draw(trace, saturation=saturation)
+        plt.title("Body\nrotation", fontsize=10, pad=0)
+        plt.subplot2grid((18,16), ((10,8)), colspan=2, rowspan=4)
+        self.headTurnInTask.draw(trace, saturation=saturation)
+        plt.title("Head\ndirection", fontsize=10, pad=0)
+        plt.subplot2grid((18,16), ((10,10)), colspan=6, rowspan=4)
+        self.gazePointInTask.draw(trace, saturation=saturation)
+        plt.title("Gaze\npoint", fontsize=10, pad=0)
+
+        plt.subplot2grid((18,16), ((14,0)), colspan=4, rowspan=4)
+        self.bodyDirectionOutOfTask.draw(trace, saturation=saturation)
+        plt.text(-2,0,"Other area", fontsize=14, rotation="vertical", verticalalignment="center")
+        plt.subplot2grid((18,16), ((14,4)), colspan=4, rowspan=4)
+        self.bodyTurnOutOfTask.draw(trace, saturation=saturation)
+        plt.subplot2grid((18,16), ((14,8)), colspan=2, rowspan=4)
+        self.headTurnOutOfTask.draw(trace, saturation=saturation)
+        plt.subplot2grid((18,16), ((14,10)), colspan=6, rowspan=4)
+        self.gazePointOutOfTask.draw(trace, saturation=saturation)
+        
+        plt.suptitle(title)
+        plt.tight_layout(w_pad=-1, h_pad=-1, rect=[0,0.075,1,1])
+        cbarAx = fig.add_axes([0.15,0.075,0.7,0.02])
+        cbar = plt.colorbar(cax=cbarAx, orientation="horizontal")
+        cbar.ax.set_xlabel(traceLabel)
+        return fig
+        
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     colors = plt.cm.RdYlBu_r(im*0.5 + 0.5)
@@ -224,9 +313,9 @@ def drawTaskSchematic(density, normalization, saturation=0.5):
     
     plt.xlim(-5,5)
     plt.ylim(-2.75,2.5)
-    elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-    elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-    elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="k", facecolor="none", lw=2, zorder=-10000)
+    elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
+    elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
+    elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
     plt.gca().add_artist(elLeft)
     plt.gca().add_artist(elCenter)
     plt.gca().add_artist(elRight)
@@ -339,3 +428,17 @@ def defaultCanvasSize():
             "bodyDir":   (301, 301),
             "bodyTurn":  (301, 301),
             "gazePoint": (304, 400)}
+
+def drawWaterDrop(ax, coords, size, cross=False):
+    vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
+                         (-0.75,-0.5), (-0.75,-1), (0,-1),
+                         (0.75,-1), (1, -1), (-0.1,1.0)])
+    codes = [matplotlib.path.Path.MOVETO,
+             matplotlib.path.Path.CURVE3,
+             matplotlib.path.Path.CURVE3]+[matplotlib.path.Path.CURVE4]*6
+    path = matplotlib.path.Path(vertices*size + coords[np.newaxis, :], codes)
+    patch = matplotlib.patches.PathPatch(path, facecolor='skyblue', alpha=1.0, lw=2)
+    ax.add_patch(patch)
+    if cross:
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=1)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=1)
