@@ -4,8 +4,10 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import pyximport; pyximport.install()
 import scipy.ndimage
+import skimage.measure
 import matplotlib.backends.backend_pdf
 import PIL
+from deprecated import deprecated
 
 from . import fancyVizUtils, trackingGeometryUtils
 
@@ -296,7 +298,38 @@ class AllCombinedPlot:
         cbar = plt.colorbar(cax=cbarAx, orientation="horizontal")
         cbar.ax.set_xlabel(traceLabel)
         return fig
-        
+
+class RoiPlot:
+    '''
+    Used to plot filled ROIs with colored intensities. Useful for showing the spatial distribution of
+    factor loadings, correlations, coefficients etc.
+    
+    The paths for the ROIs are calculated on object creation, and can then be reused for different
+    colors by repeatingly calling the draw function.
+    '''
+    def __init__(self, block):
+        masks = block.readROIs()
+        self.contours = []
+        for _, mask in masks.iteritems():
+            peak = mask.values.max()
+            contour = skimage.measure.find_contours(mask.values.T, 0.6*peak)[0]
+            self.contours.append(contour)
+    
+    def draw(self, values, saturation, alpha=0.5, colorbar=True, colorLabel=""):
+        clipped = np.clip(values / saturation, -1, 1)
+        colors = plt.cm.RdYlBu_r(clipped*0.5 + 0.5)
+        for contour, color in zip(self.contours, colors):
+            plt.fill(contour[:,0], -contour[:,1], color=color, alpha=alpha, edgecolor="k")
+        plt.axis("equal")
+        plt.axis("off")
+        if colorbar:
+            cbarAx = plt.gcf().add_axes([0.9,0.15,0.02,0.7])
+            cb1 = matplotlib.colorbar.ColorbarBase(cbarAx, cmap=plt.cm.RdYlBu_r,
+                                               norm=matplotlib.colors.Normalize(vmin=-saturation, vmax=saturation),
+                                               orientation='vertical',
+                                               ticks=[-saturation,0,saturation],
+                                               label=colorLabel)    
+    
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     colors = plt.cm.RdYlBu_r(im*0.5 + 0.5)
@@ -307,6 +340,8 @@ def imshowWithAlpha(im, alpha, saturation, **kwargs):
     if "interpolation" not in kwargs: kwargs["interpolation"] = "nearest"
     plt.imshow(colors, **kwargs)
 
+    
+@deprecated(reason="Please use the object-oriented interface instead.")
 def drawTaskSchematic(density, normalization, saturation=0.5):
     imshowWithAlpha(density / normalization, normalization, saturation,
                     origin="lower", extent=(-5,5,-2.5,2.5), zorder=-100000)
@@ -341,6 +376,7 @@ def drawArcArrow(rad, start, stop):
         plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, np.sin(phi[-1])*0.1, -np.cos(phi[-1])*0.1,
               head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         
+@deprecated(reason="Please use the object-oriented interface instead.")        
 def drawHeadDirection(density, normalization, saturation=0.5):
     imshowWithAlpha(density / normalization, normalization, saturation, extent=(0,1.5,-1.5,1.5))
     phi = np.linspace(-0.5*np.pi,0.5*np.pi,100)
@@ -353,7 +389,8 @@ def drawHeadDirection(density, normalization, saturation=0.5):
     plt.plot([0,1],[0,0], 'k--')
     plt.axis("equal")
     plt.axis("off")
-    
+
+@deprecated(reason="Please use the object-oriented interface instead.")
 def drawTracking(density, normalization, saturation=0.5, background=None):
     if isinstance(background, str):
         background = PIL.Image.open(background)
@@ -362,13 +399,15 @@ def drawTracking(density, normalization, saturation=0.5, background=None):
     plt.imshow(background, alpha=0.5)
     imshowWithAlpha(density / normalization, normalization, saturation)
     plt.axis("off")
-
+    
+@deprecated(reason="Please use the object-oriented interface instead.")
 def drawBodyDirection(density, normalization, saturation=0.5):
     imshowWithAlpha(density / normalization, normalization,
                     saturation, extent=(-1.5,1.5,-1.5,1.5))
     plt.axis("off")
     plt.axis("equal")
-
+    
+@deprecated(reason="Please use the object-oriented interface instead.")
 def drawBodyTurn(density, normalization, saturation=0.5):
     imshowWithAlpha(density / normalization, normalization,
                     saturation, extent=(-1.5,1.5,-1.5,1.5))
@@ -376,12 +415,14 @@ def drawBodyTurn(density, normalization, saturation=0.5):
     arcArrow(1 , 0.1, 2)
     plt.axis("off")
     plt.axis("equal")
-
+    
+@deprecated(reason="Please use the object-oriented interface instead.")
 def drawGazePoint(density, normalization, saturation=0.5):
     imshowWithAlpha(density / normalization, normalization, saturation, extent=(-1.5,1.5,-1.5,1.5))
     plt.axis("off")
     plt.axis("equal")
     
+@deprecated(reason="Please use the object-oriented interface instead.")    
 def calculateAllPlotCoordinates(block):
     '''
     Calculate the coordinates in all plot types for each frame.
@@ -420,7 +461,8 @@ def calculateAllPlotCoordinates(block):
     combined["likelihood"] = likelihood
     return combined
 
-
+    
+@deprecated(reason="Please use the object-oriented interface instead.")
 def defaultCanvasSize():
     return {"schematic": (251, 501),
             "tracking":  (304, 400),
