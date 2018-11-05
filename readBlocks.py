@@ -225,6 +225,15 @@ class Block:
         res["actionDuration"] = res.eval("(actionStop - actionStart)")
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
+    
+    def getWallCorners(self):
+        '''Get the coordinates of the wall of the box. No calculatation is performed, values
+        are hard-coded.
+
+        Returns:
+        A list of length 4 with the coordinates (left, bottom, right, top)
+        '''
+        return wallCorners[str(self)]
 
 def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None, date=None, recording=None):
     '''Generator of all experimental blocks stored in a HDF file.
@@ -247,7 +256,8 @@ def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None
             recOk = recording is None or s.recording == recording or s.recording in recording
             if all((genOk, numOk, datOk, recOk)):
                 yield s
-                
+
+
 #I manually checked whether the first frame is an empty one for each video:          
 hasEmptyFirstFrame = {
     'd1_3517_180404':    False,
@@ -275,4 +285,24 @@ hasEmptyFirstFrame = {
     'oprm1_3582_180327': False,
     'oprm1_3323_180327': False,
     'oprm1_3321_180327': False
+}
+
+
+wallCorners = {
+ 'a2a_3241_180326': [88.333, 252.667, 289.66700000000003, 49.667],
+ 'a2a_3241_180403': [94.333, 253.333, 296.0, 48.333],
+ 'a2a_3244_180330': [93.667, 252.667, 295.66700000000003, 48.667],
+ 'a2a_3244_180405': [93.0, 252.667, 294.33299999999997, 48.667],
+ 'a2a_3245_180405': [93.0, 253.333, 293.33299999999997, 48.667],
+ 'a2a_3245_180410': [80.667, 253.667, 280.66700000000003, 49.667],
+ 'd1_3517_180329': [94.333, 252.667, 295.33299999999997, 49.0],
+ 'd1_3517_180404': [94.333, 250.667, 295.0, 47.667],
+ 'oprm1_3321_180327': [100.333, 252.0, 302.33299999999997, 48.667],
+ 'oprm1_3321_180409': [92.667, 252.0, 293.66700000000003, 48.667],
+ 'oprm1_3323_180327': [103.0, 253.0, 304.33299999999997, 48.667],
+ 'oprm1_3323_180409': [104.667, 252.0, 307.33299999999997, 47.333],
+ 'oprm1_3572_180329': [94.0, 252.667, 295.66700000000003, 49.667],
+ 'oprm1_3572_180403': [93.333, 253.667, 296.0, 48.0],
+ 'oprm1_3582_180327': [103.333, 252.667, 304.33299999999997, 48.333],
+ 'oprm1_3582_180329': [93.333, 252.333, 296.0, 49.0]
 }

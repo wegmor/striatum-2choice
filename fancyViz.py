@@ -211,14 +211,16 @@ class GazePointPlot(IntensityPlot):
         mask = likelihood.values>0.9
         if positionFilter is not None:
             mask = np.logical_and(mask, headCoordinates.eval(positionFilter).values)
-        gazePoint  = trackingGeometryUtils.calcGazePoint(tracking)
+        gazePoint  = trackingGeometryUtils.calcGazePoint(tracking, block.getWallCorners())
         self.setCoordinates(gazePoint.values, mask)
         
 class TimePlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=1.5, positionFilter="x<230"):
+    def __init__(self, block=None, smoothing=1.5, positionFilter=None):
         self.smoothing = smoothing
         self.canvasSize = (21, 400)
         if block is not None:
+            if positionFilter is None:
+                positionFilter = "x<{}".format(block.getWallCorners()[2]-70)
             self.setDefaultCoordinates(block, positionFilter)
             
     def draw(self, trace, saturation=0.5, ax=None, xlabel="Time [minutes]"):
@@ -245,15 +247,16 @@ class AllCombinedPlot:
     def __init__(self, block):
         self.schematic = SchematicIntensityPlot(block)
         self.tracking = TrackingIntensityPlot(block)
-        self.bodyDirectionInTask = BodyDirectionPlot(block, positionFilter="x>=230")
-        self.bodyTurnInTask = BodyTurnPlot(block, positionFilter="x>=230")
-        self.headTurnInTask = HeadTurnPlot(block, positionFilter="x>=230")
-        self.gazePointInTask = GazePointPlot(block, positionFilter="x>=230")
-        self.bodyDirectionOutOfTask = BodyDirectionPlot(block, positionFilter="x<230")
-        self.bodyTurnOutOfTask = BodyTurnPlot(block, positionFilter="x<230")
-        self.headTurnOutOfTask = HeadTurnPlot(block, positionFilter="x<230")
-        self.gazePointOutOfTask = GazePointPlot(block, positionFilter="x<230")
-        self.time = TimePlot(block, positionFilter="x<230")
+        taskAreaLimit = block.getWallCorners()[2]-70
+        self.bodyDirectionInTask = BodyDirectionPlot(block, positionFilter="x>={}".format(taskAreaLimit))
+        self.bodyTurnInTask = BodyTurnPlot(block, positionFilter="x>={}".format(taskAreaLimit))
+        self.headTurnInTask = HeadTurnPlot(block, positionFilter="x>={}".format(taskAreaLimit))
+        self.gazePointInTask = GazePointPlot(block, positionFilter="x>={}".format(taskAreaLimit))
+        self.bodyDirectionOutOfTask = BodyDirectionPlot(block, positionFilter="x<{}".format(taskAreaLimit))
+        self.bodyTurnOutOfTask = BodyTurnPlot(block, positionFilter="x<{}".format(taskAreaLimit))
+        self.headTurnOutOfTask = HeadTurnPlot(block, positionFilter="x<{}".format(taskAreaLimit))
+        self.gazePointOutOfTask = GazePointPlot(block, positionFilter="x<{}".format(taskAreaLimit))
+        self.time = TimePlot(block, positionFilter="x<{}".format(taskAreaLimit))
         
     def draw(self, trace, title, saturation=0.5, traceLabel="Deconvolved activity [z-score]", fig=None):
         if fig is None:
