@@ -101,3 +101,35 @@ cpdef cnp.ndarray[cnp.float_t, ndim=2] integerHistogram(cnp.float_t[:,:] coords,
             r = <Py_ssize_t>coords[i,1]
             canvas[r, c] += weights[i]
     return canvas
+
+def returnBoutsCoordinates(returnBouts, sessionLength):
+    '''
+    Given a dataframe with start and stop of each return bout, find the plot coordinates
+    of each frame.
+    
+    Arguments:
+    returnBouts -- A pandas Dataframe with return bouts as given by `findReturnBouts`
+    
+    Returns:
+    A pandas Dataframe with the x and y coordinates in the return-to-task plot for each frame
+    '''
+    cdef cnp.ndarray[cnp.float_t, ndim=2] coords = _returnBoutsCoordinates(
+                                     returnBouts.start.values, returnBouts.stop.values,
+                                     returnBouts.port.values, sessionLength)
+    return pd.DataFrame(coords, columns=["x","y"])
+
+cdef cnp.ndarray[cnp.float_t, ndim=2] _returnBoutsCoordinates(cnp.int_t[:] start, cnp.int_t[:] stop,
+                                                              str[:] port, Py_ssize_t N):
+    cdef Py_ssize_t i, j
+    cdef cnp.float_t duration, progress, x, y
+    cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2))
+    for j in range(start.shape[0]):
+        duration = stop[j] - start[j]
+        for i in range(start[j], stop[j]):
+            progress = (i-start[j]) / duration
+            coordinates[i,0] = progress * 50
+            if port[j]=="L": coordinates[i,1] = 20
+            elif port[j]=="C": coordinates[i,1] = 40
+            elif port[j]=="R": coordinates[i,1] = 60
+    return coordinates
+            

@@ -243,6 +243,31 @@ class TimePlot(IntensityPlot):
         yy = 4.0 + 12.0*headCoordinates.eval(positionFilter).values
         self.setCoordinates(np.vstack((xx,yy)).T, mask)
         
+class ReturnBoutsPlot(IntensityPlot):
+    def __init__(self, block=None, smoothing=2):
+        self.smoothing = smoothing
+        self.canvasSize = (100, 50)
+        if block is not None:
+            self.setDefaultCoordinates(block)
+            
+    def draw(self, trace, saturation=0.5, ax=None):
+        IntensityPlot.draw(self, trace, saturation, ax)
+        sns.despine(ax=ax, left=True, bottom=True)
+        plt.xticks([])
+        plt.yticks((20,40,60), ("Left (%d)" % self.boutCount.loc["L"],
+                                "Center (%d)" % self.boutCount.loc["C"],
+                                "Right (%d)" % self.boutCount.loc["R"]))
+        plt.gca().yaxis.set_ticks_position("right")
+        plt.axis("auto")
+        
+    def setDefaultCoordinates(self, block):
+        tracking = block.readTracking()
+        wallCorners = block.getWallCorners()
+        returnBouts = trackingGeometryUtils.findReturnBouts(tracking, wallCorners)
+        coords = fancyVizUtils.returnBoutsCoordinates(returnBouts, len(tracking))
+        self.boutCount = returnBouts.port.value_counts()
+        self.setCoordinates(coords.values, np.ones(len(tracking), np.bool_))
+        
 class AllCombinedPlot:
     def __init__(self, block):
         self.schematic = SchematicIntensityPlot(block)
@@ -257,43 +282,48 @@ class AllCombinedPlot:
         self.headTurnOutOfTask = HeadTurnPlot(block, positionFilter="x<{}".format(taskAreaLimit))
         self.gazePointOutOfTask = GazePointPlot(block, positionFilter="x<{}".format(taskAreaLimit))
         self.time = TimePlot(block, positionFilter="x<{}".format(taskAreaLimit))
+        self.returnBouts = ReturnBoutsPlot(block)
         
     def draw(self, trace, title, saturation=0.5, traceLabel="Deconvolved activity [z-score]", fig=None):
         if fig is None:
-            fig = plt.figure(figsize=(7.5, 7.5))
-        plt.subplot2grid((18,16), ((0,0)), colspan=9, rowspan=8)
+            fig = plt.figure(figsize=(7.5, 9.5))
+        plt.subplot2grid((20,16), ((0,0)), colspan=9, rowspan=8)
         self.schematic.draw(trace, saturation=saturation)
-        plt.subplot2grid((18,16), ((0,9)), colspan=5, rowspan=8)
+        plt.subplot2grid((20,16), ((0,9)), colspan=5, rowspan=8)
         self.tracking.draw(trace, saturation=saturation)
 
-        plt.subplot2grid((18,16), ((8,1)), colspan=13, rowspan=1)
+        plt.subplot2grid((20,16), ((8,1)), colspan=13, rowspan=1)
         plt.gca().xaxis.set_ticks_position('top')
         self.time.draw(trace, saturation=saturation, xlabel="")
         
         
-        plt.subplot2grid((18,16), ((10,0)), colspan=4, rowspan=4)
+        plt.subplot2grid((20,16), ((10,0)), colspan=4, rowspan=4)
         self.bodyDirectionInTask.draw(trace, saturation=saturation)
         plt.text(-2,0,"Task area", fontsize=14, rotation="vertical", verticalalignment="center")
         plt.title("Body\ndirection", fontsize=10, pad=0)
-        plt.subplot2grid((18,16), ((10,4)), colspan=4, rowspan=4)
+        plt.subplot2grid((20,16), ((10,4)), colspan=4, rowspan=4)
         self.bodyTurnInTask.draw(trace, saturation=saturation)
         plt.title("Body\nrotation", fontsize=10, pad=0)
-        plt.subplot2grid((18,16), ((10,8)), colspan=2, rowspan=4)
+        plt.subplot2grid((20,16), ((10,8)), colspan=2, rowspan=4)
         self.headTurnInTask.draw(trace, saturation=saturation)
         plt.title("Head\ndirection", fontsize=10, pad=0)
-        plt.subplot2grid((18,16), ((10,10)), colspan=6, rowspan=4)
+        plt.subplot2grid((20,16), ((10,10)), colspan=6, rowspan=4)
         self.gazePointInTask.draw(trace, saturation=saturation)
         plt.title("Gaze\npoint", fontsize=10, pad=0)
 
-        plt.subplot2grid((18,16), ((14,0)), colspan=4, rowspan=4)
+        plt.subplot2grid((20,16), ((14,0)), colspan=4, rowspan=4)
         self.bodyDirectionOutOfTask.draw(trace, saturation=saturation)
         plt.text(-2,0,"Other area", fontsize=14, rotation="vertical", verticalalignment="center")
-        plt.subplot2grid((18,16), ((14,4)), colspan=4, rowspan=4)
+        plt.subplot2grid((20,16), ((14,4)), colspan=4, rowspan=4)
         self.bodyTurnOutOfTask.draw(trace, saturation=saturation)
-        plt.subplot2grid((18,16), ((14,8)), colspan=2, rowspan=4)
+        plt.subplot2grid((20,16), ((14,8)), colspan=2, rowspan=4)
         self.headTurnOutOfTask.draw(trace, saturation=saturation)
-        plt.subplot2grid((18,16), ((14,10)), colspan=6, rowspan=4)
+        plt.subplot2grid((20,16), ((14,10)), colspan=6, rowspan=4)
         self.gazePointOutOfTask.draw(trace, saturation=saturation)
+        
+        plt.subplot2grid((20,16), ((18,3)), colspan=8, rowspan=2)
+        self.returnBouts.draw(trace, saturation=saturation)
+        plt.title("Return bouts", fontsize=10, pad=0)
         
         plt.suptitle(title)
         plt.tight_layout(w_pad=-1, h_pad=-1, rect=[0,0.075,1,1])
