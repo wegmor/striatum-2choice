@@ -112,7 +112,7 @@ def findReturnBouts(tracking, wallCorners):
     centerBouts = pd.DataFrame(bouts[::-1], columns=["start", "stop"]).assign(port="C")
     bouts = _findReturnBouts(snout[['x','y']].values, mask, rightWall, 210, rightWall-70)
     rightBouts = pd.DataFrame(bouts[::-1], columns=["start", "stop"]).assign(port="R")
-    return pd.concat([leftBouts, centerBouts, rightBouts])
+    return pd.concat([leftBouts, centerBouts, rightBouts]).astype({"start": np.int, "stop": np.int, "port": str})
 
 def angleDiff(a, b):
     return np.arctan2(np.sin(b-a), np.cos(b-a))

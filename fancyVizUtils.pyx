@@ -4,7 +4,7 @@ cimport libc.math
 import numpy as np
 import pandas as pd
 
-def taskSchematicCoordinates(apf):
+def taskSchematicCoordinates(apf, maxLen=9999999):
     '''
     Converts the list of action taken per frame into coordinates for plotting on top
     of the task schematic. 
@@ -18,7 +18,8 @@ def taskSchematicCoordinates(apf):
     '''
     return pd.DataFrame(_taskSchematicCoordinates(apf.action.values, apf.port.values,
                                                   apf.frameNo.values, apf.actionStart.values,
-                                                  apf.actionStop.values, apf.rewarded.values),
+                                                  apf.actionStop.values, apf.rewarded.values,
+                                                  maxLen),
                         columns=["x","y"], index=apf.index)
 
 cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
@@ -26,7 +27,9 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
                                                                 cnp.int_t[:] frameNo,
                                                                 cnp.int_t[:] actionStart,
                                                                 cnp.int_t[:] actionStop,
-                                                                cnp.float_t[:] rewarded):
+                                                                cnp.float_t[:] rewarded,
+                                                                cnp.int_t maxLen = 9999999
+                                                               ):
     cdef Py_ssize_t i, N = action.shape[0]
     cdef cnp.float_t duration, progress, x, y, normal_x, normal_y
     cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2)) 
@@ -48,6 +51,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
             coordinates[i,1] = y
             
         elif action[i] == "centerToSide":
+            if duration > maxLen: continue
             x = progress * 4.0
             if port[i] == "L": x = -x
             y = 2.0*progress - 1.0
@@ -56,6 +60,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
             coordinates[i,1] = y
             
         elif action[i] == "sideToCenter":
+            if duration > maxLen: continue
             x = 4.0 - progress * 4.0
             if port[i] == "L": x = -x
             y = 2.0*progress - 1.0

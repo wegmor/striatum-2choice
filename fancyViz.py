@@ -63,9 +63,9 @@ class SchematicIntensityPlot(IntensityPlot):
         drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block):
+    def setDefaultCoordinates(self, block, maxLen=20):
         apf = block.calcActionsPerFrame()
-        schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index())*50
+        schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
         self.setCoordinates(schematicCoord.values, np.ones(len(schematicCoord), np.bool_))
@@ -265,7 +265,7 @@ class ReturnBoutsPlot(IntensityPlot):
         wallCorners = block.getWallCorners()
         returnBouts = trackingGeometryUtils.findReturnBouts(tracking, wallCorners)
         coords = fancyVizUtils.returnBoutsCoordinates(returnBouts, len(tracking))
-        self.boutCount = returnBouts.port.value_counts()
+        self.boutCount = returnBouts.port.value_counts().reindex(index=["L", "C", "R"], fill_value=0)
         self.setCoordinates(coords.values, np.ones(len(tracking), np.bool_))
         
 class AllCombinedPlot:
