@@ -137,4 +137,76 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _returnBoutsCoordinates(cnp.int_t[:] start
             elif port[j]=="C": coordinates[i,1] = 40
             elif port[j]=="R": coordinates[i,1] = 60
     return coordinates
-            
+
+def findBlockActions(sensorValues, timeout=40):
+    '''
+    Finds relevant parts of blocks: starts and stops of each trial, end of block by
+    disengaging with the task and by switching to the other side. Start and stop of a
+    trial are measured from the end of the previous trial to the exit of the side port.
+    Non-task episodes are measured from the last exit of either a side port or the center
+    port to the next entry into the center port, and occur when the time outside of any port
+    exceeds `timeout` number of frames. Switches are measured starting from the exit of
+    the side port and endind at the entry of the opposite side port (they thus typically
+    include a center port visit in the middle).
+    
+    Arguments:
+    sensorValues -- A pandas Dataframe containing the infrared beam readings. Can be obtained
+                    by calling `block.readSensorValues()`.
+    timeout -- The longest time the mouse is allowed to go without breaking any infrared beam,
+               in number of frames. Longer absences than this will count as being disengaged.
+    
+    Returns:
+    A pandas Dataframe where each row is one block-relevant action, as described above.
+    '''
+    return pd.DataFrame(_findBlockActions(sensorValues.beamL.values,
+                                         sensorValues.beamC.values,
+                                         sensorValues.beamR.values,
+                                         timeout),
+                        columns=["action", "port", "trialNo", "start", "stop"])
+
+cdef list _findBlockActions(cnp.int_t[:] beamL, cnp.int_t[:] beamC, cnp.int_t[:] beamR,
+                            cnp.int_t timeout=40):
+    cdef Py_ssize_t i=0, j, N=beamL.shape[0]
+    cdef int trialNum=0, currentBlock=0, lastExit=-9999, lastEnd=-9999, nonTask = 1
+    cdef str port="C"
+    cdef list res = list()
+    while i<N:
+        while beamC[i] == 0:
+            i += 1
+            if i>=N: return res
+        if nonTask == 1 or i>= lastExit+timeout:
+            res.append(("nonTask", port, trialNum, lastExit, i))
+            lastEnd = i
+            trialNum = 0
+            nonTask = 0
+            port= "C"
+        while True:
+            if beamC[i] == 1:
+                lastExit = i+1
+            elif beamL[i] == 1:
+                if port == "R":
+                    res.append(("switch", port, trialNum, lastEnd, i))
+                    lastEnd = i
+                    trialNum = 0
+                port = "L"
+                break
+            elif beamR[i] == 1:
+                if port == "L":
+                    res.append(("switch", port, trialNum, lastEnd, i))
+                    lastEnd = i
+                    trialNum = 0
+                port = "R"
+                break
+            elif i >= lastExit+timeout:
+                nonTask = 1
+                break
+            i+= 1
+            if i>=N: return res
+        while i<N and (beamL[i] == 1 or beamR[i] == 1):
+            i += 1
+            lastExit = i
+        if nonTask==0:
+            trialNum += 1
+            res.append(("inBlock", port, trialNum, lastEnd, lastExit))
+            lastEnd = i
+    return res
