@@ -3,6 +3,7 @@ cimport libc.math
 
 import numpy as np
 import pandas as pd
+import scipy.stats
 
 def taskSchematicCoordinates(apf, maxLen=9999999):
     '''
@@ -210,3 +211,54 @@ cdef list _findBlockActions(cnp.int_t[:] beamL, cnp.int_t[:] beamC, cnp.int_t[:]
             res.append(("inBlock", port, trialNum, lastEnd, lastExit))
             lastEnd = i
     return res
+
+cdef _blockActionCoordinates(str[:] action, str[:] port, cnp.int_t[:] trialNo,
+                             cnp.int_t[:] start, cnp.int_t[:] stop, Py_ssize_t N):
+    cdef Py_ssize_t i, j
+    cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2))
+    cdef cnp.float_t[:] geomCdf = scipy.stats.geom.cdf(np.arange(1,100,1), 0.05)
+    cdef cnp.float_t coord_x, coord_y, phi, pi=np.pi
+    for i in range(port.shape[0]):
+        if trialNo[i] > 1:
+            coord_x = 0.5 + 5*0.5*(geomCdf[trialNo[i]-2] + geomCdf[trialNo[i]-1])
+        else:
+            coord_x = 0.5 + 5*0.5*geomCdf[trialNo[i]-1]
+        coord_y = -1
+        if port[i]=="L":
+            coord_y *= -1
+            coord_x *= -1
+        for j in range(start[i], stop[i]):
+            if action[i] == "inBlock":
+                coordinates[j,0] = coord_x
+                coordinates[j,1] = (0.5 + (j-start[i])/(0.0+stop[i]-start[i]))*coord_y
+            elif j<start[i]+20 and action[i] == "nonTask":
+                coordinates[j,0] = coord_x
+                coordinates[j,1] = (1.5 + (j-start[i])/20.0)*coord_y
+            elif action[i] == "switch":
+                phi = pi/2*(j-start[i])/(0.0+stop[i]-start[i])
+                if port[i] == "L":
+                    coordinates[j,0] = (coord_x+0.5     - 1)*libc.math.sin(phi)+0.5
+                    coordinates[j,1] = ((coord_x+0.5)*0.2 - 1)*libc.math.cos(phi)+0.5
+                else:
+                    coordinates[j,0] = (coord_x-0.5     + 1)*libc.math.cos(phi)-0.5
+                    coordinates[j,1] = ((coord_x-0.5)*0.2 + 1)*libc.math.sin(phi)-0.5
+    return coordinates
+
+def blockActionCoordinates(blockActions, numFrames):
+    '''
+    Converts the list of block action into coordinates for plotting on top
+    of the block-level task schematic.
+    
+    Arguments:
+    blockActions -- A pandas Dataframe with the start and stop of every action, as calculated
+                    by fancyViz.findBlockActions()
+    numFrames -- Number of frames in recording
+    
+    Returns:
+    A pandas Dataframe with the x and y coordinates in the block-level schematic for
+    the `numFrames` frames
+    '''
+    return pd.DataFrame(_blockActionCoordinates(blockActions.action.values, blockActions.port.values,
+                                                blockActions.trialNo.values, blockActions.start.values,
+                                                blockActions.stop.values, numFrames),
+                        columns=["x", "y"])

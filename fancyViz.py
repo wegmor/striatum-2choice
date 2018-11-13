@@ -268,6 +268,39 @@ class ReturnBoutsPlot(IntensityPlot):
         self.boutCount = returnBouts.port.value_counts().reindex(index=["L", "C", "R"], fill_value=0)
         self.setCoordinates(coords.values, np.ones(len(tracking), np.bool_))
         
+        
+class BlockActionsIntensityPlot(IntensityPlot):
+    def __init__(self, block=None, smoothing=4):
+        self.smoothing = smoothing
+        self.canvasSize = (251, 501)
+        if block is not None:
+            self.setDefaultCoordinates(block)
+            
+    def draw(self, trace, saturation=0.5 ,ax=None):
+        IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
+                           extent=(-5,5,-2.5,2.5), zorder=-100000)
+        leftRect = matplotlib.patches.Rectangle((-5.5, 0.5), 5, 1, fill=False)#, alpha=.5)
+        rightRect = matplotlib.patches.Rectangle((0.5, -1.5), 5, 1, fill=False)#, alpha=.5)
+        plt.gca().add_artist(leftRect)
+        plt.gca().add_artist(rightRect)
+        plt.vlines(0.5+5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),-1.5,-0.5, lw=0.5, alpha=0.5)
+        plt.vlines(-0.5-5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),0.5, 1.5, lw=0.5, alpha=0.5)
+        plt.axis("off")
+        phi = np.linspace(0,np.pi/2,100)
+        for i in (0,5):
+            plt.plot((i+1)*np.cos(phi)-0.5, (i*0.2+1)*np.sin(phi)-0.5, 'k', lw=0.5)
+            plt.plot((i+1)*-np.sin(phi)+0.5, (i*0.2+1)*-np.cos(phi)+0.5, 'k', lw=0.5)
+        plt.axis("equal")
+        
+    def setDefaultCoordinates(self, block):
+        sensorValues = block.readSensorValues()
+        blockActions = fancyVizUtils.findBlockActions(sensorValues, timeout=40)
+        blockCoord = 50*fancyVizUtils.blockActionCoordinates(blockActions,
+                                                                 len(sensorValues))
+        blockCoord.x += 250
+        blockCoord.y += 125
+        self.setCoordinates(blockCoord.values, np.ones(len(blockCoord), np.bool_))
+        
 class AllCombinedPlot:
     def __init__(self, block):
         self.schematic = SchematicIntensityPlot(block)
