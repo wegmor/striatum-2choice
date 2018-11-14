@@ -272,19 +272,19 @@ class ReturnBoutsPlot(IntensityPlot):
 class BlockActionsIntensityPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=4):
         self.smoothing = smoothing
-        self.canvasSize = (251, 501)
+        self.canvasSize = (251, 601)
         if block is not None:
             self.setDefaultCoordinates(block)
             
     def draw(self, trace, saturation=0.5 ,ax=None):
         IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
-                           extent=(-5,5,-2.5,2.5), zorder=-100000)
+                           extent=(-6,6,-2.5,2.5), zorder=-100000)
         leftRect = matplotlib.patches.Rectangle((-5.5, 0.5), 5, 1, fill=False)#, alpha=.5)
         rightRect = matplotlib.patches.Rectangle((0.5, -1.5), 5, 1, fill=False)#, alpha=.5)
         plt.gca().add_artist(leftRect)
         plt.gca().add_artist(rightRect)
-        plt.vlines(0.5+5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),-1.5,-0.5, lw=0.5, alpha=0.5)
-        plt.vlines(-0.5-5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),0.5, 1.5, lw=0.5, alpha=0.5)
+        plt.vlines(0.5+5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),-1.5,-0.5, lw=0.5, alpha=0.25)
+        plt.vlines(-0.5-5*scipy.stats.geom.cdf(np.arange(1,100,1), 0.05),0.5, 1.5, lw=0.5, alpha=0.25)
         plt.axis("off")
         phi = np.linspace(0,np.pi/2,100)
         for i in (0,5):
@@ -297,7 +297,7 @@ class BlockActionsIntensityPlot(IntensityPlot):
         blockActions = fancyVizUtils.findBlockActions(sensorValues, timeout=40)
         blockCoord = 50*fancyVizUtils.blockActionCoordinates(blockActions,
                                                                  len(sensorValues))
-        blockCoord.x += 250
+        blockCoord.x += 300
         blockCoord.y += 125
         self.setCoordinates(blockCoord.values, np.ones(len(blockCoord), np.bool_))
         
