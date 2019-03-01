@@ -36,31 +36,32 @@ class SchematicIntensityPlot(IntensityPlot):
         if block is not None:
             self.setDefaultCoordinates(block)
             
-    def draw(self, trace, saturation=0.5 ,ax=None):
+    def draw(self, trace, saturation=0.5 ,ax=None, lw=2, waterDrop=True):
         IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
                            extent=(-5,5,-2.5,2.5), zorder=-100000)
         plt.xlim(-5,5)
         plt.ylim(-2.75,2.5)
-        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="C1", facecolor="none", lw=2, zorder=-10000)
-        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="C4", facecolor="none", lw=2, zorder=-10000)
-        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="C2", facecolor="none", lw=2, zorder=-10000)
+        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="C1", facecolor="none", lw=lw, zorder=-10000)
+        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="C4", facecolor="none", lw=lw, zorder=-10000)
+        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="C2", facecolor="none", lw=lw, zorder=-10000)
         plt.gca().add_artist(elLeft)
         plt.gca().add_artist(elCenter)
         plt.gca().add_artist(elRight)
         xx = np.linspace(-1,1)
         yy = 1-xx*xx
-        plt.plot(xx*2+2,yy+1,'k', lw=2, zorder=-10000)
-        plt.plot(xx*-2-2,yy+1,'k', lw=2, zorder=-10000)
-        plt.plot(xx*2+2,-yy-1,'k', lw=2, zorder=-10000)
-        plt.plot(xx*-2-2,-yy-1,'k', lw=2, zorder=-10000)
+        plt.plot(xx*2+2,yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*-2-2,yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*2+2,-yy-1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*-2-2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.arrow(3.9,1.1,0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(-3.9,1.1,-0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        drawWaterDrop(plt.gca(), np.array([-3, -0.5]), 0.3)
-        drawWaterDrop(plt.gca(), np.array([3, -0.5]), 0.3)
-        drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
-        drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+        if waterDrop:
+            drawWaterDrop(plt.gca(), np.array([-3, -0.5]), 0.3)
+            drawWaterDrop(plt.gca(), np.array([3, -0.5]), 0.3)
+            drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+            drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
     def setDefaultCoordinates(self, block, maxLen=20):
@@ -270,7 +271,7 @@ class ReturnBoutsPlot(IntensityPlot):
         
         
 class BlockActionsIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=4):
+    def __init__(self, block=None, smoothing=1.5):
         self.smoothing = smoothing
         self.canvasSize = (251, 601)
         if block is not None:
@@ -316,50 +317,53 @@ class AllCombinedPlot:
         self.gazePointOutOfTask = GazePointPlot(block, positionFilter="x<{}".format(taskAreaLimit))
         self.time = TimePlot(block, positionFilter="x<{}".format(taskAreaLimit))
         self.returnBouts = ReturnBoutsPlot(block)
+        self.blockActions = BlockActionsIntensityPlot(block)
         
     def draw(self, trace, title, saturation=0.5, traceLabel="Deconvolved activity [z-score]", fig=None):
         if fig is None:
             fig = plt.figure(figsize=(7.5, 9.5))
-        plt.subplot2grid((20,16), ((0,0)), colspan=9, rowspan=8)
+            
+        plt.subplot2grid((24,16), ((0,0)), colspan=8, rowspan=6)
         self.schematic.draw(trace, saturation=saturation)
-        plt.subplot2grid((20,16), ((0,9)), colspan=5, rowspan=8)
+        plt.subplot2grid((24,16), ((0,8)), colspan=8, rowspan=6)
+        self.blockActions.draw(trace, saturation=saturation)
+        
+        plt.subplot2grid((24,16), ((7,1)), colspan=7, rowspan=3)
+        self.returnBouts.draw(trace, saturation=saturation)
+        plt.title("Return bouts", fontsize=10, pad=0)
+        plt.subplot2grid((24,16), ((6,10)), colspan=6, rowspan=4)
         self.tracking.draw(trace, saturation=saturation)
 
-        plt.subplot2grid((20,16), ((8,1)), colspan=13, rowspan=1)
+        plt.subplot2grid((24,16), ((11,1)), colspan=14, rowspan=1)
         plt.gca().xaxis.set_ticks_position('top')
         self.time.draw(trace, saturation=saturation, xlabel="")
         
-        
-        plt.subplot2grid((20,16), ((10,0)), colspan=4, rowspan=4)
+        plt.subplot2grid((24,16), ((13,0)), colspan=4, rowspan=5)
         self.bodyDirectionInTask.draw(trace, saturation=saturation)
         plt.text(-2,0,"Task area", fontsize=14, rotation="vertical", verticalalignment="center")
         plt.title("Body\ndirection", fontsize=10, pad=0)
-        plt.subplot2grid((20,16), ((10,4)), colspan=4, rowspan=4)
+        plt.subplot2grid((24,16), ((13,4)), colspan=4, rowspan=5)
         self.bodyTurnInTask.draw(trace, saturation=saturation)
         plt.title("Body\nrotation", fontsize=10, pad=0)
-        plt.subplot2grid((20,16), ((10,8)), colspan=2, rowspan=4)
+        plt.subplot2grid((24,16), ((13,8)), colspan=2, rowspan=5)
         self.headTurnInTask.draw(trace, saturation=saturation)
         plt.title("Head\ndirection", fontsize=10, pad=0)
-        plt.subplot2grid((20,16), ((10,10)), colspan=6, rowspan=4)
+        plt.subplot2grid((24,16), ((13,10)), colspan=6, rowspan=5)
         self.gazePointInTask.draw(trace, saturation=saturation)
         plt.title("Gaze\npoint", fontsize=10, pad=0)
 
-        plt.subplot2grid((20,16), ((14,0)), colspan=4, rowspan=4)
+        plt.subplot2grid((24,16), ((18,0)), colspan=4, rowspan=5)
         self.bodyDirectionOutOfTask.draw(trace, saturation=saturation)
         plt.text(-2,0,"Other area", fontsize=14, rotation="vertical", verticalalignment="center")
-        plt.subplot2grid((20,16), ((14,4)), colspan=4, rowspan=4)
+        plt.subplot2grid((24,16), ((18,4)), colspan=4, rowspan=5)
         self.bodyTurnOutOfTask.draw(trace, saturation=saturation)
-        plt.subplot2grid((20,16), ((14,8)), colspan=2, rowspan=4)
+        plt.subplot2grid((24,16), ((18,8)), colspan=2, rowspan=5)
         self.headTurnOutOfTask.draw(trace, saturation=saturation)
-        plt.subplot2grid((20,16), ((14,10)), colspan=6, rowspan=4)
+        plt.subplot2grid((24,16), ((18,10)), colspan=6, rowspan=5)
         self.gazePointOutOfTask.draw(trace, saturation=saturation)
         
-        plt.subplot2grid((20,16), ((18,3)), colspan=8, rowspan=2)
-        self.returnBouts.draw(trace, saturation=saturation)
-        plt.title("Return bouts", fontsize=10, pad=0)
-        
         plt.suptitle(title)
-        plt.tight_layout(w_pad=-1, h_pad=-1, rect=[0,0.075,1,1])
+        plt.tight_layout(w_pad=-1, h_pad=-1, rect=[0.02,0.075,1,0.98])
         cbarAx = fig.add_axes([0.15,0.075,0.7,0.02])
         cbar = plt.colorbar(cax=cbarAx, orientation="horizontal")
         cbar.ax.set_xlabel(traceLabel)
@@ -373,12 +377,12 @@ class RoiPlot:
     The paths for the ROIs are calculated on object creation, and can then be reused for different
     colors by repeatingly calling the draw function.
     '''
-    def __init__(self, block):
+    def __init__(self, block, peakFrac=0.6):
         masks = block.readROIs()
         self.contours = []
         for _, mask in masks.iteritems():
             peak = mask.values.max()
-            contour = skimage.measure.find_contours(mask.values.T, 0.6*peak)[0]
+            contour = skimage.measure.find_contours(mask.values.T, peakFrac*peak)[0]
             self.contours.append(contour)
     
     def draw(self, values, saturation, alpha=0.5, colorbar=True, colorLabel=""):
@@ -389,7 +393,7 @@ class RoiPlot:
         plt.axis("equal")
         plt.axis("off")
         if colorbar:
-            cbarAx = plt.gcf().add_axes([0.9,0.15,0.02,0.7])
+            cbarAx = plt.gcf().add_axes([0.8,0.15,0.02,0.7])
             cb1 = matplotlib.colorbar.ColorbarBase(cbarAx, cmap=plt.cm.RdYlBu_r,
                                                norm=matplotlib.colors.Normalize(vmin=-saturation, vmax=saturation),
                                                orientation='vertical',

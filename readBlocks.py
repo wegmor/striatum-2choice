@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
+from deprecated import deprecated
 
 import pyximport
 pyximport.install()
 from . import findPeaks
 from . import findTrials
-
 
 class Block:
     '''A block is one recording session.'''
@@ -235,6 +235,7 @@ class Block:
         '''
         return wallCorners[str(self)]
 
+@deprecated(reason="There is a newer version of the HDF files. See readSessions().")
 def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None, date=None, recording=None):
     '''Generator of all experimental blocks stored in a HDF file.
     
@@ -247,9 +248,11 @@ def findBlocks(hdfFile, onlyRecordedTrials=True, genotype=None, mouseNumber=None
     >>     print b.genotype, b.mouseNumber, b.readROIs().shape
     '''
     store = pd.HDFStore(hdfFile)
+    allKeys = set(store.keys())
     for k in store.keys():
         if k.endswith('/caTraces' if onlyRecordedTrials else '/sensors'):
             s = Block(store, k if onlyRecordedTrials else k[:-7]+'None/None')
+            s.is2choice = s.getPath()+"sensors" in allKeys
             genOk = genotype is None or s.genotype == genotype or s.genotype in genotype
             numOk = mouseNumber is None or s.mouseNumber == str(mouseNumber) or s.mouseNumber in map(str, mouseNumber)
             datOk = date is None or s.date == date or s.date in date

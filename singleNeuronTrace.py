@@ -24,10 +24,10 @@ def plotPortEntries(beams, **kwargs):
     for pe in portEntries.itertuples():
         plt.axvspan(pe.start/20.0, pe.stop/20.0, **kwargs)
 
-def plotSingleNeuron(trace, sensorValues, offset=0, timePerRow=60, nRows=15, title=None, filename=None):
+def plotSingleNeuron(trace, sensorValues, offset=0, timePerRow=60, nRows=15, title=None, filename=None, heightPerRow=0.3):
     sensorValues = sensorValues.set_index("frameNo").sort_index()
     rewardTimes, = np.nonzero(sensorValues.rewardNo.diff().dropna())
-    fig = plt.figure(figsize=(7.5,2.5+nRows*0.3))
+    fig = plt.figure(figsize=(7.5,2.5+nRows*heightPerRow))
     for i in range(nRows):
         plt.subplot(nRows,1,i+1)
         sl = slice(offset*20 + i*20*timePerRow, offset*20 + (i+1)*20*timePerRow)
