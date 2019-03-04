@@ -26,13 +26,16 @@ class Session:
     
     def readTraces(self, kind="caTraces", fillDropped=True):
         recordings = []
-        for rec in self.meta.caRecordings:
+        for rec in sorted(self.meta.caRecordings):
             recData = pd.read_hdf(self.hdfFile, "/caRecordings/{}/{}".format(rec, kind))
             if fillDropped:
                 completeIndex = np.arange(recData.index.min(), recData.index.max()+0.025, 0.05)
                 recData = recData.reindex(completeIndex, method="nearest", tolerance=1e-3)
             recordings.append(recData)
-        return pd.concat(recordings)
+        recData = pd.concat(recordings)
+        if str(self) in cutTracesShort:
+            recData = recData.iloc[:-cutTracesShort[str(self)]]
+        return recData
     
     def readCaTraces(self, fillDropped=True):
         '''Read all calcium traces from this session.
@@ -86,11 +89,15 @@ class Session:
         
         if onlyRecording:
             sensorValues = sensorValues[sensorValues.frameNo > 0].drop_duplicates("frameNo")
+            if str(self) in cutSensorsShort:
+                sensorValues = sensorValues.iloc[:-cutSensorsShort[str(self)]]
+            
             #First and last frame are sometimes wrong (longer than 50 ms). In that case, throw them.
             if sensorValues.iloc[0].time < sensorValues.iloc[1].time-55:
                 sensorValues = sensorValues[1:]
             if sensorValues.iloc[-2].time < sensorValues.iloc[-1].time-55:
                 sensorValues = sensorValues[:-1]
+            
         
         if reindexFrameNo:
             sensorValues.frameNo -= sensorValues.frameNo.iloc[0]
@@ -158,6 +165,29 @@ class Session:
         res["actionDuration"] = res.eval("(actionStop - actionStart)")
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
+    
+    def readTracking(self):
+        tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
+        if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
+            tracking = tracking.iloc[1:]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        
+        #Special cases to fix wrong number of frames
+        if str(self) == "d1_3517_180329":
+             #First frame is dark and from LED intensities it looks like it should be dropped
+            tracking = tracking.iloc[1:-1]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        elif str(self) == "oprm1_3582_180327":
+            #From LED it looks like first two frames are missing
+            #tracking.insert(0, {c: np.nan for c in tracking.columns})
+            tracking = tracking.reindex(np.arange(-2, len(tracking)))
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        if str(self) in cutTrackingShort:
+            tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
+        return tracking
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, **filters):
     store = pd.HDFStore(hdfFile)
@@ -175,3 +205,47 @@ def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, **filters):
     for sessionMeta in meta.itertuples():
         if onlyRecordedTrials and not sessionMeta.caRecordings: continue
         yield Session(store, sessionMeta)
+    store.close()
+    
+hasEmptyFirstFrame = {
+    'd1_3517_180404':    False,
+    'd1_3517_180329':    False,
+    'a2a_3241_180405':   True,
+    'a2a_3241_180403':   False,
+    'a2a_3241_180326':   True,
+    'a2a_3242_180330':   False,
+    'a2a_3244_180410':   False,
+    'a2a_3244_180405':   True,
+    'a2a_3244_180330':   True,
+    'a2a_3245_180405':   True,
+    'a2a_3245_180410':   False,
+    'a2a_3245_180403':   False,
+    'oprm1_3323_180409': False,
+    'oprm1_3321_180409': False, #Actually True, but LED says it's aligned anyways
+    'oprm1_3517_180403': True,
+    'oprm1_3582_180404': False,
+    'oprm1_3581_180402': False,
+    'oprm1_3323_180331': False,
+    'oprm1_3321_180331': False,
+    'oprm1_3582_180329': False,
+    'oprm1_3572_180329': False,
+    'oprm1_3572_180403': True,
+    'oprm1_3582_180327': False,
+    'oprm1_3323_180327': False,
+    'oprm1_3321_180327': False
+}
+
+cutSensorsShort = {
+    'd1_5652_190203': 5,
+    'd1_5643_190114': 5,
+    'a2a_6043_190126': 84
+}
+
+cutTracesShort = {
+    'a2a_6043_190126': 84,
+    'oprm1_5308_190205': 88
+}
+
+cutTrackingShort = {
+    'a2a_6043_190126': 84
+}
