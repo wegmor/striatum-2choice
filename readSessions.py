@@ -168,7 +168,13 @@ class Session:
     
     def labelFrameActions(self, sensorValues=None):
         def labelFrame(f):
-            label = '{}{}2{}'.format('p' if f.inPort else 'm', f.prevPortEntry, f.nextPortEntry)
+            if f.inPort:
+                status = 'p'
+            elif f.actionDuration > 30:
+                status = 'u'
+            else:
+                status = 'm'
+            label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
             if f.prevPortEntry != 'C':
                 label += 'r' if f.prevEntryRew else 'o'
             return(label)
@@ -177,6 +183,12 @@ class Session:
             sensorValues = self.readSensorValues()
 
         apf = sensorValues[['beamL','beamC','beamR','rewardNo']].copy()
+        apf['actionNo'] = apf[['beamL','beamC','beamR']].diff().abs().max(axis=1).cumsum().fillna(0)
+        actionDuration = apf.groupby('actionNo').size()
+        apf['actionProgress'] = np.concatenate([np.arange(d)/d for d
+                                                               in actionDuration.values])
+        apf = apf.merge(pd.DataFrame(actionDuration, columns=['actionDuration']).reset_index(),
+                        on='actionNo')
         apf['portEntry'] = (apf[['beamL','beamC','beamR']].diff() * np.array([1,2,3])).max(axis=1)
         apf['prevPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='ffill')
         apf['nextPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='bfill').shift(-1)
@@ -189,11 +201,8 @@ class Session:
         apf['prevEntryRew'] = apf.sideEntryCum.isin(rewSideEntries).astype('int')
         apf['inPort'] = apf[['beamL','beamC','beamR']].max(axis=1)
         apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
-        apf['actionNo'] = (apf.label.cat.codes.diff() != 0).astype('int').cumsum()
-        apf['actionProgress'] = np.concatenate([np.arange(d)/d for d
-                                                    in apf.groupby('actionNo').size().values])
 
-        return apf[['label','actionNo','actionProgress']]
+        return apf[['label','actionNo','actionProgress','actionDuration']]
 
     def readTracking(self):
         tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
