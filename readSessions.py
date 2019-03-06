@@ -138,8 +138,8 @@ class Session:
         res = []
         if trials is None:
             trials = self.findTrials()
-        trials["previousRewarded"] = trials.reward.shift(-1)
-        if trials.exitPrevious.iloc[0] > 50000: trials.exitPrevious.iloc[0] = -1
+        trials["previousRewarded"] = trials.reward.shift(1)
+        if trials.exitPrevious.iloc[0] > 30000: trials.exitPrevious.iloc[0] = -1
         for t in trials.itertuples():
             while frameNo<t.exitPrevious:
                 res.append((frameNo, "other", "none", -1, -1, t.previousRewarded))
