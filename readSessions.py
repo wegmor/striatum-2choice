@@ -166,6 +166,44 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
+    def labelFrameActions(self, sensorValues=None):
+        def labelFrame(f):
+            if f.inPort:
+                status = 'p'
+            elif f.actionDuration > 30:
+                status = 'u'
+            else:
+                status = 'm'
+            label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
+            if f.prevPortEntry != 'C':
+                label += 'r' if f.prevEntryRew else 'o'
+            return(label)
+
+        if sensorValues is None:
+            sensorValues = self.readSensorValues()
+
+        apf = sensorValues[['beamL','beamC','beamR','rewardNo']].copy()
+        apf['actionNo'] = apf[['beamL','beamC','beamR']].diff().abs().max(axis=1).cumsum().fillna(0)
+        actionDuration = apf.groupby('actionNo').size()
+        apf['actionProgress'] = np.concatenate([np.arange(d)/d for d
+                                                               in actionDuration.values])
+        apf = apf.merge(pd.DataFrame(actionDuration, columns=['actionDuration']).reset_index(),
+                        on='actionNo')
+        apf['portEntry'] = (apf[['beamL','beamC','beamR']].diff() * np.array([1,2,3])).max(axis=1)
+        apf['prevPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='ffill')
+        apf['nextPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='bfill').shift(-1)
+        apf['prevPortEntry'] = apf.prevPortEntry.replace({1: 'L', 2: 'C', 3: 'R', np.nan: '-'})
+        apf['nextPortEntry'] = apf.nextPortEntry.replace({1: 'L', 2: 'C', 3:'R', np.nan: '-'})
+        apf['reward'] = (apf.rewardNo.diff() > 0).astype('int')
+        apf['sideEntryCum'] = (apf[['beamL','beamR']].max(axis=1).diff() == 1).astype('int').cumsum()
+        rewSideEntries = (apf.sideEntryCum * apf.reward).unique()
+        rewSideEntries = rewSideEntries[rewSideEntries > 0]
+        apf['prevEntryRew'] = apf.sideEntryCum.isin(rewSideEntries).astype('int')
+        apf['inPort'] = apf[['beamL','beamC','beamR']].max(axis=1)
+        apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
+
+        return apf[['label','actionNo','actionProgress','actionDuration']]
+
     def readTracking(self):
         tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
         if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
