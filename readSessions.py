@@ -21,7 +21,7 @@ class Session:
         Returns:
         A Pandas panel with all the ROIs stacked on the item axis        
         '''
-        path = "/rois/{}/{}/{}".format(genotype, animal, date)
+        path = "/rois/{}/{}/{}".format(self.meta.genotype, self.meta.animal, self.meta.date)
         return pd.read_hdf(self.hdfFile, path)
     
     def readTraces(self, kind="caTraces", fillDropped=True):
