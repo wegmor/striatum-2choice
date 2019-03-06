@@ -69,18 +69,27 @@ class SchematicIntensityPlot(IntensityPlot):
         schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
-        self.setCoordinates(schematicCoord.values, np.ones(len(schematicCoord), np.bool_))
+        #mask = np.ones(len(schematicCoord), np.bool_)
+        #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
+        mask = np.logical_not(block.readDeconvolvedTraces().isna().any(axis=1).values)
+        self.setCoordinates(schematicCoord.values, mask)
         
 class TrackingIntensityPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=5, background="/home/emil/2choice/boxBackground.png"):
         self.smoothing = smoothing
         self.canvasSize = (304, 400)
+        
+        if block is not None and block.meta.cohort=="2019":
+            self.canvasSize = (750, 872)
+            background = "/home/emil/2choice/boxBackgroundHighRes.png"
+            
         if isinstance(background, str):
             self.background = PIL.Image.open(background)
         elif isinstance(background, PIL.Image):
             self.background = background
         else:
             raise ValueError("Unknown background format")
+            
         if block is not None:
             self.setDefaultCoordinates(block)
             
@@ -549,8 +558,8 @@ def drawWaterDrop(ax, coords, size, cross=False):
              matplotlib.path.Path.CURVE3,
              matplotlib.path.Path.CURVE3]+[matplotlib.path.Path.CURVE4]*6
     path = matplotlib.path.Path(vertices*size + coords[np.newaxis, :], codes)
-    patch = matplotlib.patches.PathPatch(path, facecolor='skyblue', alpha=1.0, lw=2)
+    patch = matplotlib.patches.PathPatch(path, facecolor='skyblue', alpha=1.0, lw=0, transform=ax.transData)
     ax.add_patch(patch)
     if cross:
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=1)
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=1)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=0.75)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=0.75)
