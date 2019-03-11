@@ -262,3 +262,69 @@ def blockActionCoordinates(blockActions, numFrames):
                                                 blockActions.trialNo.values, blockActions.start.values,
                                                 blockActions.stop.values, numFrames),
                         columns=["x", "y"])
+
+def taskSchematicCoordinatesFrameLabels(labelPerFrame):
+    '''
+    Similar to taskSchematicCoordinates but for the labels given by labelFrameActions instead
+    of calcActionsPerFrame
+    
+    Returns:
+    A pandas Dataframe with the x and y coordinates in the schematic for each frame
+    '''
+    return pd.DataFrame(_taskSchematicCoordinatesFrameLabels(labelPerFrame.label.astype("str").values,
+                                                             labelPerFrame.actionProgress.values),
+                        columns=["x","y"], index=labelPerFrame.index)
+
+cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:] label,
+                                                                cnp.float_t[:] actionProgress):
+    cdef Py_ssize_t i, N = label.shape[0]
+    cdef cnp.float_t x, y, normal_x, normal_y, normal_len, progress
+    cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2)) 
+    cdef str port
+    for i in range(N):
+        progress = actionProgress[i]
+        if label[i][0] == "p":
+            port = label[i][1]
+            if port == "L": x = -4
+            elif port == "C": x = 0
+            elif port == "R": x = 4
+            
+            if port != "C":
+                if label[i][4]=='r': x *= 0.92
+                else: x *= 1.08
+            y = 1.0 - 2.0*progress
+            if port == "C": y = -y
+            coordinates[i,0] = x
+            coordinates[i,1] = y
+            
+        elif label[i][0] == "m":
+            if label[i][1] == "C":
+                port = label[i][3]
+                if port == "C": continue
+                x = progress * 4.0
+                if port == "L": x = -x
+                y = 2.0*progress - 1.0
+                y = 2 - y*y
+                coordinates[i,0] = x
+                coordinates[i,1] = y
+            
+            elif label[i][3] == "C":
+                port = label[i][1]
+                if port == "C": continue
+                x = 4.0 - progress * 4.0
+                if port == "L": x = -x
+                y = 2.0*progress - 1.0
+                y = -2 + y*y
+                normal_x = 2.0*(2.0*progress - 1.0)
+                normal_y = 4.0
+                normal_len = libc.math.sqrt(normal_x*normal_x + normal_y*normal_y)
+                if port == "L": normal_x = -normal_x
+                if label[i][4] != 'r':
+                    normal_x *= -1
+                    normal_y *= -1
+                x += normal_x / normal_len / 3.0
+                y += normal_y / normal_len / 3.0
+                coordinates[i,0] = x
+                coordinates[i,1] = y
+            
+    return coordinates

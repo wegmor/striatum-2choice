@@ -30,11 +30,11 @@ class IntensityPlot:
         imshowWithAlpha(normedDensity, self.normalization*10, saturation, **kwargs)
         
 class SchematicIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=4):
+    def __init__(self, block=None, smoothing=4, maxLen=20, actionDeinition="apf"):
         self.smoothing = smoothing
         self.canvasSize = (251, 501)
         if block is not None:
-            self.setDefaultCoordinates(block)
+            self.setDefaultCoordinates(block, maxLen, actionDeinition)
             
     def draw(self, trace, saturation=0.5 ,ax=None, lw=2, waterDrop=True):
         IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
@@ -64,9 +64,15 @@ class SchematicIntensityPlot(IntensityPlot):
             drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block, maxLen=20):
-        apf = block.calcActionsPerFrame()
-        schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
+    def setDefaultCoordinates(self, block, maxLen=20, actionDeinition="apf"):
+        if actionDefinition == "apf":
+            apf = block.calcActionsPerFrame()
+            schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
+        elif actionDefinition == "lfa":
+            lfa = block.labelFrameActions()
+            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index())*50
+        else:
+            raise ValueError("Unknown action definition: " + actionDefinition)
         schematicCoord.x += 250
         schematicCoord.y += 125
         #mask = np.ones(len(schematicCoord), np.bool_)
@@ -408,7 +414,19 @@ class RoiPlot:
                                                orientation='vertical',
                                                ticks=[-saturation,0,saturation],
                                                label=colorLabel)    
-    
+
+@deprecated(reason="Use flag in SchematicIntensityPlot instead")
+class SchematicIntensityPlotForFrameLabels(SchematicIntensityPlot):
+    def setDefaultCoordinates(self, block, maxLen=20):
+        apf = block.labelFrameActions()
+        schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(apf.reset_index())*50
+        schematicCoord.x += 250
+        schematicCoord.y += 125
+        #mask = np.ones(len(schematicCoord), np.bool_)
+        #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
+        mask = np.logical_not(block.readDeconvolvedTraces().isna().any(axis=1).values)
+        self.setCoordinates(schematicCoord.values, mask)        
+            
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     colors = plt.cm.RdYlBu_r(im*0.5 + 0.5)
