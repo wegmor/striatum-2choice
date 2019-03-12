@@ -166,7 +166,7 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
-    def labelFrameActions(self, sensorValues=None):
+    def labelFrameActions(self, sensorValues=None, reward=True, switch=False):
         def labelFrame(f):
             if f.inPort:
                 status = 'p'
@@ -175,8 +175,10 @@ class Session:
             else:
                 status = 'm'
             label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
-            if f.prevPortEntry != 'C':
+            if f.prevPortEntry != 'C' and reward:
                 label += 'r' if f.prevEntryRew else 'o'
+            if switch:
+                label += '!' if f.switch else '.'
             return(label)
 
         if sensorValues is None:
@@ -189,11 +191,18 @@ class Session:
                                                                in actionDuration.values])
         apf = apf.merge(pd.DataFrame(actionDuration, columns=['actionDuration']).reset_index(),
                         on='actionNo')
+        
         apf['portEntry'] = (apf[['beamL','beamC','beamR']].diff() * np.array([1,2,3])).max(axis=1)
         apf['prevPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='ffill')
+        apf['prevSidePortEntry'] = apf.portEntry.replace({0: np.nan, 2: np.nan}).fillna(method='ffill')
         apf['nextPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='bfill').shift(-1)
+        apf['nextSidePortEntry'] = apf.portEntry.replace({0: np.nan, 2: np.nan}).fillna(method='bfill').shift(-1)
         apf['prevPortEntry'] = apf.prevPortEntry.replace({1: 'L', 2: 'C', 3: 'R', np.nan: '-'})
-        apf['nextPortEntry'] = apf.nextPortEntry.replace({1: 'L', 2: 'C', 3:'R', np.nan: '-'})
+        apf['prevSidePortEntry'] = apf.prevSidePortEntry.replace({1: 'L', 3: 'R', np.nan: '-'})
+        apf['nextPortEntry'] = apf.nextPortEntry.replace({1: 'L', 2: 'C', 3: 'R', np.nan: '-'})
+        apf['nextSidePortEntry'] = apf.nextSidePortEntry.replace({1: 'L', 3: 'R', np.nan: '-'})
+        apf['switch'] = ((apf.nextSidePortEntry != apf.prevSidePortEntry) &
+                         (apf.nextSidePortEntry != '-') & (apf.prevPortEntry != '=')).astype('int')
         apf['reward'] = (apf.rewardNo.diff() > 0).astype('int')
         apf['sideEntryCum'] = (apf[['beamL','beamR']].max(axis=1).diff() == 1).astype('int').cumsum()
         rewSideEntries = (apf.sideEntryCum * apf.reward).unique()
