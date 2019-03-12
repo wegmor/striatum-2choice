@@ -30,11 +30,11 @@ class IntensityPlot:
         imshowWithAlpha(normedDensity, self.normalization*10, saturation, **kwargs)
         
 class SchematicIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=4, maxLen=20, actionDeinition="apf"):
+    def __init__(self, block=None, smoothing=4, maxLen=20, actionDefinition="apf"):
         self.smoothing = smoothing
         self.canvasSize = (251, 501)
         if block is not None:
-            self.setDefaultCoordinates(block, maxLen, actionDeinition)
+            self.setDefaultCoordinates(block, maxLen, actionDefinition)
             
     def draw(self, trace, saturation=0.5 ,ax=None, lw=2, waterDrop=True):
         IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
@@ -64,7 +64,7 @@ class SchematicIntensityPlot(IntensityPlot):
             drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block, maxLen=20, actionDeinition="apf"):
+    def setDefaultCoordinates(self, block, maxLen=20, actionDefinition="apf"):
         if actionDefinition == "apf":
             apf = block.calcActionsPerFrame()
             schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
@@ -400,20 +400,31 @@ class RoiPlot:
             contour = skimage.measure.find_contours(mask.values.T, peakFrac*peak)[0]
             self.contours.append(contour)
     
-    def draw(self, values, saturation, alpha=0.5, colorbar=True, colorLabel=""):
-        clipped = np.clip(values / saturation, -1, 1)
-        colors = plt.cm.RdYlBu_r(clipped*0.5 + 0.5)
+    def draw(self, values, saturation, alpha=0.5, colorbar=True, colorLabel="", positive=False):
+        if positive:
+            clipped = np.clip(values / saturation, 0, 1)
+            colors = plt.cm.viridis(clipped)
+        else:
+            clipped = np.clip(values / saturation, -1, 1)
+            colors = plt.cm.RdYlBu_r(clipped*0.5 + 0.5)
         for contour, color in zip(self.contours, colors):
             plt.fill(contour[:,0], -contour[:,1], color=color, alpha=alpha, edgecolor="k")
         plt.axis("equal")
         plt.axis("off")
         if colorbar:
             cbarAx = plt.gcf().add_axes([0.8,0.15,0.02,0.7])
-            cb1 = matplotlib.colorbar.ColorbarBase(cbarAx, cmap=plt.cm.RdYlBu_r,
+            if positive:
+                cb1 = matplotlib.colorbar.ColorbarBase(cbarAx, cmap=plt.cm.viridis,
+                                               norm=matplotlib.colors.Normalize(vmin=0, vmax=saturation),
+                                               orientation='vertical',
+                                               ticks=[0, saturation/2.0, saturation],
+                                               label=colorLabel)
+            else:
+                cb1 = matplotlib.colorbar.ColorbarBase(cbarAx, cmap=plt.cm.RdYlBu_r,
                                                norm=matplotlib.colors.Normalize(vmin=-saturation, vmax=saturation),
                                                orientation='vertical',
                                                ticks=[-saturation,0,saturation],
-                                               label=colorLabel)    
+                                               label=colorLabel)
 
 @deprecated(reason="Use flag in SchematicIntensityPlot instead")
 class SchematicIntensityPlotForFrameLabels(SchematicIntensityPlot):
