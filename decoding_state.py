@@ -107,7 +107,7 @@ def decodingWithDifferentNumberOfNeurons(sess, nFolds=5, stepSize=10):
 
     for nNeurons in tqdm.trange(stepSize, deconv.shape[1], stepSize, desc=str(sess)):
         for i in range(nFolds):
-            splitter = sklearn.model_selection.StratifiedKFold(5, shuffle=True)
+            splitter = sklearn.model_selection.StratifiedKFold(nFolds, shuffle=True)
             nStates = len(states.state.cat.categories)
             selectedNeurons = np.random.choice(np.arange(deconv.shape[1]), nNeurons, False)
             signal = avgSig[:, selectedNeurons]
