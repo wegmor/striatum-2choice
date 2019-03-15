@@ -236,7 +236,7 @@ class Session:
             tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
 
-def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, **filters):
+def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
     store = pd.HDFStore(hdfFile)
     queries = []
     for col, val in filters.items():
@@ -253,7 +253,7 @@ def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None
     for sessionMeta in meta.itertuples():
         if onlyRecordedTrials and not sessionMeta.caRecordings: continue
         yield Session(store, sessionMeta)
-    store.close()
+    if closeStore: store.close()
     
 hasEmptyFirstFrame = {
     'd1_3517_180404':    False,
