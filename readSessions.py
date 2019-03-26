@@ -175,7 +175,9 @@ class Session:
             else:
                 status = 'm'
             label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
-            if f.prevPortEntry != 'C' and reward:
+            #if f.prevPortEntry != 'C' and reward:
+            #if reward:
+            if reward and f.prevPortEntry in ['L','R'] and f.inPort:
                 label += 'r' if f.prevEntryRew else 'o'
             if switch:
                 label += '!' if f.switch else '.'
