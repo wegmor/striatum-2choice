@@ -166,7 +166,7 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
-    def labelFrameActions(self, sensorValues=None, reward=True, switch=False):
+    def labelFrameActions(self, sensorValues=None, reward=False, switch=False):
         def labelFrame(f):
             if f.inPort:
                 status = 'p'
@@ -214,6 +214,41 @@ class Session:
         apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
 
         return apf[['label','actionNo','actionProgress','actionDuration']]
+
+    def shuffleFrameLabels(self, n=1, reward=False):
+        frameLabels = self.labelFrameActions(reward=reward, switch=True)
+        frameLabels.index.name = 'frame'
+        
+        actions = frameLabels.reset_index().groupby('actionNo').first()
+        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')
+        switchFrames = actions.loc[switch_idx, 'frame'].values
+        frameLabels.loc[switchFrames, 'switch'] = 1
+        frameLabels['switch'] = frameLabels.switch.fillna(0).cumsum()
+
+        sidx1_orig = frameLabels.switch.unique()[::2]
+        sidx1_shuffle = sidx1_orig.copy()
+        sidx2_orig = frameLabels.switch.unique()[1::2]
+        sidx2_shuffle = sidx2_orig.copy()
+        
+        labels_shuffled = []
+        for _ in range(n):
+            fl_shuffled = frameLabels.copy()
+            np.random.shuffle(sidx1_shuffle)
+            np.random.shuffle(sidx2_shuffle)
+            
+            replace_dict = dict(list(zip(sidx1_orig, sidx1_shuffle)) +
+                                list(zip(sidx2_orig, sidx2_shuffle)))
+            fl_shuffled['switch'] = fl_shuffled.switch.replace(replace_dict)
+            fl_shuffled = fl_shuffled.sort_values(['switch','actionNo','actionProgress'])
+            
+            replace_dict = dict(zip(fl_shuffled.actionNo.unique(),
+                                    np.arange(len(fl_shuffled.actionNo.unique()))))
+            fl_shuffled['actionNo'] = fl_shuffled.actionNo.replace(replace_dict)
+            
+            fl_shuffled.reset_index(drop=True, inplace=True)
+            labels_shuffled.append(fl_shuffled[['actionNo','label']])
+        
+        return(labels_shuffled)
 
     def readTracking(self):
         tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
