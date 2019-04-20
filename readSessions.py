@@ -166,7 +166,7 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
-    def labelFrameActions(self, sensorValues=None, reward=False, switch=False):
+    def labelFrameActions(self, sensorValues=None, reward=False, switch=False, rew_where='all'):
         def labelFrame(f):
             if f.inPort:
                 status = 'p'
@@ -176,9 +176,11 @@ class Session:
                 status = 'm'
             label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
             #if f.prevPortEntry != 'C' and reward:
-            #if reward:
-            if reward and f.prevPortEntry in ['L','R'] and f.inPort:
+            if reward & (rew_where == 'all'):
                 label += 'r' if f.prevEntryRew else 'o'
+            if reward & (rew_where == 'sp only'):
+                if (f.prevPortEntry in ['L','R']) and f.inPort:
+                    label += 'r' if f.prevEntryRew else 'o'
             if switch:
                 label += '!' if f.switch else '.'
             return(label)
@@ -189,10 +191,10 @@ class Session:
         apf = sensorValues[['beamL','beamC','beamR','rewardNo']].copy()
         apf['actionNo'] = apf[['beamL','beamC','beamR']].diff().abs().max(axis=1).cumsum().fillna(0)
         actionDuration = apf.groupby('actionNo').size()
-        apf['actionProgress'] = np.concatenate([np.arange(d)/d for d
-                                                               in actionDuration.values])
+        apf['actionFrame'] = np.concatenate([np.arange(d) for d in actionDuration.values])
         apf = apf.merge(pd.DataFrame(actionDuration, columns=['actionDuration']).reset_index(),
                         on='actionNo')
+        apf['actionProgress'] = apf.actionFrame / apf.actionDuration
         
         apf['portEntry'] = (apf[['beamL','beamC','beamR']].diff() * np.array([1,2,3])).max(axis=1)
         apf['prevPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='ffill')
@@ -213,10 +215,10 @@ class Session:
         apf['inPort'] = apf[['beamL','beamC','beamR']].max(axis=1)
         apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
 
-        return apf[['label','actionNo','actionProgress','actionDuration']]
+        return apf[['label','actionNo','actionFrame','actionDuration','actionProgress']]
 
-    def shuffleFrameLabels(self, n=1, reward=False):
-        frameLabels = self.labelFrameActions(reward=reward, switch=True)
+    def shuffleFrameLabels(self, n=1, switch=True, reward=False, rew_where='all'):
+        frameLabels = self.labelFrameActions(reward=reward, switch=True, rew_where=rew_where)
         frameLabels.index.name = 'frame'
         
         actions = frameLabels.reset_index().groupby('actionNo').first()
@@ -239,14 +241,19 @@ class Session:
             replace_dict = dict(list(zip(sidx1_orig, sidx1_shuffle)) +
                                 list(zip(sidx2_orig, sidx2_shuffle)))
             fl_shuffled['switch'] = fl_shuffled.switch.replace(replace_dict)
-            fl_shuffled = fl_shuffled.sort_values(['switch','actionNo','actionProgress'])
+            fl_shuffled = fl_shuffled.sort_values(['switch','actionNo','actionFrame'])
             
             replace_dict = dict(zip(fl_shuffled.actionNo.unique(),
                                     np.arange(len(fl_shuffled.actionNo.unique()))))
             fl_shuffled['actionNo'] = fl_shuffled.actionNo.replace(replace_dict)
             
-            fl_shuffled.reset_index(drop=True, inplace=True)
-            labels_shuffled.append(fl_shuffled[['actionNo','label']])
+            fl_shuffled = fl_shuffled.reset_index(drop=True).copy()
+            
+            if not switch:
+                fl_shuffled['label']  = fl_shuffled.label.str.slice(0,-1)
+                
+            labels_shuffled.append(fl_shuffled[['label','actionNo','actionFrame',
+                                                'actionDuration','actionProgress']])
         
         return(labels_shuffled)
 
