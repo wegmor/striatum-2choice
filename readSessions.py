@@ -237,7 +237,7 @@ class Session:
         return tracking
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
-    store = pd.HDFStore(hdfFile)
+    store = pd.HDFStore(hdfFile, 'r')
     queries = []
     for col, val in filters.items():
         if isinstance(val, str):
