@@ -263,7 +263,7 @@ def blockActionCoordinates(blockActions, numFrames):
                                                 blockActions.stop.values, numFrames),
                         columns=["x", "y"])
 
-def taskSchematicCoordinatesFrameLabels(labelPerFrame):
+def taskSchematicCoordinatesFrameLabels(labelPerFrame, splitCenter=False):
     '''
     Similar to taskSchematicCoordinates but for the labels given by labelFrameActions instead
     of calcActionsPerFrame
@@ -272,11 +272,12 @@ def taskSchematicCoordinatesFrameLabels(labelPerFrame):
     A pandas Dataframe with the x and y coordinates in the schematic for each frame
     '''
     return pd.DataFrame(_taskSchematicCoordinatesFrameLabels(labelPerFrame.label.astype("str").values,
-                                                             labelPerFrame.actionProgress.values),
+                                                             labelPerFrame.actionProgress.values, splitCenter),
                         columns=["x","y"], index=labelPerFrame.index)
 
 cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:] label,
-                                                                cnp.float_t[:] actionProgress):
+                                                                cnp.float_t[:] actionProgress,
+                                                                bint splitCenter):
     cdef Py_ssize_t i, N = label.shape[0]
     cdef cnp.float_t x, y, normal_x, normal_y, normal_len, progress
     cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2)) 
@@ -288,12 +289,23 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
             if port == "L": x = -4
             elif port == "C": x = 0
             elif port == "R": x = 4
+            else: continue
+                
+            y = 1.0 - 2.0*progress
             
-            if port != "C":
+            if port == "C":
+                y = -y
+                if splitCenter:
+                    if label[i][3] == "L":
+                        x -= 0.32
+                    elif label[i][3] == "R":
+                        x += 0.32
+                    else:
+                        continue
+            else:
                 if label[i][4]=='r': x *= 0.92
                 else: x *= 1.08
-            y = 1.0 - 2.0*progress
-            if port == "C": y = -y
+            
             coordinates[i,0] = x
             coordinates[i,1] = y
             

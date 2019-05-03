@@ -64,13 +64,16 @@ class SchematicIntensityPlot(IntensityPlot):
             drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block, maxLen=20, actionDefinition="apf"):
+    def setDefaultCoordinates(self, block, maxLen=20, actionDefinition="apf", lfa=None):
         if actionDefinition == "apf":
             apf = block.calcActionsPerFrame()
             schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
         elif actionDefinition == "lfa":
-            lfa = block.labelFrameActions()
+            lfa = lfa if lfa is not None else block.labelFrameActions()
             schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index())*50
+        elif actionDefinition == "lfa_split":
+            lfa = lfa if lfa is not None else block.labelFrameActions()
+            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index(), True)*50
         else:
             raise ValueError("Unknown action definition: " + actionDefinition)
         schematicCoord.x += 250
