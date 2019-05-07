@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 
 import pyximport
-pyximport.install()
+pyximport.install(setup_args={'include_dirs': np.get_include()})
 from . import findTrials
 
 class Session:
@@ -167,6 +167,21 @@ class Session:
         return res.set_index("frameNo")
     
     def labelFrameActions(self, sensorValues=None, reward=True, switch=False):
+        '''Assign a string code to every frame, indicating where in the task the mouse currently is.
+    
+        Arguments:
+        sensorValues --- A Pandas Dataframe as given by block.readSensorValues()
+        rewards --- Whether to indicate rewards / omissions in the codes. Can be
+                           True: Include for ports and return movements. "ports": Include only for ports.
+                           False: Never include rewards.
+        switches -- Whether to indicate stay / switch trials. In the output, stays are indicated by "." 
+                    and switches by "!".
+        '''
+        if sensorValues is None:
+            sensorValues = self.readSensorValues()
+        return findTrials.labelFrameActions(sensorValues, reward, switch)
+    
+    def labelFrameActions_old(self, sensorValues=None, reward=True, switch=False):
         def labelFrame(f):
             if f.inPort:
                 status = 'p'
