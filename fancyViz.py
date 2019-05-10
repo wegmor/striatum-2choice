@@ -12,37 +12,49 @@ from deprecated import deprecated
 from . import fancyVizUtils, trackingGeometryUtils
 
 class IntensityPlot:
-    def calculateIntensity(self, trace):
-        trace = np.array(trace).astype(np.float)
-        canvas = fancyVizUtils.integerHistogram(self.coordinates[self.mask],
-                                                trace[self.mask], *self.canvasSize[::-1])
-        return scipy.ndimage.gaussian_filter(canvas, self.smoothing)
-    
-    def setCoordinates(self, coordinates, mask):
-        self.coordinates = coordinates
-        self.mask = mask
-        self.normalization = self.calculateIntensity(np.ones(len(coordinates)))
 
-    def draw(self, trace, saturation=0.5, ax=None, **kwargs):
+    def setMask(self, mask):
+        self.mask = mask
+    
+    def draw(self, trace, saturation, ax):
+        self.clearBuffer()
+        self.addTraceToBuffer(trace)
+        self.drawBuffer(saturation, ax)
+    
+    def addTraceToBuffer(self, trace):
+        trace = np.array(trace).astype(np.float)
+        if len(trace) != len(self.coordinates):
+            raise ValueError("The trace contains {} frames but the coordinates {}".format(len(trace), len(self.coordinates)))
+        fancyVizUtils.integerHistogram(self.coordinates[self.mask], trace[self.mask],
+                                       self.valueCanvas, self.normCanvas)
+    
+    def drawBuffer(self, ax,  **kwargs):
         if ax is not None: plt.sca(ax)
-        density = self.calculateIntensity(trace)
-        normedDensity = np.divide(density, self.normalization,
-                                  out=np.zeros_like(density), where=self.normalization!=0)
-        imshowWithAlpha(normedDensity, self.normalization*10, saturation, **kwargs)
+        values = scipy.ndimage.gaussian_filter(self.valueCanvas, self.smoothing)
+        norm   = scipy.ndimage.gaussian_filter(self.normCanvas, self.smoothing)
+        normalized = np.divide(values, norm, out=np.zeros_like(values), where=norm!=0)
+        self._drawSchema(normalized, norm*10, **kwargs)
+        self.clearBuffer()
         
 class SchematicIntensityPlot(IntensityPlot):
-    def __init__(self, session=None, smoothing=4):
+    
+    def __init__(self, session=None, saturation=1.0, smoothing=4):
         self.smoothing = smoothing
-        self.canvasSize = (251, 501)
-        if session is not None:
-            self.setDefaultCoordinates(session)
-            
-    def draw(self, trace, saturation=1.0 ,ax=None, lw=2, waterDrop=True):
-        IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
-                           extent=(-5,5,-2.5,2.5), zorder=-100000)
+        self.saturation = saturation
+        self.mask = slice(None, None) #No mask, use all values
+        self.clearBuffer()
+        self.setSession(session)
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((251,501), np.float64)
+        self.normCanvas = np.zeros((251,501), np.float64)
+    
+    def _drawSchema(self, im, alpha, ax=None, lw=2, waterDrop=True): #TODO: move params to init
+        imshowWithAplha(self, im, alpha, ax, origin="lower",
+                        extent=(-5,5,-2.5,2.5), zorder=-100000)
         plt.xlim(-5, 5)
         plt.ylim(-2.75, 2.5)
-        r = 0.4
+        r = 0.4 #TODO: move to init
         drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000)
         drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000)
 
@@ -71,15 +83,16 @@ class SchematicIntensityPlot(IntensityPlot):
             drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True, lw=lw)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, session):
+    def setSession(self, session):
         lfa = session.labelFrameActions(reward=True, switch=False)
         schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
+        self.coordinates = schematicCoord.values
         #mask = np.ones(len(schematicCoord), np.bool_)
         #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
-        mask = np.logical_not(session.readDeconvolvedTraces().isna().any(axis=1).values)
-        self.setCoordinates(schematicCoord.values, mask)
+        #mask = np.logical_not(session.readDeconvolvedTraces().isna().any(axis=1).values)
+        #self.setCoordinates(schematicCoord.values, mask)
         
 class TrackingIntensityPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=5, background="/home/emil/2choice/boxBackground.png"):
