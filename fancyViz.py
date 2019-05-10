@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
 import scipy.ndimage
 import skimage.measure
 import matplotlib.backends.backend_pdf
@@ -13,6 +13,7 @@ from . import fancyVizUtils, trackingGeometryUtils
 
 class IntensityPlot:
     def calculateIntensity(self, trace):
+        trace = np.array(trace).astype(np.float)
         canvas = fancyVizUtils.integerHistogram(self.coordinates[self.mask],
                                                 trace[self.mask], *self.canvasSize[::-1])
         return scipy.ndimage.gaussian_filter(canvas, self.smoothing)
@@ -30,27 +31,33 @@ class IntensityPlot:
         imshowWithAlpha(normedDensity, self.normalization*10, saturation, **kwargs)
         
 class SchematicIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=4, maxLen=20, actionDefinition="apf"):
+    def __init__(self, session=None, smoothing=4):
         self.smoothing = smoothing
         self.canvasSize = (251, 501)
-        if block is not None:
-            self.setDefaultCoordinates(block, maxLen, actionDefinition)
+        if session is not None:
+            self.setDefaultCoordinates(session)
             
-    def draw(self, trace, saturation=0.5 ,ax=None, lw=2, waterDrop=True):
+    def draw(self, trace, saturation=1.0 ,ax=None, lw=2, waterDrop=True):
         IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
                            extent=(-5,5,-2.5,2.5), zorder=-100000)
-        plt.xlim(-5,5)
-        plt.ylim(-2.75,2.5)
-        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="C1", facecolor="none", lw=lw, zorder=-10000)
-        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="C4", facecolor="none", lw=lw, zorder=-10000)
-        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="C2", facecolor="none", lw=lw, zorder=-10000)
-        plt.gca().add_artist(elLeft)
-        plt.gca().add_artist(elCenter)
-        plt.gca().add_artist(elRight)
+        plt.xlim(-5, 5)
+        plt.ylim(-2.75, 2.5)
+        r = 0.4
+        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000)
+
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000)
+
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000)
+        
         xx = np.linspace(-1,1)
         yy = 1-xx*xx
-        plt.plot(xx*2+2,yy+1,'k', lw=lw, zorder=-10000)
-        plt.plot(xx*-2-2,yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*1.8+2.2, yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*-1.8-2.2,yy+1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*2+2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*-2-2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.arrow(3.9,1.1,0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
@@ -58,29 +65,20 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         if waterDrop:
-            drawWaterDrop(plt.gca(), np.array([-3, -0.5]), 0.3)
-            drawWaterDrop(plt.gca(), np.array([3, -0.5]), 0.3)
-            drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
-            drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+            drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3, lw=lw)
+            drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3, lw=lw)
+            drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True, lw=lw)
+            drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True, lw=lw)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block, maxLen=20, actionDefinition="apf", lfa=None):
-        if actionDefinition == "apf":
-            apf = block.calcActionsPerFrame()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
-        elif actionDefinition == "lfa":
-            lfa = lfa if lfa is not None else block.labelFrameActions()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index())*50
-        elif actionDefinition == "lfa_split":
-            lfa = lfa if lfa is not None else block.labelFrameActions()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index(), True)*50
-        else:
-            raise ValueError("Unknown action definition: " + actionDefinition)
+    def setDefaultCoordinates(self, session):
+        lfa = session.labelFrameActions(reward=True, switch=False)
+        schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
         #mask = np.ones(len(schematicCoord), np.bool_)
         #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
-        mask = np.logical_not(block.readDeconvolvedTraces().isna().any(axis=1).values)
+        mask = np.logical_not(session.readDeconvolvedTraces().isna().any(axis=1).values)
         self.setCoordinates(schematicCoord.values, mask)
         
 class TrackingIntensityPlot(IntensityPlot):
@@ -582,7 +580,7 @@ def defaultCanvasSize():
             "bodyTurn":  (301, 301),
             "gazePoint": (304, 400)}
 
-def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0):
+def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
                          (-0.75,-0.5), (-0.75,-1), (0,-1),
                          (0.75,-1), (1, -1), (-0.1,1.0)])
@@ -590,9 +588,39 @@ def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0,
              matplotlib.path.Path.CURVE3,
              matplotlib.path.Path.CURVE3]+[matplotlib.path.Path.CURVE4]*6
     path = matplotlib.path.Path(vertices*size + coords[np.newaxis, :], codes)
-    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=lw, transform=ax.transData)
+    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=0, transform=ax.transData)
     ax.add_patch(patch)
     if cross:
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=0.75)
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=0.75)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=lw)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=lw)
     return patch
+
+def drawRoundedRect(ax, position, width, height, radius, **kwargs):
+    h = height
+    w = width
+    pos = np.array(position)
+    if not isinstance(radius, (list, tuple, np.ndarray)):
+        r = radius*np.ones(4)
+    else:
+        r = radius
+    Path = matplotlib.path.Path
+    path_data = [
+        (Path.MOVETO, [0, r[0]]),
+        (Path.LINETO, [0, h-r[1]]),
+        (Path.CURVE3, [0, h]),
+        (Path.CURVE3, [r[1], h]),
+        (Path.LINETO, [w-r[2], h]),
+        (Path.CURVE3, [w, h]),
+        (Path.CURVE3, [w, h-r[2]]),
+        (Path.LINETO, [w, r[3]]),
+        (Path.CURVE3, [w, 0]),
+        (Path.CURVE3, [w-r[3], 0]),
+        (Path.LINETO, [r[0], 0]),
+        (Path.CURVE3, [0, 0]),
+        (Path.CURVE3, [0, r[0]]),
+        (Path.CLOSEPOLY, [0, 0])]
+    codes, verts = zip(*path_data)
+    verts = np.array(verts) + pos[np.newaxis, :]
+    path = Path(verts, codes)
+    patch = matplotlib.patches.PathPatch(path, **kwargs)
+    return ax.add_artist(patch)
