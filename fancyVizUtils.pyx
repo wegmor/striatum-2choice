@@ -80,8 +80,8 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
             
     return coordinates
 
-cpdef cnp.ndarray[cnp.float_t, ndim=2] integerHistogram(cnp.float_t[:,:] coords, cnp.float_t[:] weights,
-                                                        Py_ssize_t width, Py_ssize_t height):
+cpdef void integerHistogram(cnp.float_t[:,:] coords, cnp.float_t[:] weights,
+                            cnp.float_t[:,:] weightCanvas, cnp.float_t[:,:] countCanvas):
     '''
     Given a list of coordinates and a list of weights, bin the weights using the integer part
     of each coordinate.
@@ -90,23 +90,20 @@ cpdef cnp.ndarray[cnp.float_t, ndim=2] integerHistogram(cnp.float_t[:,:] coords,
     coords -- A Nx2 numpy array of coordinates
     weights -- A length N numpy array with the weight of each point. Typically the 
                neural trace.
-    width -- The width of the canvas in pixels
-    height -- The height of the canvas in pixels 
+    weightCanvas -- The buffer to write the sum of the weights to
+    countCanvas  -- The buffer to write the number of non-NaN observations to
     
-    Returns:
-    A numpy array where each element is the sum of the weights with those integer coordinates
     '''
-    cdef cnp.ndarray[cnp.float_t, ndim=2] canvas = np.zeros((height, width))
     cdef Py_ssize_t i, N, r, c
     N = coords.shape[0]
     if weights.shape[0] != N:
         raise ValueError("Coordinates and weights have different lengths.")
     for i in range(0,N):
-        if not libc.math.isnan(coords[i,0]) and not libc.math.isnan(coords[i,1]):
+        if not libc.math.isnan(coords[i,0]) and not libc.math.isnan(coords[i,1]) and not libc.math.isnan(weights[i]):
             c = <Py_ssize_t>coords[i,0]
             r = <Py_ssize_t>coords[i,1]
-            canvas[r, c] += weights[i]
-    return canvas
+            weightCanvas[r, c] += weights[i]
+            countCanvas[r, c] += 1.0
 
 def returnBoutsCoordinates(returnBouts, sessionLength):
     '''
@@ -351,7 +348,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
     cdef str port
     for i in range(N):
         progress = actionProgress[i]
-        normal_x = 2.0*(2.0*progress - 1.0)
+        normal_x = 2.0*(2.0*(progress*0.8 + 0.1) - 1.0)
         normal_y = 4.0
         normal_len = libc.math.sqrt(normal_x*normal_x + normal_y*normal_y)
         if label[i][:4] == "pC2L":
@@ -362,10 +359,10 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
             y = 1.8 * progress - 0.9
         elif label[i] == "pL2C-":
             x = -4
-            y = 0.8 - 0.25 * progress
+            y = 0.8 - 0.4 * progress
         elif label[i] == "pR2C-":
             x = 4
-            y = 0.8 - 0.25 * progress
+            y = 0.8 - 0.4 * progress
         elif label[i] == "pL2Cr":
             x = -4 + 0.375
             y = 0.15 - 0.95 * progress
@@ -387,26 +384,26 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
             y = 2.0*progress - 1.0
             y = 2 - y*y
         elif label[i] == "mL2Cr":
-            x = -4.0 + progress * 4.0
-            y = 2.0*progress - 1.0
+            x = -4.0 + (progress*0.8 + 0.1) * 4.0
+            y = 2.0*(progress*0.8 + 0.1) - 1.0
             y = -2 + y*y
             x -= normal_x / normal_len / 3.0
             y += normal_y / normal_len / 3.0
         elif label[i] == "mL2Co":
-            x = -4.0 + progress * 4.0
-            y = 2.0*progress - 1.0
+            x = -4.0 + (progress*0.9 + 0.05) * 4.0
+            y = 2.0*(progress*0.9 + 0.05) - 1.0
             y = -2 + y*y
             x += normal_x / normal_len / 3.0
             y -= normal_y / normal_len / 3.0
         elif label[i] == "mR2Cr":
-            x = 4.0 - progress * 4.0
-            y = 2.0*progress - 1.0
+            x = 4.0 - (progress*0.8 + 0.1) * 4.0
+            y = 2.0*(progress*0.8 + 0.1) - 1.0
             y = -2 + y*y
             x += normal_x / normal_len / 3.0
             y += normal_y / normal_len / 3.0
         elif label[i] == "mR2Co":
-            x = 4.0 - progress * 4.0
-            y = 2.0*progress - 1.0
+            x = 4.0 - (progress*0.9 + 0.05) * 4.0
+            y = 2.0*(progress*0.9 + 0.05) - 1.0
             y = -2 + y*y
             x -= normal_x / normal_len / 3.0
             y -= normal_y / normal_len / 3.0
