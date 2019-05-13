@@ -65,18 +65,18 @@ class SchematicIntensityPlot(IntensityPlot):
         lw = self.linewidth
         
         if self.splitCenter:
-            drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000)
-            drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000)
+            drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+            drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
         else:
-            drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=False, lw=lw, zorder=-10000)
+            drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
 
-        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000)
-        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=False, lw=lw, zorder=-10000)
-        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
 
-        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000)
-        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=False, lw=lw, zorder=-10000)
-        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000)
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
         
         xx = np.linspace(-1,1)
         yy = 1-xx*xx
@@ -84,10 +84,10 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.plot(xx*-1.8-2.2,yy+1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*2+2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*-2-2,-yy-1,'k', lw=lw, zorder=-10000)
-        drawArrowHead(plt.gca(), (xx[-5]*1.8+2.2, yy[-5]+1), (xx[-1]*1.8+2.2, yy[-1]+1), facecolor="k")
-        drawArrowHead(plt.gca(), (xx[-5]*-1.8-2.2, yy[-5]+1), (xx[-1]*-1.8-2.2, yy[-1]+1), facecolor="k")
-        drawArrowHead(plt.gca(), (xx[4]*2+2, -yy[4]-1), (xx[0]*2+2, -yy[0]-1), facecolor="k")
-        drawArrowHead(plt.gca(), (xx[4]*-2-2, -yy[4]-1), (xx[0]*-2-2, -yy[0]-1), facecolor="k")
+        drawArrowHead(plt.gca(), (xx[-5]*1.8+2.2, yy[-5]+1), (xx[-1]*1.8+2.2, yy[-1]+1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[-5]*-1.8-2.2, yy[-5]+1), (xx[-1]*-1.8-2.2, yy[-1]+1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*2+2, -yy[4]-1), (xx[0]*2+2, -yy[0]-1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*-2-2, -yy[4]-1), (xx[0]*-2-2, -yy[0]-1), facecolor="k", edgecolor="k")
         if self.waterDrop:
             drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3, lw=lw)
             drawWaterDrop(plt.gca(), np.array([ 2.75, -0.5]), 0.3, lw=lw)
@@ -476,6 +476,97 @@ def imshowWithAlpha(im, alpha, saturation, **kwargs):
     if "interpolation" not in kwargs: kwargs["interpolation"] = "nearest"
     plt.imshow(colors, **kwargs)
 
+def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mWidth=0.75):
+    '''
+    Use a shape similar to the SchematicIntensityPlot to show some value per action.
+    
+    Arguments:
+    binColors -- A dictonary or a pandas Series with action labels as keys. For each label,
+                 if the value is a number it will be converted to a color using the same color
+                 map as in SchematicIntensityPlot. Otherwise it is treated as a matplotlib color.
+                 For movement actions (mC2L, mC2R, mL2C, mR2C), it is also allowed to have a list
+                 as a value. That action is then split into on subcompartment for each element in the
+                 list. The elements in the list can be either values or a matplotlib color.
+                
+    Example:
+    >>> drawBinnedSchematicPlot({'mL2C': [-1, -0.5], 'pC2R': 0, 'pC2L': "gray", 'mC2R': [0.25, 0.5, 1.0]})
+    '''
+    
+    c = dict()
+    for action, color in binColors.items():
+        if isinstance(color, numbers.Number):
+            normed = np.clip(color / saturation, -1, 1)
+            c[action] = plt.cm.RdYlBu_r(normed*0.5 + 0.5)
+        elif isinstance(color, (list, tuple, np.ndarray, pd.Series)):
+            c[action] = []
+            for x in color:
+                if isinstance(x, numbers.Number):
+                    normed = np.clip(x / saturation, -1, 1)
+                    x = plt.cm.RdYlBu_r(normed*0.5 + 0.5)
+                c[action].append(x)
+        else:
+            c[action] = color
+    for action, color in c.items():
+        if action[0] == "m" and not isinstance(color, list):
+            c[action] = [color]
+            
+    r = boxRadius
+    
+    if "pC" in c:
+        drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=True, lw=lw, facecolor=c["pC"])
+    if "pC2R" in c:
+        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=True, lw=lw, facecolor=c["pC2R"])
+    if "pC2L" in c:
+        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=True, lw=lw, facecolor=c["pC2L"])
+
+    if "pL2Co" in c:
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pL2Co"])
+    if "pL2Cr" in c:
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"])
+    if "pL2Cd" in c:
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pL2Cd"])
+
+    if "pR2Cr" in c:
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"])
+    if "pR2Co" in c:
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"])
+    if "pR2Cd" in c:
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pR2Cd"])
+
+    xx = np.linspace(-1,1)
+    yy = 1-xx*xx
+    normal_x = 2.0*(xx[::-1])
+    normal_y = 4.0
+    normal_len  = np.sqrt(normal_x*normal_x + normal_y*normal_y)
+    normal_x *= mWidth / 2 / normal_len
+    normal_y *= mWidth / 2 / normal_len
+
+    if "mL2C" in c:
+        drawSegments(xx*2 - 2, -yy - 1, normal_x, normal_y, c["mL2C"],
+                     (-5, 0), (-3, -1), edgecolor="k", lw=lw)
+    if "mR2C" in c:
+        drawSegments(xx[::-1]*2 + 2, -yy[::-1] - 1, normal_x[::-1], normal_y[::-1], c["mR2C"], 
+                     (0, 5), (-3, -1), edgecolor="k", lw=lw)
+    normal_x = 1.8*(xx[::-1])
+    normal_y = -4.0
+    normal_len  = np.sqrt(normal_x*normal_x + normal_y*normal_y)
+    normal_x *= mWidth / 2 / normal_len
+    normal_y *= mWidth / 2 / normal_len
+    if "mC2L" in c:
+        drawSegments(xx[::-1]*1.8 - 2.2, yy[::-1] + 1, normal_x[::-1], normal_y[::-1], c["mC2L"],
+                     (-5, 0), (1, 3), edgecolor="k", lw=lw)
+    if "mC2R" in c:
+        drawSegments(xx*1.8 + 2.2, yy + 1, normal_x, normal_y, c["mC2R"],
+                     (0, 5), (1, 3), edgecolor="k", lw=lw)
+    #drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
+    #drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
+    #drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+    #drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+
+    plt.axis("square")
+    plt.xlim(-5,5)
+    plt.ylim(-2.5,2.5)
+    plt.axis("off")
     
 @deprecated(reason="Please use the object-oriented interface instead.")
 def drawTaskSchematic(density, normalization, saturation=0.5):
@@ -659,3 +750,13 @@ def drawArrowHead(ax, base, tip, aspect=0.4, **kwargs):
     n = aspect*np.array([-d[1], d[0]])
     corners = np.array([base + n, tip, base-n])
     return ax.add_patch(plt.Polygon(corners, **kwargs))
+
+def drawSegments(x, y, nx, ny, colors, xlim=(-6, 6), ylim=(-3, 3), **kwargs):
+    segSize = len(x)/len(colors)
+    for i in range(len(colors)):
+        sl = slice(int(segSize * i), int(segSize * (i+1)))
+        polyX = np.concatenate((x[sl] - nx[sl], x[sl][::-1] + nx[sl][::-1]))
+        polyY = np.concatenate((y[sl] - ny[sl], y[sl][::-1] + ny[sl][::-1]))
+        polyX = np.clip(polyX, *xlim)
+        polyY = np.clip(polyY, *ylim)
+        plt.gca().add_patch(plt.Polygon(np.vstack((polyX, polyY)).T, fill=True, facecolor=colors[i], **kwargs))
