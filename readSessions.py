@@ -166,20 +166,20 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
-    def labelFrameActions(self, sensorValues=None, reward=True, switch=False):
+    def labelFrameActions(self, sensorValues=None, reward=True, switch=False, splitCenter=True):
         '''Assign a string code to every frame, indicating where in the task the mouse currently is.
     
         Arguments:
         sensorValues --- A Pandas Dataframe as given by block.readSensorValues()
         rewards --- Whether to indicate rewards / omissions in the codes. Can be
-                           True: Include for ports and return movements. "ports": Include only for ports.
-                           False: Never include rewards.
+                   True: Include for ports and return movements. "ports": Include only for ports.
+                   False: Never include rewards.
         switches -- Whether to indicate stay / switch trials. In the output, stays are indicated by "." 
                     and switches by "!".
         '''
         if sensorValues is None:
             sensorValues = self.readSensorValues()
-        return findTrials.labelFrameActions(sensorValues, reward, switch)
+        return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
     
     def labelFrameActions_old(self, sensorValues=None, reward=True, switch=False):
         def labelFrame(f):

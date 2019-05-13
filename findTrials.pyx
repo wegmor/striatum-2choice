@@ -105,7 +105,8 @@ def findTrials(sensorValues, timeColumn="frameNo"):
 
 
 cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
-                    cnp.int_t includeRewards=True, cnp.int_t includeSwitches=False):
+                              cnp.int_t includeRewards=True, bint includeSwitches=False,
+                              bint splitCenter=True):
     cdef Py_ssize_t i=0, T = beams.shape[0]
     cdef cnp.int_t[:] fromPort = np.zeros(T, np.int), toPort = np.zeros(T, np.int)
     cdef cnp.int_t[:] inPort = np.zeros(T, np.int)
@@ -141,10 +142,12 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
         elif inPort[i] == left or inPort[i] == right:
             if rewardNo[i] > rewardNo[i-1]:
                 reward[i] = 2
-                lastEvent[i] = i
+                if includeRewards > 0:
+                    lastEvent[i] = i
             elif i-lastEvent[i]>=7 and reward[i-1] == 0:
                 reward[i] = 1
-                lastEvent[i] = i
+                if includeRewards > 0:
+                    lastEvent[i] = i
             elif inPort[i-1] == -1:
                 reward[i] = 0
             else:
@@ -163,7 +166,7 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
     nextEvent[T-1] = T-1
     nextChoice[T-1] = -1
     for i in range(T-2, -1, -1):
-        if inPort[i] == inPort[i+1] and reward[i] == reward[i+1]:
+        if inPort[i] == inPort[i+1] and (reward[i] == reward[i+1] or includeRewards==0):
             nextEvent[i] = nextEvent[i+1]
         else:
             nextEvent[i] = i
@@ -187,13 +190,17 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
         else:
             labels[i] = "p"
         labels[i] += portCodes[fromPort[i]+1]
-        labels[i] += "2"
-        labels[i] += portCodes[toPort[i]+1]
+        if splitCenter or labels[i] != "pC":
+            labels[i] += "2"
+            labels[i] += portCodes[toPort[i]+1]
         if includeRewards == 1:
-            labels[i] += "-or"[reward[i]]
+            if inPort[i] == -1 or inPort[i] == center:
+                labels[i] += "-or"[reward[i]]
+            else:
+                labels[i] += "dor"[reward[i]]
         elif includeRewards == 2:
             if inPort[i] == left or inPort[i] == right:
-                labels[i] += "-or"[reward[i]]
+                labels[i] += "dor"[reward[i]]
             else:
                 labels[i] += "-"
             
@@ -212,21 +219,23 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
     
     return labels, actionNo, actionProgress, actionDuration
 
-def labelFrameActions(sensorValues, includeRewards=True, includeSwitches=False):
+def labelFrameActions(sensorValues, includeRewards=True, includeSwitches=False, splitCenter=True):
     '''Assign a string code to every frame, indicating where in the task the mouse currently is.
     
     Arguments:
-    sensorValues --- A Pandas Dataframe as given by block.readSensorValues()
+    sensorValues   --- A Pandas Dataframe as given by block.readSensorValues()
     includeRewards --- Whether to indicate rewards / omissions in the codes. Can be
                        True: Include for ports and return movements. "ports": Include only for ports.
                        False: Never include rewards.
     includeSwitches -- Whether to indicate stay / switch trials. Stay is indicated by "." and switches
-                       by "!".   
+                       by "!".
+    splitCenter     -- Whether to split the center port depending on the subsequent choice.
     '''
     beams = sensorValues[["beamL","beamC", "beamR"]].values
     rewardNo = sensorValues["rewardNo"].values
     if includeRewards == "ports": includeRewards = 2
-    labels, actionNo, actionProgress, actionDuration = _labelFrameActions(beams, rewardNo, includeRewards, includeSwitches)
+    labels, actionNo, actionProgress, actionDuration = _labelFrameActions(beams, rewardNo, includeRewards,
+                                                                          includeSwitches, splitCenter)
     columns = {"label": labels, "actionNo": actionNo,
                "actionProgress": actionProgress, "actionDuration": actionDuration}
     return pd.DataFrame(columns)

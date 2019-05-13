@@ -260,7 +260,7 @@ def blockActionCoordinates(blockActions, numFrames):
                                                 blockActions.stop.values, numFrames),
                         columns=["x", "y"])
 
-def taskSchematicCoordinatesFrameLabels(labelPerFrame, splitCenter=False):
+def taskSchematicCoordinatesFrameLabels(labelPerFrame):
     '''
     Similar to taskSchematicCoordinates but for the labels given by labelFrameActions instead
     of calcActionsPerFrame
@@ -269,12 +269,11 @@ def taskSchematicCoordinatesFrameLabels(labelPerFrame, splitCenter=False):
     A pandas Dataframe with the x and y coordinates in the schematic for each frame
     '''
     return pd.DataFrame(_taskSchematicCoordinatesFrameLabels(labelPerFrame.label.astype("str").values,
-                                                             labelPerFrame.actionProgress.values, splitCenter),
+                                                             labelPerFrame.actionProgress.values),
                         columns=["x","y"], index=labelPerFrame.index)
 
 cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabelsOld(str[:] label,
-                                                                cnp.float_t[:] actionProgress,
-                                                                bint splitCenter):
+                                                                cnp.float_t[:] actionProgress, bint splitCenter):
     cdef Py_ssize_t i, N = label.shape[0]
     cdef cnp.float_t x, y, normal_x, normal_y, normal_len, progress
     cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2)) 
@@ -339,8 +338,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabelsOld(st
     return coordinates
 
 cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:] label,
-                                                                cnp.float_t[:] actionProgress,
-                                                                bint splitCenter):
+                                                                cnp.float_t[:] actionProgress):
     cdef Py_ssize_t i, N = label.shape[0]
     cdef cnp.float_t x, y, normal_x, normal_y, normal_len, progress
     cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2))
@@ -351,16 +349,19 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
         normal_x = 2.0*(2.0*(progress*0.8 + 0.1) - 1.0)
         normal_y = 4.0
         normal_len = libc.math.sqrt(normal_x*normal_x + normal_y*normal_y)
-        if label[i][:4] == "pC2L":
+        if label[i] == "pC-" or label[i] == "pCr" or label[i] == "pCo":
+            x = 0
+            y = 1.8 * progress - 0.9
+        elif label[i][:4] == "pC2L":
             x = -0.375
             y =  1.8 * progress - 0.9
         elif label[i][:4] == "pC2R":
             x = 0.375
             y = 1.8 * progress - 0.9
-        elif label[i] == "pL2C-":
+        elif label[i] == "pL2Cd":
             x = -4
             y = 0.8 - 0.4 * progress
-        elif label[i] == "pR2C-":
+        elif label[i] == "pR2Cd":
             x = 4
             y = 0.8 - 0.4 * progress
         elif label[i] == "pL2Cr":
@@ -383,6 +384,10 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
             x = 0.4 + progress * 3.6
             y = 2.0*progress - 1.0
             y = 2 - y*y
+        elif label[i] == "mL2C-":
+            x = -4.0 + (progress*0.8 + 0.1) * 4.0
+            y = 2.0*(progress*0.8 + 0.1) - 1.0
+            y = -2 + y*y
         elif label[i] == "mL2Cr":
             x = -4.0 + (progress*0.8 + 0.1) * 4.0
             y = 2.0*(progress*0.8 + 0.1) - 1.0
@@ -395,6 +400,10 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:
             y = -2 + y*y
             x += normal_x / normal_len / 3.0
             y -= normal_y / normal_len / 3.0
+        elif label[i] == "mR2C-":
+            x = 4.0 - (progress*0.8 + 0.1) * 4.0
+            y = 2.0*(progress*0.8 + 0.1) - 1.0
+            y = -2 + y*y
         elif label[i] == "mR2Cr":
             x = 4.0 - (progress*0.8 + 0.1) * 4.0
             y = 2.0*(progress*0.8 + 0.1) - 1.0

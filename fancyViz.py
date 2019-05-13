@@ -38,12 +38,15 @@ class IntensityPlot:
         
 class SchematicIntensityPlot(IntensityPlot):
     
-    def __init__(self, session=None, saturation=1.0, smoothing=4, linewidth=2, waterDrop=True, portRadius=0.4):
+    def __init__(self, session=None, saturation=1.0, smoothing=4, linewidth=2, waterDrop=True,
+                 portRadius=0.4, splitCenter=True, splitReturns=True):
         self.saturation = saturation
         self.smoothing = smoothing
         self.linewidth = linewidth
         self.waterDrop = waterDrop
         self.portRadius = portRadius
+        self.splitCenter = splitCenter
+        self.splitReturns = splitReturns
         self.mask = slice(None, None) #No mask, use all values
         self.clearBuffer()
         self.setSession(session)
@@ -56,13 +59,16 @@ class SchematicIntensityPlot(IntensityPlot):
         '''Internal function, do not call directly.'''
         imshowWithAlpha(im, alpha, self.saturation, origin="lower",
                         extent=(-5,5,-2.5,2.5), zorder=-100000)
-        plt.xlim(-5, 5)
+        plt.xlim(-5.5, 5.5)
         plt.ylim(-2.75, 2.5)
         r = self.portRadius
         lw = self.linewidth
         
-        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000)
-        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000)
+        if self.splitCenter:
+            drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000)
+            drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000)
+        else:
+            drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=False, lw=lw, zorder=-10000)
 
         drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000)
         drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=False, lw=lw, zorder=-10000)
@@ -84,13 +90,19 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
         if self.waterDrop:
             drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3, lw=lw)
-            drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3, lw=lw)
-            drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True, lw=lw)
-            drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True, lw=lw)
+            drawWaterDrop(plt.gca(), np.array([ 2.75, -0.5]), 0.3, lw=lw)
+            if self.splitReturns:
+                drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True, lw=lw)
+                drawWaterDrop(plt.gca(), np.array([ 4.6, -1.5]), 0.3, True, lw=lw)
+            else:
+                drawWaterDrop(plt.gca(), np.array([-5.25, -0.5]), 0.3, True, lw=lw)
+                drawWaterDrop(plt.gca(), np.array([ 5.25, -0.5]), 0.3, True, lw=lw)
         plt.axis("off")
         
     def setSession(self, session):
-        lfa = session.labelFrameActions(reward=True, switch=False)
+        inclRew = True if self.splitReturns else "ports"            
+        lfa = session.labelFrameActions(reward=inclRew, switch=False,
+                                        splitCenter=self.splitCenter)
         schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
