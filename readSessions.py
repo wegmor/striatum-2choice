@@ -250,6 +250,46 @@ class Session:
         if str(self) in cutTrackingShort:
             tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
+    
+    def shuffleFrameLabels(self, n=1, switch=True):
+        frameLabels = self.labelFrameActions(reward="ports", switch=True)
+        frameLabels.index.name = 'frame'
+        
+        actions = frameLabels.reset_index().groupby('actionNo').first()
+        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')
+        switchFrames = actions.loc[switch_idx, 'frame'].values
+        frameLabels.loc[switchFrames, 'switch'] = 1
+        frameLabels['switch'] = frameLabels.switch.fillna(0).cumsum()
+
+        sidx1_orig = frameLabels.switch.unique()[::2]
+        sidx1_shuffle = sidx1_orig.copy()
+        sidx2_orig = frameLabels.switch.unique()[1::2]
+        sidx2_shuffle = sidx2_orig.copy()
+        
+        labels_shuffled = []
+        for _ in range(n):
+            fl_shuffled = frameLabels.copy()
+            np.random.shuffle(sidx1_shuffle)
+            np.random.shuffle(sidx2_shuffle)
+            
+            replace_dict = dict(list(zip(sidx1_orig, sidx1_shuffle)) +
+                                list(zip(sidx2_orig, sidx2_shuffle)))
+            fl_shuffled['switch'] = fl_shuffled.switch.replace(replace_dict)
+            fl_shuffled = fl_shuffled.sort_values(['switch','actionNo','actionFrame'])
+            
+            replace_dict = dict(zip(fl_shuffled.actionNo.unique(),
+                                    np.arange(len(fl_shuffled.actionNo.unique()))))
+            fl_shuffled['actionNo'] = fl_shuffled.actionNo.replace(replace_dict)
+            
+            fl_shuffled = fl_shuffled.reset_index(drop=True).copy()
+            
+            if not switch:
+                fl_shuffled['label']  = fl_shuffled.label.str.slice(0,-1)
+                
+            labels_shuffled.append(fl_shuffled[['label','actionNo','actionFrame',
+                                                'actionDuration','actionProgress']])
+        
+        return(labels_shuffled)
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
     store = pd.HDFStore(hdfFile, 'r')
