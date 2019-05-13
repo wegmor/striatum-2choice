@@ -84,10 +84,10 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.plot(xx*-1.8-2.2,yy+1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*2+2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*-2-2,-yy-1,'k', lw=lw, zorder=-10000)
-        plt.arrow(3.9,1.1,0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(-3.9,1.1,-0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
+        drawArrowHead(plt.gca(), (xx[-5]*1.8+2.2, yy[-5]+1), (xx[-1]*1.8+2.2, yy[-1]+1), facecolor="k")
+        drawArrowHead(plt.gca(), (xx[-5]*-1.8-2.2, yy[-5]+1), (xx[-1]*-1.8-2.2, yy[-1]+1), facecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*2+2, -yy[4]-1), (xx[0]*2+2, -yy[0]-1), facecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*-2-2, -yy[4]-1), (xx[0]*-2-2, -yy[0]-1), facecolor="k")
         if self.waterDrop:
             drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3, lw=lw)
             drawWaterDrop(plt.gca(), np.array([ 2.75, -0.5]), 0.3, lw=lw)
@@ -651,3 +651,11 @@ def drawRoundedRect(ax, position, width, height, radius, **kwargs):
     path = Path(verts, codes)
     patch = matplotlib.patches.PathPatch(path, **kwargs)
     return ax.add_artist(patch)
+
+def drawArrowHead(ax, base, tip, aspect=0.4, **kwargs):
+    base = np.array(base)
+    tip = np.array(tip)
+    d = tip - base
+    n = aspect*np.array([-d[1], d[0]])
+    corners = np.array([base + n, tip, base-n])
+    return ax.add_patch(plt.Polygon(corners, **kwargs))
