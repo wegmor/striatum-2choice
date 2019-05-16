@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 
-import pyximport
-pyximport.install()
-from . import findTrials
+#import pyximport
+#pyximport.install()
+#from . import findTrials
 
 class Session:
     
@@ -258,30 +258,38 @@ class Session:
         return(labels_shuffled)
 
     def readTracking(self):
-        tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
-        if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
-            tracking = tracking.iloc[1:]
-            tracking.index.name = "videoFrameNo"
-            tracking.reset_index(inplace=True)
-        
-        #Special cases to fix wrong number of frames
-        if str(self) == "d1_3517_180329":
-             #First frame is dark and from LED intensities it looks like it should be dropped
-            tracking = tracking.iloc[1:-1]
-            tracking.index.name = "videoFrameNo"
-            tracking.reset_index(inplace=True)
-        elif str(self) == "oprm1_3582_180327":
-            #From LED it looks like first two frames are missing
-            #tracking.insert(0, {c: np.nan for c in tracking.columns})
-            tracking = tracking.reindex(np.arange(-2, len(tracking)))
-            tracking.index.name = "videoFrameNo"
-            tracking.reset_index(inplace=True)
-        if str(self) in cutTrackingShort:
-            tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
+        if self.meta.task == "openField":
+            tracking = []
+            for i, video in enumerate(self.meta.videos):
+                t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
+                t.insert(0, "block", i)
+                tracking.append(t)
+            tracking = pd.concat(tracking)
+        else:
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
+            if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
+                tracking = tracking.iloc[1:]
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+
+            #Special cases to fix wrong number of frames
+            if str(self) == "d1_3517_180329":
+                 #First frame is dark and from LED intensities it looks like it should be dropped
+                tracking = tracking.iloc[1:-1]
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+            elif str(self) == "oprm1_3582_180327":
+                #From LED it looks like first two frames are missing
+                #tracking.insert(0, {c: np.nan for c in tracking.columns})
+                tracking = tracking.reindex(np.arange(-2, len(tracking)))
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+            if str(self) in cutTrackingShort:
+                tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
-    store = pd.HDFStore(hdfFile)
+    store = pd.HDFStore(hdfFile, 'r')
     queries = []
     for col, val in filters.items():
         if isinstance(val, str):
