@@ -2,86 +2,112 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()})
 import scipy.ndimage
 import skimage.measure
 import matplotlib.backends.backend_pdf
 import PIL
+import numbers
 from deprecated import deprecated
 
 from . import fancyVizUtils, trackingGeometryUtils
 
 class IntensityPlot:
-    def calculateIntensity(self, trace):
-        canvas = fancyVizUtils.integerHistogram(self.coordinates[self.mask],
-                                                trace[self.mask], *self.canvasSize[::-1])
-        return scipy.ndimage.gaussian_filter(canvas, self.smoothing)
-    
-    def setCoordinates(self, coordinates, mask):
-        self.coordinates = coordinates
-        self.mask = mask
-        self.normalization = self.calculateIntensity(np.ones(len(coordinates)))
 
-    def draw(self, trace, saturation=0.5, ax=None, **kwargs):
+    def setMask(self, mask):
+        self.mask = mask
+    
+    def draw(self, trace, ax=None):
+        self.clearBuffer()
+        self.addTraceToBuffer(trace)
+        self.drawBuffer(ax)
+    
+    def addTraceToBuffer(self, trace):
+        trace = np.array(trace).astype(np.float)
+        if len(trace) != len(self.coordinates):
+            raise ValueError("The trace contains {} frames but the coordinates {}".format(len(trace), len(self.coordinates)))
+        fancyVizUtils.integerHistogram(self.coordinates[self.mask], trace[self.mask],
+                                       self.valueCanvas, self.normCanvas)
+    
+    def drawBuffer(self, ax=None,  **kwargs):
         if ax is not None: plt.sca(ax)
-        density = self.calculateIntensity(trace)
-        normedDensity = np.divide(density, self.normalization,
-                                  out=np.zeros_like(density), where=self.normalization!=0)
-        imshowWithAlpha(normedDensity, self.normalization*10, saturation, **kwargs)
+        values = scipy.ndimage.gaussian_filter(self.valueCanvas, self.smoothing)
+        norm   = scipy.ndimage.gaussian_filter(self.normCanvas, self.smoothing)
+        normalized = np.divide(values, norm, out=np.zeros_like(values), where=norm!=0)
+        self._drawSchema(normalized, norm*10, **kwargs)
+        self.clearBuffer()
         
 class SchematicIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=4, maxLen=20, actionDefinition="apf"):
+    
+    def __init__(self, session=None, saturation=1.0, smoothing=4, linewidth=2, waterDrop=True,
+                 portRadius=0.4, splitCenter=True, splitReturns=True):
+        self.saturation = saturation
         self.smoothing = smoothing
-        self.canvasSize = (251, 501)
-        if block is not None:
-            self.setDefaultCoordinates(block, maxLen, actionDefinition)
-            
-    def draw(self, trace, saturation=0.5 ,ax=None, lw=2, waterDrop=True):
-        IntensityPlot.draw(self, trace, saturation, ax, origin="lower",
-                           extent=(-5,5,-2.5,2.5), zorder=-100000)
-        plt.xlim(-5,5)
-        plt.ylim(-2.75,2.5)
-        elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0,edgecolor="C1", facecolor="none", lw=lw, zorder=-10000)
-        elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0,edgecolor="C4", facecolor="none", lw=lw, zorder=-10000)
-        elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0,edgecolor="C2", facecolor="none", lw=lw, zorder=-10000)
-        plt.gca().add_artist(elLeft)
-        plt.gca().add_artist(elCenter)
-        plt.gca().add_artist(elRight)
+        self.linewidth = linewidth
+        self.waterDrop = waterDrop
+        self.portRadius = portRadius
+        self.splitCenter = splitCenter
+        self.splitReturns = splitReturns
+        self.mask = slice(None, None) #No mask, use all values
+        self.clearBuffer()
+        self.setSession(session)
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((251,501), np.float64)
+        self.normCanvas = np.zeros((251,501), np.float64)
+    
+    def _drawSchema(self, im, alpha, ax=None):
+        '''Internal function, do not call directly.'''
+        imshowWithAlpha(im, alpha, self.saturation, origin="lower",
+                        extent=(-5,5,-2.5,2.5), zorder=-100000)
+        plt.xlim(-5.5, 5.5)
+        plt.ylim(-2.75, 2.5)
+        r = self.portRadius
+        lw = self.linewidth
+        
+        if self.splitCenter:
+            drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+            drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        else:
+            drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=False, lw=lw, zorder=-10000, edgecolor="k")
+        
         xx = np.linspace(-1,1)
         yy = 1-xx*xx
-        plt.plot(xx*2+2,yy+1,'k', lw=lw, zorder=-10000)
-        plt.plot(xx*-2-2,yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*1.8+2.2, yy+1,'k', lw=lw, zorder=-10000)
+        plt.plot(xx*-1.8-2.2,yy+1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*2+2,-yy-1,'k', lw=lw, zorder=-10000)
         plt.plot(xx*-2-2,-yy-1,'k', lw=lw, zorder=-10000)
-        plt.arrow(3.9,1.1,0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(-3.9,1.1,-0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        if waterDrop:
-            drawWaterDrop(plt.gca(), np.array([-3, -0.5]), 0.3)
-            drawWaterDrop(plt.gca(), np.array([3, -0.5]), 0.3)
-            drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
-            drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+        drawArrowHead(plt.gca(), (xx[-5]*1.8+2.2, yy[-5]+1), (xx[-1]*1.8+2.2, yy[-1]+1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[-5]*-1.8-2.2, yy[-5]+1), (xx[-1]*-1.8-2.2, yy[-1]+1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*2+2, -yy[4]-1), (xx[0]*2+2, -yy[0]-1), facecolor="k", edgecolor="k")
+        drawArrowHead(plt.gca(), (xx[4]*-2-2, -yy[4]-1), (xx[0]*-2-2, -yy[0]-1), facecolor="k", edgecolor="k")
+        if self.waterDrop:
+            drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3, lw=lw)
+            drawWaterDrop(plt.gca(), np.array([ 2.75, -0.5]), 0.3, lw=lw)
+            if self.splitReturns:
+                drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True, lw=lw)
+                drawWaterDrop(plt.gca(), np.array([ 4.6, -1.5]), 0.3, True, lw=lw)
+            else:
+                drawWaterDrop(plt.gca(), np.array([-5.25, -0.5]), 0.3, True, lw=lw)
+                drawWaterDrop(plt.gca(), np.array([ 5.25, -0.5]), 0.3, True, lw=lw)
         plt.axis("off")
         
-    def setDefaultCoordinates(self, block, maxLen=20, actionDefinition="apf", lfa=None):
-        if actionDefinition == "apf":
-            apf = block.calcActionsPerFrame()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index(), maxLen)*50
-        elif actionDefinition == "lfa":
-            lfa = lfa if lfa is not None else block.labelFrameActions()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index())*50
-        elif actionDefinition == "lfa_split":
-            lfa = lfa if lfa is not None else block.labelFrameActions()
-            schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa.reset_index(), True)*50
-        else:
-            raise ValueError("Unknown action definition: " + actionDefinition)
+    def setSession(self, session):
+        inclRew = True if self.splitReturns else "ports"            
+        lfa = session.labelFrameActions(reward=inclRew, switch=False,
+                                        splitCenter=self.splitCenter)
+        schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
-        #mask = np.ones(len(schematicCoord), np.bool_)
-        #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
-        mask = np.logical_not(block.readDeconvolvedTraces().isna().any(axis=1).values)
-        self.setCoordinates(schematicCoord.values, mask)
+        self.coordinates = schematicCoord.values
         
 class TrackingIntensityPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=5, background="/home/emil/2choice/boxBackground.png"):
@@ -451,6 +477,97 @@ def imshowWithAlpha(im, alpha, saturation, **kwargs):
     if "interpolation" not in kwargs: kwargs["interpolation"] = "nearest"
     plt.imshow(colors, **kwargs)
 
+def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mWidth=0.75, cmap=plt.cm.RdYlBu_r):
+    '''
+    Use a shape similar to the SchematicIntensityPlot to show some value per action.
+    
+    Arguments:
+    binColors -- A dictonary or a pandas Series with action labels as keys. For each label,
+                 if the value is a number it will be converted to a color using the same color
+                 map as in SchematicIntensityPlot. Otherwise it is treated as a matplotlib color.
+                 For movement actions (mC2L, mC2R, mL2C, mR2C), it is also allowed to have a list
+                 as a value. That action is then split into on subcompartment for each element in the
+                 list. The elements in the list can be either values or a matplotlib color.
+                
+    Example:
+    >>> drawBinnedSchematicPlot({'mL2C': [-1, -0.5], 'pC2R': 0, 'pC2L': "gray", 'mC2R': [0.25, 0.5, 1.0]})
+    '''
+    
+    c = dict()
+    for action, color in binColors.items():
+        if isinstance(color, numbers.Number):
+            normed = np.clip(color / saturation, -1, 1)
+            c[action] = cmap(normed*0.5 + 0.5)
+        elif isinstance(color, (list, np.ndarray, pd.Series)):
+            c[action] = []
+            for x in color:
+                if isinstance(x, numbers.Number):
+                    normed = np.clip(x / saturation, -1, 1)
+                    x = cmap(normed*0.5 + 0.5)
+                c[action].append(x)
+        else:
+            c[action] = color
+    for action, color in c.items():
+        if action[0] == "m" and not isinstance(color, list):
+            c[action] = [color]
+            
+    r = boxRadius
+    
+    if "pC" in c:
+        drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=True, lw=lw, facecolor=c["pC"], edgecolor="k")
+    if "pC2R" in c:
+        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=True, lw=lw, facecolor=c["pC2R"], edgecolor="k")
+    if "pC2L" in c:
+        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=True, lw=lw, facecolor=c["pC2L"], edgecolor="k")
+
+    if "pL2Co" in c:
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pL2Co"], edgecolor="k")
+    if "pL2Cr" in c:
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"], edgecolor="k")
+    if "pL2Cd" in c:
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pL2Cd"], edgecolor="k")
+
+    if "pR2Cr" in c:
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"], edgecolor="k")
+    if "pR2Co" in c:
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"], edgecolor="k")
+    if "pR2Cd" in c:
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pR2Cd"], edgecolor="k")
+
+    xx = np.linspace(-1,1)
+    yy = 1-xx*xx
+    normal_x = 2.0*(xx[::-1])
+    normal_y = 4.0
+    normal_len  = np.sqrt(normal_x*normal_x + normal_y*normal_y)
+    normal_x *= mWidth / 2 / normal_len
+    normal_y *= mWidth / 2 / normal_len
+
+    if "mL2C" in c:
+        drawSegments(xx*2 - 2, -yy - 1, normal_x, normal_y, c["mL2C"],
+                     (-5, 0), (-3, -1), edgecolor="k", lw=lw)
+    if "mR2C" in c:
+        drawSegments(xx[::-1]*2 + 2, -yy[::-1] - 1, normal_x[::-1], normal_y[::-1], c["mR2C"], 
+                     (0, 5), (-3, -1), edgecolor="k", lw=lw)
+    normal_x = 1.8*(xx[::-1])
+    normal_y = -4.0
+    normal_len  = np.sqrt(normal_x*normal_x + normal_y*normal_y)
+    normal_x *= mWidth / 2 / normal_len
+    normal_y *= mWidth / 2 / normal_len
+    if "mC2L" in c:
+        drawSegments(xx[::-1]*1.8 - 2.2, yy[::-1] + 1, normal_x[::-1], normal_y[::-1], c["mC2L"],
+                     (-5, 0), (1, 3), edgecolor="k", lw=lw)
+    if "mC2R" in c:
+        drawSegments(xx*1.8 + 2.2, yy + 1, normal_x, normal_y, c["mC2R"],
+                     (0, 5), (1, 3), edgecolor="k", lw=lw)
+    #drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
+    #drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
+    #drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+    #drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+
+    plt.axis("square")
+    plt.xlim(-5,5)
+    plt.ylim(-2.5,2.5)
+    plt.axis("off")
     
 @deprecated(reason="Please use the object-oriented interface instead.")
 def drawTaskSchematic(density, normalization, saturation=0.5):
@@ -582,7 +699,7 @@ def defaultCanvasSize():
             "bodyTurn":  (301, 301),
             "gazePoint": (304, 400)}
 
-def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0):
+def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
                          (-0.75,-0.5), (-0.75,-1), (0,-1),
                          (0.75,-1), (1, -1), (-0.1,1.0)])
@@ -590,9 +707,57 @@ def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0,
              matplotlib.path.Path.CURVE3,
              matplotlib.path.Path.CURVE3]+[matplotlib.path.Path.CURVE4]*6
     path = matplotlib.path.Path(vertices*size + coords[np.newaxis, :], codes)
-    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=lw, transform=ax.transData)
+    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=0, transform=ax.transData)
     ax.add_patch(patch)
     if cross:
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=0.75)
-        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=0.75)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=lw)
+        ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([0.4,-1]), c="red", lw=lw)
     return patch
+
+def drawRoundedRect(ax, position, width, height, radius, **kwargs):
+    h = height
+    w = width
+    pos = np.array(position)
+    if not isinstance(radius, (list, tuple, np.ndarray)):
+        r = radius*np.ones(4)
+    else:
+        r = radius
+    Path = matplotlib.path.Path
+    path_data = [
+        (Path.MOVETO, [0, r[0]]),
+        (Path.LINETO, [0, h-r[1]]),
+        (Path.CURVE3, [0, h]),
+        (Path.CURVE3, [r[1], h]),
+        (Path.LINETO, [w-r[2], h]),
+        (Path.CURVE3, [w, h]),
+        (Path.CURVE3, [w, h-r[2]]),
+        (Path.LINETO, [w, r[3]]),
+        (Path.CURVE3, [w, 0]),
+        (Path.CURVE3, [w-r[3], 0]),
+        (Path.LINETO, [r[0], 0]),
+        (Path.CURVE3, [0, 0]),
+        (Path.CURVE3, [0, r[0]]),
+        (Path.CLOSEPOLY, [0, 0])]
+    codes, verts = zip(*path_data)
+    verts = np.array(verts) + pos[np.newaxis, :]
+    path = Path(verts, codes)
+    patch = matplotlib.patches.PathPatch(path, **kwargs)
+    return ax.add_artist(patch)
+
+def drawArrowHead(ax, base, tip, aspect=0.4, **kwargs):
+    base = np.array(base)
+    tip = np.array(tip)
+    d = tip - base
+    n = aspect*np.array([-d[1], d[0]])
+    corners = np.array([base + n, tip, base-n])
+    return ax.add_patch(plt.Polygon(corners, **kwargs))
+
+def drawSegments(x, y, nx, ny, colors, xlim=(-6, 6), ylim=(-3, 3), **kwargs):
+    segSize = len(x)/len(colors)
+    for i in range(len(colors)):
+        sl = slice(int(segSize * i), int(segSize * (i+1)))
+        polyX = np.concatenate((x[sl] - nx[sl], x[sl][::-1] + nx[sl][::-1]))
+        polyY = np.concatenate((y[sl] - ny[sl], y[sl][::-1] + ny[sl][::-1]))
+        polyX = np.clip(polyX, *xlim)
+        polyY = np.clip(polyY, *ylim)
+        plt.gca().add_patch(plt.Polygon(np.vstack((polyX, polyY)).T, fill=True, facecolor=colors[i], **kwargs))

@@ -1,5 +1,6 @@
 cimport numpy as cnp
 import pandas as pd
+import numpy as np
 
 cdef enum:
     left=0
@@ -101,3 +102,140 @@ def findTrials(sensorValues, timeColumn="frameNo"):
     return pd.DataFrame(res, columns=["previousPort", "exitPrevious", "enterCenter", "exitCenter",
                                       "successfulCenter", "enterSide", "exitSide",
                                       "successfulSide", "chosenPort", "rewardedPort", "reward"])
+
+
+cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
+                              cnp.int_t includeRewards=True, bint includeSwitches=False,
+                              bint splitCenter=True):
+    cdef Py_ssize_t i=0, T = beams.shape[0]
+    cdef cnp.int_t[:] fromPort = np.zeros(T, np.int), toPort = np.zeros(T, np.int)
+    cdef cnp.int_t[:] inPort = np.zeros(T, np.int)
+    cdef cnp.int_t[:] lastEvent = np.zeros(T, np.int), nextEvent = np.zeros(T, np.int)
+    cdef cnp.int_t[:] reward = np.zeros(T, np.int)
+    cdef cnp.int_t[:] lastChoice = np.zeros(T, np.int), nextChoice = np.zeros(T, np.int)
+    
+    cdef object labels = np.zeros(T, object)
+    cdef cnp.ndarray[cnp.int_t, ndim=1] actionDuration = np.zeros(T, np.int), actionNo = np.zeros(T, np.int)
+    cdef cnp.ndarray[cnp.float_t, ndim=1] actionProgress = np.zeros(T, np.float)
+    
+    #Which, if any, port is the mouse in?
+    for i in range(T):
+        inPort[i] = -1
+        for p in range(3):
+            if beams[i, p]==1:
+                inPort[i] = p
+            
+    #Forward pass
+    fromPort[0] = -1
+    lastChoice[0] = -1
+    for i in range(1, T):
+        if inPort[i-1] == inPort[i]:
+            lastEvent[i] = lastEvent[i-1]
+        else:
+            lastEvent[i] = i
+        if inPort[i-1] == -1 and inPort[i] != -1:
+            fromPort[i] = inPort[i]
+        else:
+            fromPort[i] = fromPort[i-1]
+        if inPort[i] == center:
+            reward[i] = 0
+        elif inPort[i] == left or inPort[i] == right:
+            if rewardNo[i] > rewardNo[i-1]:
+                reward[i] = 2
+                if includeRewards > 0:
+                    lastEvent[i] = i
+            elif i-lastEvent[i]>=7 and reward[i-1] == 0:
+                reward[i] = 1
+                if includeRewards > 0:
+                    lastEvent[i] = i
+            elif inPort[i-1] == -1:
+                reward[i] = 0
+            else:
+                reward[i] = reward[i-1]
+        elif reward[i-1] == 0 and inPort[i] == -1 and (fromPort[i] == left or fromPort[i] == right):
+            reward[i] = 1
+        else:
+            reward[i] = reward[i-1]
+        if inPort[i-1] == -1 and (inPort[i] == left or inPort[i] == right):
+            lastChoice[i] = inPort[i]
+        else:
+            lastChoice[i] = lastChoice[i-1]
+            
+    #Backward pass
+    toPort[T-1] = -1
+    nextEvent[T-1] = T-1
+    nextChoice[T-1] = -1
+    for i in range(T-2, -1, -1):
+        if inPort[i] == inPort[i+1] and (reward[i] == reward[i+1] or includeRewards==0):
+            nextEvent[i] = nextEvent[i+1]
+        else:
+            nextEvent[i] = i
+        if inPort[i] == -1 and inPort[i+1] != -1:
+            toPort[i] = inPort[i+1]
+        else:
+            toPort[i] = toPort[i+1]
+        if inPort[i] == -1 and (inPort[i+1] == left or inPort[i+1] == right):
+            nextChoice[i] = inPort[i+1]
+        else:
+            nextChoice[i] = nextChoice[i+1]
+            
+    #Create labels
+    portCodes = "-LCR"
+    for i in range(T):
+        if inPort[i] == -1:
+            if nextEvent[i] - lastEvent[i] < 30:
+                labels[i] = "m"
+            else:
+                labels[i] = "u"
+        else:
+            labels[i] = "p"
+        labels[i] += portCodes[fromPort[i]+1]
+        if splitCenter or labels[i] != "pC":
+            labels[i] += "2"
+            labels[i] += portCodes[toPort[i]+1]
+        if includeRewards == 1:
+            if inPort[i] == -1 or inPort[i] == center:
+                labels[i] += "-or"[reward[i]]
+            else:
+                labels[i] += "dor"[reward[i]]
+        elif includeRewards == 2:
+            if inPort[i] == left or inPort[i] == right:
+                labels[i] += "dor"[reward[i]]
+            else:
+                labels[i] += "-"
+            
+        if includeSwitches:
+            if nextChoice[i] == lastChoice[i] or nextChoice[i] == -1:
+                labels[i] += "."
+            else:
+                labels[i] += "!"
+        actionDuration[i] = nextEvent[i] - lastEvent[i] + 1
+        actionProgress[i] = (i - lastEvent[i]) / float(actionDuration[i])
+        if i>0:
+            if labels[i] == labels[i-1]:
+                actionNo[i] = actionNo[i-1]
+            else:
+                actionNo[i] = actionNo[i-1] + 1
+    
+    return labels, actionNo, actionProgress, actionDuration
+
+def labelFrameActions(sensorValues, includeRewards=True, includeSwitches=False, splitCenter=True):
+    '''Assign a string code to every frame, indicating where in the task the mouse currently is.
+    
+    Arguments:
+    sensorValues   --- A Pandas Dataframe as given by block.readSensorValues()
+    includeRewards --- Whether to indicate rewards / omissions in the codes. Can be
+                       True: Include for ports and return movements. "ports": Include only for ports.
+                       False: Never include rewards.
+    includeSwitches -- Whether to indicate stay / switch trials. Stay is indicated by "." and switches
+                       by "!".
+    splitCenter     -- Whether to split the center port depending on the subsequent choice.
+    '''
+    beams = sensorValues[["beamL","beamC", "beamR"]].values
+    rewardNo = sensorValues["rewardNo"].values
+    if includeRewards == "ports": includeRewards = 2
+    labels, actionNo, actionProgress, actionDuration = _labelFrameActions(beams, rewardNo, includeRewards,
+                                                                          includeSwitches, splitCenter)
+    columns = {"label": labels, "actionNo": actionNo,
+               "actionProgress": actionProgress, "actionDuration": actionDuration}
+    return pd.DataFrame(columns)

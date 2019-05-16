@@ -1,9 +1,9 @@
 import pandas as pd
 import numpy as np
 
-#import pyximport
-#pyximport.install()
-#from . import findTrials
+import pyximport
+pyximport.install(setup_args={'include_dirs': np.get_include()})
+from . import findTrials
 
 class Session:
     
@@ -166,7 +166,22 @@ class Session:
         res["actionProgress"] = res.eval("(frameNo - actionStart) / actionDuration")
         return res.set_index("frameNo")
     
-    def labelFrameActions(self, sensorValues=None, reward=False, switch=False, rew_where='all'):
+    def labelFrameActions(self, sensorValues=None, reward=True, switch=False, splitCenter=True):
+        '''Assign a string code to every frame, indicating where in the task the mouse currently is.
+    
+        Arguments:
+        sensorValues --- A Pandas Dataframe as given by block.readSensorValues()
+        rewards --- Whether to indicate rewards / omissions in the codes. Can be
+                   True: Include for ports and return movements. "ports": Include only for ports.
+                   False: Never include rewards.
+        switches -- Whether to indicate stay / switch trials. In the output, stays are indicated by "." 
+                    and switches by "!".
+        '''
+        if sensorValues is None:
+            sensorValues = self.readSensorValues()
+        return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
+    
+    def labelFrameActions_old(self, sensorValues=None, reward=True, switch=False):
         def labelFrame(f):
             if f.inPort:
                 status = 'p'
@@ -175,12 +190,8 @@ class Session:
             else:
                 status = 'm'
             label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
-            #if f.prevPortEntry != 'C' and reward:
-            if reward & (rew_where == 'all'):
+            if f.prevPortEntry != 'C' and reward:
                 label += 'r' if f.prevEntryRew else 'o'
-            if reward & (rew_where == 'sp only'):
-                if (f.prevPortEntry in ['L','R']) and f.inPort:
-                    label += 'r' if f.prevEntryRew else 'o'
             if switch:
                 label += '!' if f.switch else '.'
             return(label)
@@ -215,11 +226,43 @@ class Session:
         apf['inPort'] = apf[['beamL','beamC','beamR']].max(axis=1)
         apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
 
-        return apf[['label','actionNo','actionFrame','actionDuration','actionProgress']]
+        return apf[['label','actionNo','actionProgress','actionDuration']]
 
-    def shuffleFrameLabels(self, n=1, switch=True, reward=False, rew_where='all'):
-        frameLabels = self.labelFrameActions(reward=reward, switch=True, rew_where=rew_where)
+    def readTracking(self):
+        if self.meta.task == "openField":
+            tracking = []
+            for i, video in enumerate(self.meta.videos):
+                t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
+                t.insert(0, "block", i)
+                tracking.append(t)
+            tracking = pd.concat(tracking)
+        else:
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
+            if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
+                tracking = tracking.iloc[1:]
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+
+            #Special cases to fix wrong number of frames
+            if str(self) == "d1_3517_180329":
+                 #First frame is dark and from LED intensities it looks like it should be dropped
+                tracking = tracking.iloc[1:-1]
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+            elif str(self) == "oprm1_3582_180327":
+                #From LED it looks like first two frames are missing
+                #tracking.insert(0, {c: np.nan for c in tracking.columns})
+                tracking = tracking.reindex(np.arange(-2, len(tracking)))
+                tracking.index.name = "videoFrameNo"
+                tracking.reset_index(inplace=True)
+            if str(self) in cutTrackingShort:
+                tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
+        return tracking
+    
+    def shuffleFrameLabels(self, n=1, switch=True):
+        frameLabels = self.labelFrameActions(reward="ports", switch=True)
         frameLabels.index.name = 'frame'
+        frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
         actions = frameLabels.reset_index().groupby('actionNo').first()
         switch_idx = actions.label.str.contains('p[RL]2.[or]?!')
@@ -256,37 +299,6 @@ class Session:
                                                 'actionDuration','actionProgress']])
         
         return(labels_shuffled)
-
-    def readTracking(self):
-        if self.meta.task == "openField":
-            tracking = []
-            for i, video in enumerate(self.meta.videos):
-                t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
-                t.insert(0, "block", i)
-                tracking.append(t)
-            tracking = pd.concat(tracking)
-        else:
-            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
-            if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
-                tracking = tracking.iloc[1:]
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
-
-            #Special cases to fix wrong number of frames
-            if str(self) == "d1_3517_180329":
-                 #First frame is dark and from LED intensities it looks like it should be dropped
-                tracking = tracking.iloc[1:-1]
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
-            elif str(self) == "oprm1_3582_180327":
-                #From LED it looks like first two frames are missing
-                #tracking.insert(0, {c: np.nan for c in tracking.columns})
-                tracking = tracking.reindex(np.arange(-2, len(tracking)))
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
-            if str(self) in cutTrackingShort:
-                tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
-        return tracking
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
     store = pd.HDFStore(hdfFile, 'r')
