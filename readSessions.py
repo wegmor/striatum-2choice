@@ -4,6 +4,7 @@ import numpy as np
 import pyximport
 pyximport.install(setup_args={'include_dirs': np.get_include()})
 from . import findTrials
+from deprecated import deprecated
 
 class Session:
     
@@ -103,6 +104,7 @@ class Session:
             sensorValues.frameNo -= sensorValues.frameNo.iloc[0]
         return sensorValues
     
+    @deprecated(reason="Please use labelFrameActions instead.")
     def findTrials(self, timeColumn="frameNo", onlyRecording=True):
         '''Use the sensor values to find *trials*, i.e. center port entries optionally followed by 
         side port entries. Also indicates whether the trial was initialized correctly and whether it
@@ -124,6 +126,7 @@ class Session:
         '''
         return findTrials.findTrials(self.readSensorValues(onlyRecording=onlyRecording), timeColumn=timeColumn)
     
+    @deprecated(reason="Please use labelFrameActions instead.")
     def calcActionsPerFrame(self, trials=None):
         '''Reshape the 'trials' dataframe of this block to one row per frame. Useful
         for stretching the behavior before averaging.
@@ -180,53 +183,6 @@ class Session:
         if sensorValues is None:
             sensorValues = self.readSensorValues()
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
-    
-    def labelFrameActions_old(self, sensorValues=None, reward=True, switch=False):
-        def labelFrame(f):
-            if f.inPort:
-                status = 'p'
-            elif f.actionDuration > 30:
-                status = 'u'
-            else:
-                status = 'm'
-            label = '{}{}2{}'.format(status, f.prevPortEntry, f.nextPortEntry)
-            if f.prevPortEntry != 'C' and reward:
-                label += 'r' if f.prevEntryRew else 'o'
-            if switch:
-                label += '!' if f.switch else '.'
-            return(label)
-
-        if sensorValues is None:
-            sensorValues = self.readSensorValues()
-
-        apf = sensorValues[['beamL','beamC','beamR','rewardNo']].copy()
-        apf['actionNo'] = apf[['beamL','beamC','beamR']].diff().abs().max(axis=1).cumsum().fillna(0)
-        actionDuration = apf.groupby('actionNo').size()
-        apf['actionFrame'] = np.concatenate([np.arange(d) for d in actionDuration.values])
-        apf = apf.merge(pd.DataFrame(actionDuration, columns=['actionDuration']).reset_index(),
-                        on='actionNo')
-        apf['actionProgress'] = apf.actionFrame / apf.actionDuration
-        
-        apf['portEntry'] = (apf[['beamL','beamC','beamR']].diff() * np.array([1,2,3])).max(axis=1)
-        apf['prevPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='ffill')
-        apf['prevSidePortEntry'] = apf.portEntry.replace({0: np.nan, 2: np.nan}).fillna(method='ffill')
-        apf['nextPortEntry'] = apf.portEntry.replace({0: np.nan}).fillna(method='bfill').shift(-1)
-        apf['nextSidePortEntry'] = apf.portEntry.replace({0: np.nan, 2: np.nan}).fillna(method='bfill').shift(-1)
-        apf['prevPortEntry'] = apf.prevPortEntry.replace({1: 'L', 2: 'C', 3: 'R', np.nan: '-'})
-        apf['prevSidePortEntry'] = apf.prevSidePortEntry.replace({1: 'L', 3: 'R', np.nan: '-'})
-        apf['nextPortEntry'] = apf.nextPortEntry.replace({1: 'L', 2: 'C', 3: 'R', np.nan: '-'})
-        apf['nextSidePortEntry'] = apf.nextSidePortEntry.replace({1: 'L', 3: 'R', np.nan: '-'})
-        apf['switch'] = ((apf.nextSidePortEntry != apf.prevSidePortEntry) &
-                         (apf.nextSidePortEntry != '-') & (apf.prevPortEntry != '=')).astype('int')
-        apf['reward'] = (apf.rewardNo.diff() > 0).astype('int')
-        apf['sideEntryCum'] = (apf[['beamL','beamR']].max(axis=1).diff() == 1).astype('int').cumsum()
-        rewSideEntries = (apf.sideEntryCum * apf.reward).unique()
-        rewSideEntries = rewSideEntries[rewSideEntries > 0]
-        apf['prevEntryRew'] = apf.sideEntryCum.isin(rewSideEntries).astype('int')
-        apf['inPort'] = apf[['beamL','beamC','beamR']].max(axis=1)
-        apf['label'] = pd.Categorical(apf.apply(labelFrame, axis=1))
-
-        return apf[['label','actionNo','actionProgress','actionDuration']]
 
     def readTracking(self):
         if self.meta.task == "openField":
@@ -300,6 +256,15 @@ class Session:
         
         return(labels_shuffled)
 
+    def getWallCorners(self):
+        '''Get the coordinates of the wall of the box. No calculatation is performed, values
+        are hard-coded.
+
+        Returns:
+        A list of length 4 with the coordinates (left, bottom, right, top)
+        '''
+        return wallCorners[str(self)]
+
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
     store = pd.HDFStore(hdfFile, 'r')
     queries = []
@@ -360,4 +325,25 @@ cutTracesShort = {
 
 cutTrackingShort = {
     'a2a_6043_190126': 84
+}
+
+
+#TODO: move these to HDF file
+wallCorners = {
+ 'a2a_3241_180326': [88.333, 252.667, 289.66700000000003, 49.667],
+ 'a2a_3241_180403': [94.333, 253.333, 296.0, 48.333],
+ 'a2a_3244_180330': [93.667, 252.667, 295.66700000000003, 48.667],
+ 'a2a_3244_180405': [93.0, 252.667, 294.33299999999997, 48.667],
+ 'a2a_3245_180405': [93.0, 253.333, 293.33299999999997, 48.667],
+ 'a2a_3245_180410': [80.667, 253.667, 280.66700000000003, 49.667],
+ 'd1_3517_180329': [94.333, 252.667, 295.33299999999997, 49.0],
+ 'd1_3517_180404': [94.333, 250.667, 295.0, 47.667],
+ 'oprm1_3321_180327': [100.333, 252.0, 302.33299999999997, 48.667],
+ 'oprm1_3321_180409': [92.667, 252.0, 293.66700000000003, 48.667],
+ 'oprm1_3323_180327': [103.0, 253.0, 304.33299999999997, 48.667],
+ 'oprm1_3323_180409': [104.667, 252.0, 307.33299999999997, 47.333],
+ 'oprm1_3572_180329': [94.0, 252.667, 295.66700000000003, 49.667],
+ 'oprm1_3572_180403': [93.333, 253.667, 296.0, 48.0],
+ 'oprm1_3582_180327': [103.333, 252.667, 304.33299999999997, 48.333],
+ 'oprm1_3582_180329': [93.333, 252.333, 296.0, 49.0]
 }

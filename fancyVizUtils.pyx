@@ -5,10 +5,10 @@ import numpy as np
 import pandas as pd
 import scipy.stats
 
-def taskSchematicCoordinates(apf, maxLen=9999999):
+def taskSchematicCoordinatesAPF(apf, maxLen=9999999):
     '''
     Converts the list of action taken per frame into coordinates for plotting on top
-    of the task schematic. 
+    of the task schematic. DEPRECATED.
     
     Arguments:
     apf -- A pandas Dataframe with the action per frame, as calculated
@@ -17,13 +17,12 @@ def taskSchematicCoordinates(apf, maxLen=9999999):
     Returns:
     A pandas Dataframe with the x and y coordinates in the schematic for each frame
     '''
-    return pd.DataFrame(_taskSchematicCoordinates(apf.action.values, apf.port.values,
-                                                  apf.frameNo.values, apf.actionStart.values,
-                                                  apf.actionStop.values, apf.rewarded.values,
-                                                  maxLen),
-                        columns=["x","y"], index=apf.index)
+    return pd.DataFrame(_taskSchematicCoordinatesAPF(apf.action.values, apf.port.values,
+                                                     apf.frameNo.values, apf.actionStart.values,
+                                                     apf.actionStop.values, apf.rewarded.values,
+                                                     maxLen), columns=["x","y"], index=apf.index)
 
-cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] action,
+cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesAPF(str[:] action,
                                                                 str[:] port,
                                                                 cnp.int_t[:] frameNo,
                                                                 cnp.int_t[:] actionStart,
@@ -260,7 +259,7 @@ def blockActionCoordinates(blockActions, numFrames):
                                                 blockActions.stop.values, numFrames),
                         columns=["x", "y"])
 
-def taskSchematicCoordinatesFrameLabels(labelPerFrame):
+def taskSchematicCoordinates(labelPerFrame):
     '''
     Similar to taskSchematicCoordinates but for the labels given by labelFrameActions instead
     of calcActionsPerFrame
@@ -268,7 +267,7 @@ def taskSchematicCoordinatesFrameLabels(labelPerFrame):
     Returns:
     A pandas Dataframe with the x and y coordinates in the schematic for each frame
     '''
-    return pd.DataFrame(_taskSchematicCoordinatesFrameLabels(labelPerFrame.label.astype("str").values,
+    return pd.DataFrame(_taskSchematicCoordinates(labelPerFrame.label.astype("str").values,
                                                              labelPerFrame.actionProgress.values),
                         columns=["x","y"], index=labelPerFrame.index)
 
@@ -337,7 +336,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabelsOld(st
             
     return coordinates
 
-cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabels(str[:] label,
+cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] label,
                                                                 cnp.float_t[:] actionProgress):
     cdef Py_ssize_t i, N = label.shape[0]
     cdef cnp.float_t x, y, normal_x, normal_y, normal_len, progress

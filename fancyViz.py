@@ -104,7 +104,7 @@ class SchematicIntensityPlot(IntensityPlot):
         inclRew = True if self.splitReturns else "ports"            
         lfa = session.labelFrameActions(reward=inclRew, switch=False,
                                         splitCenter=self.splitCenter)
-        schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(lfa)*50
+        schematicCoord = fancyVizUtils.taskSchematicCoordinates(lfa)*50
         schematicCoord.x += 250
         schematicCoord.y += 125
         self.coordinates = schematicCoord.values
@@ -454,18 +454,6 @@ class RoiPlot:
                                                orientation='vertical',
                                                ticks=[-saturation,0,saturation],
                                                label=colorLabel)
-
-@deprecated(reason="Use flag in SchematicIntensityPlot instead")
-class SchematicIntensityPlotForFrameLabels(SchematicIntensityPlot):
-    def setDefaultCoordinates(self, block, maxLen=20):
-        apf = block.labelFrameActions()
-        schematicCoord = fancyVizUtils.taskSchematicCoordinatesFrameLabels(apf.reset_index())*50
-        schematicCoord.x += 250
-        schematicCoord.y += 125
-        #mask = np.ones(len(schematicCoord), np.bool_)
-        #A temporary hack to avoid NaN in the traces (should rewrite actual code to correct for NaNs)
-        mask = np.logical_not(block.readDeconvolvedTraces().isna().any(axis=1).values)
-        self.setCoordinates(schematicCoord.values, mask)        
             
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
@@ -563,35 +551,9 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     #drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
     #drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
     #drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
-
     plt.axis("square")
     plt.xlim(-5,5)
     plt.ylim(-2.5,2.5)
-    plt.axis("off")
-    
-@deprecated(reason="Please use the object-oriented interface instead.")
-def drawTaskSchematic(density, normalization, saturation=0.5):
-    imshowWithAlpha(density / normalization, normalization, saturation,
-                    origin="lower", extent=(-5,5,-2.5,2.5), zorder=-100000)
-    
-    plt.xlim(-5,5)
-    plt.ylim(-2.75,2.5)
-    elLeft = matplotlib.patches.Ellipse((-4,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-    elCenter = matplotlib.patches.Ellipse((0,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-    elRight = matplotlib.patches.Ellipse((4,0),1.5,2.0, edgecolor="k", facecolor="none", lw=2, zorder=-10000)
-    plt.gca().add_artist(elLeft)
-    plt.gca().add_artist(elCenter)
-    plt.gca().add_artist(elRight)
-    xx = np.linspace(-1,1)
-    yy = 1-xx*xx
-    plt.plot(xx*2+2,yy+1,'k', lw=2, zorder=-10000)
-    plt.plot(xx*-2-2,yy+1,'k', lw=2, zorder=-10000)
-    plt.plot(xx*2+2,-yy-1,'k', lw=2, zorder=-10000)
-    plt.plot(xx*-2-2,-yy-1,'k', lw=2, zorder=-10000)
-    plt.arrow(3.9,1.1,0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-    plt.arrow(-3.9,1.1,-0.1,-0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-    plt.arrow(-0.1,-1.1,0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-    plt.arrow(0.1,-1.1,-0.1,0.1, width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
     plt.axis("off")
 
 def drawArcArrow(rad, start, stop):
@@ -603,101 +565,6 @@ def drawArcArrow(rad, start, stop):
     else:
         plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, np.sin(phi[-1])*0.1, -np.cos(phi[-1])*0.1,
               head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-        
-@deprecated(reason="Please use the object-oriented interface instead.")        
-def drawHeadDirection(density, normalization, saturation=0.5):
-    imshowWithAlpha(density / normalization, normalization, saturation, extent=(0,1.5,-1.5,1.5))
-    phi = np.linspace(-0.5*np.pi,0.5*np.pi,100)
-    plt.plot(np.cos(phi), np.sin(phi), 'k')
-    offs = np.pi*2 / 20 * 0.5
-    drawArcArrow(1 + offs, -0.1, -1.4)
-    drawArcArrow(1 + offs, 0.1, 1.4)
-    drawArcArrow(1 - offs, -1.4, -0.25)
-    drawArcArrow(1 - offs, 1.4,  0.25)
-    plt.plot([0,1],[0,0], 'k--')
-    plt.axis("equal")
-    plt.axis("off")
-
-@deprecated(reason="Please use the object-oriented interface instead.")
-def drawTracking(density, normalization, saturation=0.5, background=None):
-    if isinstance(background, str):
-        background = PIL.Image.open(background)
-    elif background is None:
-        background = PIL.Image.open("/home/emil/2choice/boxBackground.png")
-    plt.imshow(background, alpha=0.5)
-    imshowWithAlpha(density / normalization, normalization, saturation)
-    plt.axis("off")
-    
-@deprecated(reason="Please use the object-oriented interface instead.")
-def drawBodyDirection(density, normalization, saturation=0.5):
-    imshowWithAlpha(density / normalization, normalization,
-                    saturation, extent=(-1.5,1.5,-1.5,1.5))
-    plt.axis("off")
-    plt.axis("equal")
-    
-@deprecated(reason="Please use the object-oriented interface instead.")
-def drawBodyTurn(density, normalization, saturation=0.5):
-    imshowWithAlpha(density / normalization, normalization,
-                    saturation, extent=(-1.5,1.5,-1.5,1.5))
-    arcArrow(1, -0.1, -2)
-    arcArrow(1 , 0.1, 2)
-    plt.axis("off")
-    plt.axis("equal")
-    
-@deprecated(reason="Please use the object-oriented interface instead.")
-def drawGazePoint(density, normalization, saturation=0.5):
-    imshowWithAlpha(density / normalization, normalization, saturation, extent=(-1.5,1.5,-1.5,1.5))
-    plt.axis("off")
-    plt.axis("equal")
-    
-@deprecated(reason="Please use the object-oriented interface instead.")    
-def calculateAllPlotCoordinates(block):
-    '''
-    Calculate the coordinates in all plot types for each frame.
-    
-    Arguments:
-    block -- A 2-choice block
-    
-    Returns:
-    A pandas Dataframe where each row containes the coordinates in each plot type
-    for the respective video frame.
-    '''
-    tracking = block.readTracking()
-    apf = block.calcActionsPerFrame()
-    headDir    = trackingGeometryUtils.calcHeadDirections(tracking)
-    bodyDir    = trackingGeometryUtils.calcBodyDirection(tracking)
-    turningSpeed = trackingGeometryUtils.angleDiff(bodyDir.shift(1), bodyDir)
-    projSpeed  = trackingGeometryUtils.calcProjectedSpeed(tracking)
-    gazePoint  = trackingGeometryUtils.calcGazePoint(tracking)
-    likelihood = tracking[[("leftEar", "likelihood"),
-                           ("rightEar", "likelihood"),
-                           ("tailBase", "likelihood")]].min(axis=1)
-    schematicCoord = fancyVizUtils.taskSchematicCoordinates(apf.reset_index())*50
-    schematicCoord.x += 250
-    schematicCoord.y += 125
-    trackingCoord = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
-    headDirRadius = np.clip(1 + np.sign(headDir)*headDir.diff()*0.5, 0.5, 1.5)
-    headDirCoord = pd.DataFrame({'x': np.cos(headDir)*100*headDirRadius,
-                                 'y': np.sin(headDir)*100*headDirRadius+150}, index=apf.index)
-    bodyDirRadius = np.clip(1 + projSpeed / 50.0, 0.5, 1.5)
-    bodyDirCoord = pd.DataFrame({'x': np.cos(bodyDir)*100*bodyDirRadius+150,
-                                 'y': np.sin(bodyDir)*100*bodyDirRadius+150}, index=apf.index)
-    bodyTurnCoord = pd.DataFrame({'x': np.cos(turningSpeed)*100+150,
-                                  'y': np.sin(turningSpeed)*100+150}, index=apf.index)
-    combined = pd.concat([schematicCoord, trackingCoord, headDirCoord, bodyDirCoord, bodyTurnCoord, gazePoint], axis=1,
-                          keys=("schematic", "tracking", "headDir", "bodyDir", "bodyTurn", "gazePoint"))
-    combined["likelihood"] = likelihood
-    return combined
-
-    
-@deprecated(reason="Please use the object-oriented interface instead.")
-def defaultCanvasSize():
-    return {"schematic": (251, 501),
-            "tracking":  (304, 400),
-            "headDir":   (301, 151),
-            "bodyDir":   (301, 301),
-            "bodyTurn":  (301, 301),
-            "gazePoint": (304, 400)}
 
 def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
