@@ -7,6 +7,7 @@ import scipy.ndimage
 import skimage.measure
 import matplotlib.backends.backend_pdf
 import PIL
+import numbers
 from deprecated import deprecated
 
 from . import fancyVizUtils, trackingGeometryUtils
@@ -476,7 +477,7 @@ def imshowWithAlpha(im, alpha, saturation, **kwargs):
     if "interpolation" not in kwargs: kwargs["interpolation"] = "nearest"
     plt.imshow(colors, **kwargs)
 
-def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mWidth=0.75):
+def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mWidth=0.75, cmap=plt.cm.RdYlBu_r):
     '''
     Use a shape similar to the SchematicIntensityPlot to show some value per action.
     
@@ -496,13 +497,13 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     for action, color in binColors.items():
         if isinstance(color, numbers.Number):
             normed = np.clip(color / saturation, -1, 1)
-            c[action] = plt.cm.RdYlBu_r(normed*0.5 + 0.5)
-        elif isinstance(color, (list, tuple, np.ndarray, pd.Series)):
+            c[action] = cmap(normed*0.5 + 0.5)
+        elif isinstance(color, (list, np.ndarray, pd.Series)):
             c[action] = []
             for x in color:
                 if isinstance(x, numbers.Number):
                     normed = np.clip(x / saturation, -1, 1)
-                    x = plt.cm.RdYlBu_r(normed*0.5 + 0.5)
+                    x = cmap(normed*0.5 + 0.5)
                 c[action].append(x)
         else:
             c[action] = color
@@ -513,25 +514,25 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     r = boxRadius
     
     if "pC" in c:
-        drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=True, lw=lw, facecolor=c["pC"])
+        drawRoundedRect(plt.gca(), (-0.75, -1), 1.5, 2, [r, r, r, r], fill=True, lw=lw, facecolor=c["pC"], edgecolor="k")
     if "pC2R" in c:
-        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=True, lw=lw, facecolor=c["pC2R"])
+        drawRoundedRect(plt.gca(), ( 0.05, -1), 0.7, 2, [0, 0, r, r], fill=True, lw=lw, facecolor=c["pC2R"], edgecolor="k")
     if "pC2L" in c:
-        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=True, lw=lw, facecolor=c["pC2L"])
+        drawRoundedRect(plt.gca(), (-0.75, -1), 0.7, 2, [r, r, 0, 0], fill=True, lw=lw, facecolor=c["pC2L"], edgecolor="k")
 
     if "pL2Co" in c:
-        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pL2Co"])
+        drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pL2Co"], edgecolor="k")
     if "pL2Cr" in c:
-        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"])
+        drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"], edgecolor="k")
     if "pL2Cd" in c:
-        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pL2Cd"])
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pL2Cd"], edgecolor="k")
 
     if "pR2Cr" in c:
-        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"])
+        drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"], edgecolor="k")
     if "pR2Co" in c:
-        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"])
+        drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"], edgecolor="k")
     if "pR2Cd" in c:
-        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pR2Cd"])
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pR2Cd"], edgecolor="k")
 
     xx = np.linspace(-1,1)
     yy = 1-xx*xx

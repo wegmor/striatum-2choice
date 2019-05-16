@@ -254,6 +254,7 @@ class Session:
     def shuffleFrameLabels(self, n=1, switch=True):
         frameLabels = self.labelFrameActions(reward="ports", switch=True)
         frameLabels.index.name = 'frame'
+        frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
         actions = frameLabels.reset_index().groupby('actionNo').first()
         switch_idx = actions.label.str.contains('p[RL]2.[or]?!')
