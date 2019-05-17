@@ -7,6 +7,17 @@ cdef enum:
     center=1
     right=2
 
+cdef enum:
+    noRewards=0
+    sidePorts=1
+    returns=2
+    fullTrial=3
+
+cdef enum:
+    delay=0
+    omission=1
+    rewarded=2
+    
 cdef tuple _findPrevEntry(cnp.int_t[:,:] beams, Py_ssize_t i):
     while i>0:
         if beams[i-1, left] == 1: return (u"L", i)
@@ -105,7 +116,7 @@ def findTrials(sensorValues, timeColumn="frameNo"):
 
 
 cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
-                              cnp.int_t includeRewards=True, bint includeSwitches=False,
+                              cnp.int_t includeRewards=1, bint includeSwitches=False,
                               bint splitCenter=True):
     cdef Py_ssize_t i=0, T = beams.shape[0]
     cdef cnp.int_t[:] fromPort = np.zeros(T, np.int), toPort = np.zeros(T, np.int)
@@ -138,22 +149,25 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
         else:
             fromPort[i] = fromPort[i-1]
         if inPort[i] == center:
-            reward[i] = 0
+            if includeRewards == fullTrial:
+                reward[i] = reward[i-1]
+            else:
+                reward[i] = delay
         elif inPort[i] == left or inPort[i] == right:
             if rewardNo[i] > rewardNo[i-1]:
-                reward[i] = 2
+                reward[i] = rewarded
                 if includeRewards > 0:
                     lastEvent[i] = i
             elif i-lastEvent[i]>=7 and reward[i-1] == 0:
-                reward[i] = 1
+                reward[i] = omission
                 if includeRewards > 0:
                     lastEvent[i] = i
             elif inPort[i-1] == -1:
-                reward[i] = 0
+                reward[i] = delay
             else:
                 reward[i] = reward[i-1]
-        elif reward[i-1] == 0 and inPort[i] == -1 and (fromPort[i] == left or fromPort[i] == right):
-            reward[i] = 1
+        elif reward[i-1] == delay and inPort[i] == -1 and (fromPort[i] == left or fromPort[i] == right):
+            reward[i] = omission
         else:
             reward[i] = reward[i-1]
         if inPort[i-1] == -1 and (inPort[i] == left or inPort[i] == right):
@@ -190,20 +204,23 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
         else:
             labels[i] = "p"
         labels[i] += portCodes[fromPort[i]+1]
+        
         if splitCenter or labels[i] != "pC":
             labels[i] += "2"
             labels[i] += portCodes[toPort[i]+1]
-        if includeRewards == 1:
-            if inPort[i] == -1 or inPort[i] == center:
-                labels[i] += "-or"[reward[i]]
-            else:
-                labels[i] += "dor"[reward[i]]
-        elif includeRewards == 2:
+            
+        if includeRewards == sidePorts:
             if inPort[i] == left or inPort[i] == right:
                 labels[i] += "dor"[reward[i]]
             else:
                 labels[i] += "-"
-            
+                
+        elif includeRewards == returns or includeRewards == fullTrial:
+            if inPort[i] == -1 or inPort[i] == center:
+                labels[i] += "-or"[reward[i]]
+            else:
+                labels[i] += "dor"[reward[i]]
+                
         if includeSwitches:
             if nextChoice[i] == lastChoice[i] or nextChoice[i] == -1:
                 labels[i] += "."
@@ -219,21 +236,26 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
     
     return labels, actionNo, actionProgress, actionDuration
 
-def labelFrameActions(sensorValues, includeRewards=True, includeSwitches=False, splitCenter=True):
+def labelFrameActions(sensorValues, includeRewards="returns", includeSwitches=False, splitCenter=True):
     '''Assign a string code to every frame, indicating where in the task the mouse currently is.
     
     Arguments:
     sensorValues   --- A Pandas Dataframe as given by block.readSensorValues()
-    includeRewards --- Whether to indicate rewards / omissions in the codes. Can be
-                       True: Include for ports and return movements. "ports": Include only for ports.
-                       False: Never include rewards.
+    includeRewards --- Where to indicate rewards / omissions in the codes. Can be "never" to never show reward info,
+                       "sidePorts" to only show it in the side ports, "returns" to show it for ports AND return movements
+                       or "fullTrial" to always show it.
     includeSwitches -- Whether to indicate stay / switch trials. Stay is indicated by "." and switches
                        by "!".
     splitCenter     -- Whether to split the center port depending on the subsequent choice.
     '''
     beams = sensorValues[["beamL","beamC", "beamR"]].values
     rewardNo = sensorValues["rewardNo"].values
-    if includeRewards == "ports": includeRewards = 2
+    
+    if includeRewards == "never": includeRewards = noRewards
+    elif includeRewards == "sidePorts": includeRewards = sidePorts
+    elif includeRewards == "returns": includeRewards = returns
+    elif includeRewards == "fullTrial": includeRewards = fullTrial
+    else: raise ValueError("Unknown reward choice: '{}'".format(includeRewards))
     labels, actionNo, actionProgress, actionDuration = _labelFrameActions(beams, rewardNo, includeRewards,
                                                                           includeSwitches, splitCenter)
     columns = {"label": labels, "actionNo": actionNo,
