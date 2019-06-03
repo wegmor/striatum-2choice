@@ -6,6 +6,7 @@ import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()
 import scipy.ndimage
 import skimage.measure
 import matplotlib.backends.backend_pdf
+import os
 import PIL
 import numbers
 from deprecated import deprecated
@@ -110,36 +111,48 @@ class SchematicIntensityPlot(IntensityPlot):
         self.coordinates = schematicCoord.values
         
 class TrackingIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=5, background="/home/emil/2choice/boxBackground.png"):
+    def __init__(self, session=None, smoothing=10, saturation=1.0):
         self.smoothing = smoothing
-        self.canvasSize = (304, 400)
-        
-        if block is not None and block.meta.cohort=="2019":
-            self.canvasSize = (750, 872)
-            background = "/home/emil/2choice/boxBackgroundHighRes.png"
-            
-        if isinstance(background, str):
-            self.background = PIL.Image.open(background)
-        elif isinstance(background, PIL.Image):
-            self.background = background
+        self.saturation = saturation
+        self.canvasSize = None
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def setSession(self, session):
+        backgroundFolder = os.path.dirname(__file__) + "/video_backgrounds/"
+        if session.meta.task == "openField":
+            if session.meta.date == "190224":
+                self.background = backgroundFolder + "background_open_field_2019_second_camera.png"
+            else:
+                self.background = backgroundFolder + "background_open_field_2019_first_camera.png"
         else:
-            raise ValueError("Unknown background format")
-            
-        if block is not None:
-            self.setDefaultCoordinates(block)
-            
-    def draw(self, trace, saturation=0.5 ,ax=None):
-        IntensityPlot.draw(self, trace, saturation, ax)
-        plt.imshow(self.background, alpha=0.5, zorder=-1000)
-        plt.axis("off")
-        
-    def setDefaultCoordinates(self, block):
-        tracking = block.readTracking()
+            if session.meta.cohort == "2018":
+                self.background = backgroundFolder + "background_2choice_2018.png"
+            else:
+                self.background = backgroundFolder + "background_2choice_2019.png"
+        self.backgroundIm = PIL.Image.open(self.background)
+        if self.canvasSize is None:
+            self.canvasSize = self.backgroundIm.size[::-1]
+        elif self.canvasSize != self.backgroundIm.size[::-1]:
+            raise ValueError("Cannot change to session {}, the video dimensions do not match.".format(session))
+        tracking = session.readTracking()
         headCoordinates = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
         likelihood = tracking[[("leftEar", "likelihood"),
                            ("rightEar", "likelihood"),
                            ("tailBase", "likelihood")]].min(axis=1)
-        self.setCoordinates(headCoordinates.values, (likelihood.values>0.9))
+        self.coordinates = headCoordinates.values
+        self.coordinates[likelihood.values < 0.9, :] = np.nan        
+        
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros(self.canvasSize, np.float64)
+        self.normCanvas = np.zeros(self.canvasSize, np.float64)
+            
+    def _drawSchema(self, im, alpha):
+        plt.imshow(self.backgroundIm, alpha=0.5, cmap="gray")
+        imshowWithAlpha(im, alpha, self.saturation)
+        plt.axis("off")
+        
         
 class BodyDirectionPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=6, positionFilter=None):
