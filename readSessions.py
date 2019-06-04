@@ -184,7 +184,7 @@ class Session:
             sensorValues = self.readSensorValues()
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
 
-    def readTracking(self):
+    def readTracking(self, inCm=False):
         if self.meta.task == "openField":
             tracking = []
             for i, video in enumerate(self.meta.videos):
@@ -192,6 +192,8 @@ class Session:
                 t.insert(0, "block", i)
                 tracking.append(t)
             tracking = pd.concat(tracking)
+            if inCm:
+                tracking = perspectiveTransform(tracking, str(self))
         else:
             tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
             if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
@@ -283,6 +285,26 @@ def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None
         if onlyRecordedTrials and not sessionMeta.caRecordings: continue
         yield Session(store, sessionMeta)
     if closeStore: store.close()
+
+def perspectiveTransform(tracking, sessName, boxW=49, boxH=49):
+    import cv2
+    corners = pd.read_hdf("openFieldCorners.hdf", "/corners")
+    src = corners.loc[sessName].unstack().loc[["lowerLeft", "upperLeft", "upperRight", "lowerRight"]]
+    src = np.array(src, dtype=np.float32)
+    dst = np.array([(0,0), (0, boxH), (boxW, boxH), (boxW, 0)], dtype=np.float32)
+    transform = cv2.getPerspectiveTransform(src, dst)
+    res = dict()
+    for bodyPart in tracking.columns.levels[0]:
+        if bodyPart == "block": continue
+        homTransformed = transform.dot(tracking[bodyPart][["x", "y"]].assign(t=1).T)
+        homTransformed /= homTransformed[2,:]
+        res[(bodyPart, "x")] = homTransformed[0,:]
+        res[(bodyPart, "y")] = homTransformed[1,:]
+        res[(bodyPart, "likelihood")] = tracking[bodyPart].likelihood
+    res = pd.DataFrame(res, index=tracking.index)
+    if "block" in tracking.columns:
+        res.insert(0, "block", tracking.block)
+    return res
     
 hasEmptyFirstFrame = {
     'd1_3517_180404':    False,
