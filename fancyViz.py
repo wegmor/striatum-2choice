@@ -472,7 +472,71 @@ class RoiPlot:
                                                orientation='vertical',
                                                ticks=[-saturation,0,saturation],
                                                label=colorLabel)
-            
+class SwitchSchematicPlot(IntensityPlot):
+    
+    def __init__(self, session=None, saturation=1.0, smoothing=4, linewidth=2, portRadius=1.0):
+        self.saturation = saturation
+        self.smoothing = smoothing
+        self.linewidth = linewidth
+        self.portRadius = portRadius
+        self.mask = slice(None, None) #No mask, use all values
+        self.clearBuffer()
+        self.setSession(session)
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((300, 600), np.float64)
+        self.normCanvas = np.zeros((300, 600), np.float64)
+    
+    def _drawSchema(self, im, alpha, ax=None):
+        '''Internal function, do not call directly.'''
+        imshowWithAlpha(im, alpha, self.saturation, origin="lower",
+                        extent=(-15,15,-7.5,7.5), zorder=-100000)
+        plt.xlim(-15, 15)
+        plt.ylim(-7.5, 7.5)
+        r = self.portRadius
+        lw = self.linewidth
+        sqrt2 = np.sqrt(2)
+        ax = plt.gca()
+        lw=1
+        
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 6, 6, 0, -90, -45, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 4, 4, 0, -45, 90, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 8, 8, 0, -45, 90, lw=lw))
+        ax.plot([8+1/sqrt2, 8+5/sqrt2], [-1/sqrt2, -5/sqrt2], 'k-', lw=lw)
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 6, 6, 0, 90, 135, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 4, 4, 0, 135, 270, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 8, 8, 0, 135, 270, lw=lw))
+        ax.plot([-8-1/sqrt2, -8-5/sqrt2], [1/sqrt2, 5/sqrt2], 'k-', lw=lw)
+        ax.add_artist(matplotlib.patches.Arc((3, 0), 4, 4, 0, 90, 270, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((-3, 0), 4, 4, 0, -90, 90, lw=lw))
+        ax.plot([-8, 8], [4, 4], 'k-', lw=lw)
+        ax.plot([-8, 8], [-4, -4], 'k-', lw=lw)
+        ax.plot([3, 8], [-2, -2], 'k-', lw=lw)
+        ax.plot([3, 8], [2, 2], 'k-', lw=lw)
+        ax.plot([-3, -8], [-2, -2], 'k-', lw=lw)
+        ax.plot([-3, -8], [2, 2], 'k-', lw=lw)
+
+        drawRoundedRect(ax, (8, -6), 5, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawRoundedRect(ax, (-3, -6), 6, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawRoundedRect(ax, (-13, -6), 5, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawArrowHead(ax, (-7.5,4), (-8, 4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-7.5,2), (-8, 2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (7.5,-4), (8, -4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (7.5,-2), (8, -2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (3.5, 4), (3, 4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (3.5, 2), (3, 2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-3.5, -4), (-3, -4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-3.5, -2), (-3, -2), facecolor="k", edgecolor="k")
+       
+        ax.axis("off")
+        
+    def setSession(self, session):
+        lfa = session.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+        schematicCoord = fancyVizUtils.switchSchematicCoordinates(lfa)*20
+        schematicCoord.x += 300
+        schematicCoord.y += 150
+        self.coordinates = schematicCoord.values
+
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     colors = plt.cm.RdYlBu_r(im*0.5 + 0.5)
