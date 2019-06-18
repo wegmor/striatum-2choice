@@ -102,7 +102,7 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.axis("off")
         
     def setSession(self, session):
-        inclRew = "returns" if self.splitReturns else "ports"            
+        inclRew = 'returns' if self.splitReturns else "sidePorts"
         lfa = session.labelFrameActions(reward=inclRew, switch=False,
                                         splitCenter=self.splitCenter)
         schematicCoord = fancyVizUtils.taskSchematicCoordinates(lfa)*50
