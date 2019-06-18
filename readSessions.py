@@ -185,17 +185,17 @@ class Session:
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
 
     def readTracking(self, inCm=False):
-        if self.meta.task == "openField":
-            tracking = []
-            for i, video in enumerate(self.meta.videos):
-                t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
-                t.insert(0, "block", i)
-                tracking.append(t)
-            tracking = pd.concat(tracking)
+        if self.meta.task in ("openField", "openFieldAgain"):
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
+            #for i, video in enumerate(self.meta.videos):
+            #    t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
+            #    t.insert(0, "block", i)
+            #    tracking.append(t)
+            #tracking = pd.concat(tracking)
             if inCm:
                 tracking = perspectiveTransform(tracking, str(self))
         else:
-            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
             if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
                 tracking = tracking.iloc[1:]
                 tracking.index.name = "videoFrameNo"
