@@ -218,7 +218,7 @@ class Session:
         return tracking
     
     def shuffleFrameLabels(self, n=1, switch=True):
-        frameLabels = self.labelFrameActions(reward="ports", switch=True)
+        frameLabels = self.labelFrameActions(reward="sidePorts", switch=True)
         frameLabels.index.name = 'frame'
         frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         

@@ -102,7 +102,7 @@ class SchematicIntensityPlot(IntensityPlot):
         plt.axis("off")
         
     def setSession(self, session):
-        inclRew = True if self.splitReturns else "ports"            
+        inclRew = "returns" if self.splitReturns else "ports"            
         lfa = session.labelFrameActions(reward=inclRew, switch=False,
                                         splitCenter=self.splitCenter)
         schematicCoord = fancyVizUtils.taskSchematicCoordinates(lfa)*50
@@ -185,34 +185,39 @@ class BodyDirectionPlot(IntensityPlot):
         self.setCoordinates(bodyDirCoord, mask)
         
 class BodyTurnPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=6, positionFilter=None):
+    
+    def __init__(self, session=None, smoothing=6, saturation=1.0, lw=0.5):
         self.smoothing = smoothing
-        self.canvasSize = (301, 301)
-        if block is not None:
-            self.setDefaultCoordinates(block, positionFilter)
-            
-    def draw(self, trace, saturation=0.5, ax=None):
-        IntensityPlot.draw(self, trace, saturation, ax, extent=(-1.5,1.5,-1.5,1.5))
-        drawArcArrow(1, -0.1, -2)
-        drawArcArrow(1 , 0.1, 2)
+        self.saturation = saturation
+        self.lw = lw
+        self.canvasSize = None
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((301, 301), np.float64)
+        self.normCanvas = np.zeros((301, 301), np.float64)
+        
+    def _drawSchema(self, im, alpha):
+        imshowWithAlpha(im, alpha, self.saturation, extent=(-1.5, 1.5, -1.5, 1.5))
+        drawArcArrow(1, -0.1, -2, lw=self.lw)
+        drawArcArrow(1 , 0.1, 2, lw=self.lw)
         plt.axis("off")
         plt.axis("equal")
         
-    def setDefaultCoordinates(self, block, positionFilter=None):
-        tracking = block.readTracking()
-        headCoordinates = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
-        likelihood = tracking[[("leftEar", "likelihood"),
-                           ("rightEar", "likelihood"),
-                           ("tailBase", "likelihood")]].min(axis=1)
-        mask = likelihood.values>0.9
-        if positionFilter is not None:
-            mask = np.logical_and(mask, headCoordinates.eval(positionFilter).values)
-        bodyDir = trackingGeometryUtils.calcBodyDirection(tracking)
+    def setSession(self, session):
+        tracking = session.readTracking(inCm=True)
+        bodyVec = tracking.body - tracking.tailBase
+        bodyDir = -np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
         turningSpeed = trackingGeometryUtils.angleDiff(bodyDir.shift(1), bodyDir)
-        mask = np.logical_and(mask, np.abs(turningSpeed)<np.pi/6)
-        bodyTurnCoord = np.vstack([np.cos(turningSpeed*6)*100+150,
-                                   np.sin(turningSpeed*6)*100+150]).T
-        self.setCoordinates(bodyTurnCoord, mask)
+        likelihood = tracking[[("body", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        turningSpeed[turningSpeed>np.pi/6] = np.nan
+        self.coordinates = np.vstack([np.cos(turningSpeed*5)*100+150,
+                                      np.sin(turningSpeed*5)*100+150]).T
+        self.coordinates[likelihood.values < 0.9, :] = np.nan
+        self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
         
 class HeadTurnPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=6, positionFilter=None):
@@ -569,15 +574,12 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     plt.ylim(-2.5,2.5)
     plt.axis("off")
 
-def drawArcArrow(rad, start, stop):
+def drawArcArrow(rad, start, stop, lw=0.5):
     phi = np.linspace(start,stop,100)
-    plt.plot(np.cos(phi)*rad, np.sin(phi)*rad, 'k', lw=0.5)
-    if start<stop:
-        plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, -np.sin(phi[-1])*0.1, np.cos(phi[-1])*0.1,
-              head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-    else:
-        plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, np.sin(phi[-1])*0.1, -np.cos(phi[-1])*0.1,
-              head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
+    xx = np.cos(phi)*rad
+    yy = np.sin(phi)*rad
+    plt.plot(xx, yy, 'k', lw=lw)
+    drawArrowHead(plt.gca(), (xx[-12], yy[-12]), (xx[-1], yy[-1]), facecolor="k", edgecolor="k")
 
 def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
