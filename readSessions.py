@@ -25,20 +25,23 @@ class Session:
         path = "/rois/{}/{}/{}".format(self.meta.genotype, self.meta.animal, self.meta.date)
         return pd.read_hdf(self.hdfFile, path)
     
-    def readTraces(self, kind="caTraces", fillDropped=True):
+    def readTraces(self, kind="caTraces", fillDropped=True, indicateBlocks=False):
         recordings = []
-        for rec in sorted(self.meta.caRecordings):
+        for i, rec in enumerate(sorted(self.meta.caRecordings)):
             recData = pd.read_hdf(self.hdfFile, "/caRecordings/{}/{}".format(rec, kind))
             if fillDropped:
                 completeIndex = np.arange(recData.index.min(), recData.index.max()+0.025, 0.05)
                 recData = recData.reindex(completeIndex, method="nearest", tolerance=1e-3)
+            if indicateBlocks:
+                recData["block"] = i
+                recData = recData.set_index("block", append=True).reorder_levels([1,0])
             recordings.append(recData)
         recData = pd.concat(recordings)
         if str(self) in cutTracesShort:
             recData = recData.iloc[:-cutTracesShort[str(self)]]
         return recData
     
-    def readCaTraces(self, fillDropped=True):
+    def readCaTraces(self, fillDropped=True, indicateBlocks=False):
         '''Read all calcium traces from this session.
 
         Arguments:
@@ -48,9 +51,9 @@ class Session:
         Returns:
         A Pandas dataframe with the calcium traces as columns
         '''
-        return self.readTraces("caTraces", fillDropped)
+        return self.readTraces("caTraces", fillDropped, indicateBlocks)
     
-    def readDeconvolvedTraces(self, zScore=False, fillDropped=True):
+    def readDeconvolvedTraces(self, zScore=False, fillDropped=True, indicateBlocks=False):
         '''Read all deconvolved traces from this session. Deconvolved traces are
         a guess of the "true" activity of the neuron.
 
@@ -62,7 +65,7 @@ class Session:
         Returns:
         A Pandas dataframe with the calcium traces as columns
         '''
-        traces = self.readTraces("deconvolvedCaTraces", fillDropped)
+        traces = self.readTraces("deconvolvedCaTraces", fillDropped, indicateBlocks)
         if zScore:
             traces -= traces.mean(axis=0)
             traces /= traces.std(axis=0)
@@ -187,11 +190,6 @@ class Session:
     def readTracking(self, inCm=False):
         if self.meta.task in ("openField", "openFieldAgain"):
             tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
-            #for i, video in enumerate(self.meta.videos):
-            #    t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
-            #    t.insert(0, "block", i)
-            #    tracking.append(t)
-            #tracking = pd.concat(tracking)
             if inCm:
                 tracking = perspectiveTransform(tracking, str(self))
         else:
