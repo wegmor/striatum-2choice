@@ -25,20 +25,23 @@ class Session:
         path = "/rois/{}/{}/{}".format(self.meta.genotype, self.meta.animal, self.meta.date)
         return pd.read_hdf(self.hdfFile, path)
     
-    def readTraces(self, kind="caTraces", fillDropped=True):
+    def readTraces(self, kind="caTraces", fillDropped=True, indicateBlocks=False):
         recordings = []
-        for rec in sorted(self.meta.caRecordings):
+        for i, rec in enumerate(sorted(self.meta.caRecordings)):
             recData = pd.read_hdf(self.hdfFile, "/caRecordings/{}/{}".format(rec, kind))
             if fillDropped:
                 completeIndex = np.arange(recData.index.min(), recData.index.max()+0.025, 0.05)
                 recData = recData.reindex(completeIndex, method="nearest", tolerance=1e-3)
+            if indicateBlocks:
+                recData["block"] = i
+                recData = recData.set_index("block", append=True).reorder_levels([1,0])
             recordings.append(recData)
         recData = pd.concat(recordings)
         if str(self) in cutTracesShort:
             recData = recData.iloc[:-cutTracesShort[str(self)]]
         return recData
     
-    def readCaTraces(self, fillDropped=True):
+    def readCaTraces(self, fillDropped=True, indicateBlocks=False):
         '''Read all calcium traces from this session.
 
         Arguments:
@@ -48,9 +51,9 @@ class Session:
         Returns:
         A Pandas dataframe with the calcium traces as columns
         '''
-        return self.readTraces("caTraces", fillDropped)
+        return self.readTraces("caTraces", fillDropped, indicateBlocks)
     
-    def readDeconvolvedTraces(self, zScore=False, fillDropped=True):
+    def readDeconvolvedTraces(self, zScore=False, fillDropped=True, indicateBlocks=False):
         '''Read all deconvolved traces from this session. Deconvolved traces are
         a guess of the "true" activity of the neuron.
 
@@ -62,7 +65,7 @@ class Session:
         Returns:
         A Pandas dataframe with the calcium traces as columns
         '''
-        traces = self.readTraces("deconvolvedCaTraces", fillDropped)
+        traces = self.readTraces("deconvolvedCaTraces", fillDropped, indicateBlocks)
         if zScore:
             traces -= traces.mean(axis=0)
             traces /= traces.std(axis=0)
@@ -184,16 +187,13 @@ class Session:
             sensorValues = self.readSensorValues()
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
 
-    def readTracking(self):
-        if self.meta.task == "openField":
-            tracking = []
-            for i, video in enumerate(self.meta.videos):
-                t = pd.read_hdf(self.hdfFile, "/tracking/" + video)
-                t.insert(0, "block", i)
-                tracking.append(t)
-            tracking = pd.concat(tracking)
+    def readTracking(self, inCm=False):
+        if self.meta.task in ("openField", "openFieldAgain"):
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
+            if inCm:
+                tracking = perspectiveTransform(tracking, str(self))
         else:
-            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.videos[0])
+            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
             if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
                 tracking = tracking.iloc[1:]
                 tracking.index.name = "videoFrameNo"
@@ -216,7 +216,7 @@ class Session:
         return tracking
     
     def shuffleFrameLabels(self, n=1, switch=True):
-        frameLabels = self.labelFrameActions(reward="ports", switch=True)
+        frameLabels = self.labelFrameActions(reward="sidePorts", switch=True)
         frameLabels.index.name = 'frame'
         frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
@@ -283,6 +283,26 @@ def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None
         if onlyRecordedTrials and not sessionMeta.caRecordings: continue
         yield Session(store, sessionMeta)
     if closeStore: store.close()
+
+def perspectiveTransform(tracking, sessName, boxW=49, boxH=49):
+    import cv2
+    corners = pd.read_hdf("openFieldCorners.hdf", "/corners")
+    src = corners.loc[sessName].unstack().loc[["lowerLeft", "upperLeft", "upperRight", "lowerRight"]]
+    src = np.array(src, dtype=np.float32)
+    dst = np.array([(0,0), (0, boxH), (boxW, boxH), (boxW, 0)], dtype=np.float32)
+    transform = cv2.getPerspectiveTransform(src, dst)
+    res = dict()
+    for bodyPart in tracking.columns.levels[0]:
+        if bodyPart == "block": continue
+        homTransformed = transform.dot(tracking[bodyPart][["x", "y"]].assign(t=1).T)
+        homTransformed /= homTransformed[2,:]
+        res[(bodyPart, "x")] = homTransformed[0,:]
+        res[(bodyPart, "y")] = homTransformed[1,:]
+        res[(bodyPart, "likelihood")] = tracking[bodyPart].likelihood
+    res = pd.DataFrame(res, index=tracking.index)
+    if "block" in tracking.columns:
+        res.insert(0, "block", tracking.block)
+    return res
     
 hasEmptyFirstFrame = {
     'd1_3517_180404':    False,

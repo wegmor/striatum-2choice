@@ -6,6 +6,7 @@ import pyximport; pyximport.install(setup_args={'include_dirs': np.get_include()
 import scipy.ndimage
 import skimage.measure
 import matplotlib.backends.backend_pdf
+import os
 import PIL
 import numbers
 from deprecated import deprecated
@@ -110,36 +111,48 @@ class SchematicIntensityPlot(IntensityPlot):
         self.coordinates = schematicCoord.values
         
 class TrackingIntensityPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=5, background="/home/emil/2choice/boxBackground.png"):
+    def __init__(self, session=None, smoothing=10, saturation=1.0):
         self.smoothing = smoothing
-        self.canvasSize = (304, 400)
-        
-        if block is not None and block.meta.cohort=="2019":
-            self.canvasSize = (750, 872)
-            background = "/home/emil/2choice/boxBackgroundHighRes.png"
-            
-        if isinstance(background, str):
-            self.background = PIL.Image.open(background)
-        elif isinstance(background, PIL.Image):
-            self.background = background
+        self.saturation = saturation
+        self.canvasSize = None
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def setSession(self, session):
+        backgroundFolder = os.path.dirname(__file__) + "/video_backgrounds/"
+        if session.meta.task == "openField":
+            if session.meta.date == "190224":
+                self.background = backgroundFolder + "background_open_field_2019_second_camera.png"
+            else:
+                self.background = backgroundFolder + "background_open_field_2019_first_camera.png"
         else:
-            raise ValueError("Unknown background format")
-            
-        if block is not None:
-            self.setDefaultCoordinates(block)
-            
-    def draw(self, trace, saturation=0.5 ,ax=None):
-        IntensityPlot.draw(self, trace, saturation, ax)
-        plt.imshow(self.background, alpha=0.5, zorder=-1000)
-        plt.axis("off")
-        
-    def setDefaultCoordinates(self, block):
-        tracking = block.readTracking()
+            if session.meta.cohort == "2018":
+                self.background = backgroundFolder + "background_2choice_2018.png"
+            else:
+                self.background = backgroundFolder + "background_2choice_2019.png"
+        self.backgroundIm = PIL.Image.open(self.background)
+        if self.canvasSize is None:
+            self.canvasSize = self.backgroundIm.size[::-1]
+        elif self.canvasSize != self.backgroundIm.size[::-1]:
+            raise ValueError("Cannot change to session {}, the video dimensions do not match.".format(session))
+        tracking = session.readTracking()
         headCoordinates = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
         likelihood = tracking[[("leftEar", "likelihood"),
                            ("rightEar", "likelihood"),
                            ("tailBase", "likelihood")]].min(axis=1)
-        self.setCoordinates(headCoordinates.values, (likelihood.values>0.9))
+        self.coordinates = headCoordinates.values
+        self.coordinates[likelihood.values < 0.9, :] = np.nan        
+        
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros(self.canvasSize, np.float64)
+        self.normCanvas = np.zeros(self.canvasSize, np.float64)
+            
+    def _drawSchema(self, im, alpha):
+        plt.imshow(self.backgroundIm, alpha=0.5, cmap="gray")
+        imshowWithAlpha(im, alpha, self.saturation)
+        plt.axis("off")
+        
         
 class BodyDirectionPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=6, positionFilter=None):
@@ -172,34 +185,39 @@ class BodyDirectionPlot(IntensityPlot):
         self.setCoordinates(bodyDirCoord, mask)
         
 class BodyTurnPlot(IntensityPlot):
-    def __init__(self, block=None, smoothing=6, positionFilter=None):
+    
+    def __init__(self, session=None, smoothing=6, saturation=1.0, lw=0.5):
         self.smoothing = smoothing
-        self.canvasSize = (301, 301)
-        if block is not None:
-            self.setDefaultCoordinates(block, positionFilter)
-            
-    def draw(self, trace, saturation=0.5, ax=None):
-        IntensityPlot.draw(self, trace, saturation, ax, extent=(-1.5,1.5,-1.5,1.5))
-        drawArcArrow(1, -0.1, -2)
-        drawArcArrow(1 , 0.1, 2)
+        self.saturation = saturation
+        self.lw = lw
+        self.canvasSize = None
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((301, 301), np.float64)
+        self.normCanvas = np.zeros((301, 301), np.float64)
+        
+    def _drawSchema(self, im, alpha):
+        imshowWithAlpha(im, alpha, self.saturation, extent=(-1.5, 1.5, -1.5, 1.5))
+        drawArcArrow(1, -0.1, -2, lw=self.lw)
+        drawArcArrow(1 , 0.1, 2, lw=self.lw)
         plt.axis("off")
         plt.axis("equal")
         
-    def setDefaultCoordinates(self, block, positionFilter=None):
-        tracking = block.readTracking()
-        headCoordinates = (0.5*(tracking.leftEar + tracking.rightEar))[['x','y']]
-        likelihood = tracking[[("leftEar", "likelihood"),
-                           ("rightEar", "likelihood"),
-                           ("tailBase", "likelihood")]].min(axis=1)
-        mask = likelihood.values>0.9
-        if positionFilter is not None:
-            mask = np.logical_and(mask, headCoordinates.eval(positionFilter).values)
-        bodyDir = trackingGeometryUtils.calcBodyDirection(tracking)
+    def setSession(self, session):
+        tracking = session.readTracking(inCm=True)
+        bodyVec = tracking.body - tracking.tailBase
+        bodyDir = -np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
         turningSpeed = trackingGeometryUtils.angleDiff(bodyDir.shift(1), bodyDir)
-        mask = np.logical_and(mask, np.abs(turningSpeed)<np.pi/6)
-        bodyTurnCoord = np.vstack([np.cos(turningSpeed*6)*100+150,
-                                   np.sin(turningSpeed*6)*100+150]).T
-        self.setCoordinates(bodyTurnCoord, mask)
+        likelihood = tracking[[("body", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        turningSpeed[turningSpeed>np.pi/6] = np.nan
+        self.coordinates = np.vstack([np.cos(turningSpeed*5)*100+150,
+                                      np.sin(turningSpeed*5)*100+150]).T
+        self.coordinates[likelihood.values < 0.9, :] = np.nan
+        self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
         
 class HeadTurnPlot(IntensityPlot):
     def __init__(self, block=None, smoothing=6, positionFilter=None):
@@ -556,15 +574,12 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     plt.ylim(-2.5,2.5)
     plt.axis("off")
 
-def drawArcArrow(rad, start, stop):
+def drawArcArrow(rad, start, stop, lw=0.5):
     phi = np.linspace(start,stop,100)
-    plt.plot(np.cos(phi)*rad, np.sin(phi)*rad, 'k', lw=0.5)
-    if start<stop:
-        plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, -np.sin(phi[-1])*0.1, np.cos(phi[-1])*0.1,
-              head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
-    else:
-        plt.arrow(np.cos(phi[-1])*rad, np.sin(phi[-1])*rad, np.sin(phi[-1])*0.1, -np.cos(phi[-1])*0.1,
-              head_width=0.075, length_includes_head=True, edgecolor="none", facecolor="k")
+    xx = np.cos(phi)*rad
+    yy = np.sin(phi)*rad
+    plt.plot(xx, yy, 'k', lw=lw)
+    drawArrowHead(plt.gca(), (xx[-12], yy[-12]), (xx[-1], yy[-1]), facecolor="k", edgecolor="k")
 
 def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
