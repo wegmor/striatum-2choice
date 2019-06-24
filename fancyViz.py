@@ -363,6 +363,49 @@ class BlockActionsIntensityPlot(IntensityPlot):
         blockCoord.x += 300
         blockCoord.y += 125
         self.setCoordinates(blockCoord.values, np.ones(len(blockCoord), np.bool_))
+
+class WallAnglePlot(IntensityPlot):
+    
+    def __init__(self, session=None, smoothing=12, saturation=1.0, lw=0.5):
+        self.smoothing = smoothing
+        self.saturation = saturation
+        self.lw = lw
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((301, 301), np.float64)
+        self.normCanvas = np.zeros((301, 301), np.float64)
+        
+    def _drawSchema(self, im, alpha):
+        
+        imshowWithAlpha(im, alpha, self.saturation, extent=(-5, 5, -5, 5), origin="lower")
+        mouseIcon = PIL.Image.open(os.path.dirname(__file__) + "/mouseIcon.png")
+        plt.imshow(mouseIcon, extent=(-3.9, 4.1, -6.1, 3.9), interpolation="bilinear")
+        plt.axis("off")
+        plt.axis("equal")
+        
+    def setSession(self, session):
+        tracking = session.readTracking(inCm=True)
+        coords = 0.5*(tracking.leftEar + tracking.rightEar)
+        wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+        wallDists.columns = ["left", "bottom", "right", "top"]
+        closestWallId = wallDists.idxmin(axis=1)
+        bodyVec = coords - tracking.tailBase
+        bodyDir = np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
+        angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                             'right': -np.pi/2, 'bottom': np.pi})
+        wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+        minWallDist = wallDists.min(axis=1)
+        likelihood = tracking[[("leftEar", "likelihood"),
+                               ("rightEar", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
+                                      np.sin(wallAngle)*minWallDist*30+150]).T
+        self.coordinates[likelihood.values < 0.9, :] = np.nan
+        self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
+        self.coordinates[minWallDist>4.9, :] = np.nan
         
 class AllCombinedPlot:
     def __init__(self, block):
@@ -499,16 +542,16 @@ class SwitchSchematicPlot(IntensityPlot):
         ax = plt.gca()
         lw=1
         
-        ax.add_artist(matplotlib.patches.Arc((8, 0), 6, 6, 0, -90, -45, lw=lw))
-        ax.add_artist(matplotlib.patches.Arc((8, 0), 4, 4, 0, -45, 90, lw=lw))
-        ax.add_artist(matplotlib.patches.Arc((8, 0), 8, 8, 0, -45, 90, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 6, 6, 0, -90, -45, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 4, 4, 0, -45, 90, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 8, 8, 0, -45, 90, lw=lw, edgecolor="k"))
         ax.plot([8+1/sqrt2, 8+5/sqrt2], [-1/sqrt2, -5/sqrt2], 'k-', lw=lw)
-        ax.add_artist(matplotlib.patches.Arc((-8, 0), 6, 6, 0, 90, 135, lw=lw))
-        ax.add_artist(matplotlib.patches.Arc((-8, 0), 4, 4, 0, 135, 270, lw=lw))
-        ax.add_artist(matplotlib.patches.Arc((-8, 0), 8, 8, 0, 135, 270, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 6, 6, 0, 90, 135, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 4, 4, 0, 135, 270, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 8, 8, 0, 135, 270, lw=lw, edgecolor="k"))
         ax.plot([-8-1/sqrt2, -8-5/sqrt2], [1/sqrt2, 5/sqrt2], 'k-', lw=lw)
-        ax.add_artist(matplotlib.patches.Arc((3, 0), 4, 4, 0, 90, 270, lw=lw))
-        ax.add_artist(matplotlib.patches.Arc((-3, 0), 4, 4, 0, -90, 90, lw=lw))
+        ax.add_artist(matplotlib.patches.Arc((3, 0), 4, 4, 0, 90, 270, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-3, 0), 4, 4, 0, -90, 90, lw=lw, edgecolor="k"))
         ax.plot([-8, 8], [4, 4], 'k-', lw=lw)
         ax.plot([-8, 8], [-4, -4], 'k-', lw=lw)
         ax.plot([3, 8], [-2, -2], 'k-', lw=lw)
