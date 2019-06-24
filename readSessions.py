@@ -188,31 +188,34 @@ class Session:
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
 
     def readTracking(self, inCm=False):
-        if self.meta.task in ("openField", "openFieldAgain"):
-            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
-            if inCm:
-                tracking = perspectiveTransform(tracking, str(self))
-        else:
-            tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
-            if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
-                tracking = tracking.iloc[1:]
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
+        tracking = pd.read_hdf(self.hdfFile, "/tracking/" + self.meta.video)
+        if inCm:
+            if self.meta.cohort == "2018":
+                raise ValueError("No corners have been added for the 2018 cohort")
+            if self.meta.task == "openFieldAgain":
+                raise ValueError("No corners have been added for the second open field sessions")
+            boxCorners = pd.read_hdf(self.hdfFile, "/extra/boxCorners")
+            boxSize = 49 if self.meta.task == "openField" else 15
+            tracking = perspectiveTransform(tracking, boxCorners.loc[self.meta.video], boxSize, boxSize)
+        if self.meta.cohort=="2018" and hasEmptyFirstFrame[str(self)]:
+            tracking = tracking.iloc[1:]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
 
-            #Special cases to fix wrong number of frames
-            if str(self) == "d1_3517_180329":
-                 #First frame is dark and from LED intensities it looks like it should be dropped
-                tracking = tracking.iloc[1:-1]
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
-            elif str(self) == "oprm1_3582_180327":
-                #From LED it looks like first two frames are missing
-                #tracking.insert(0, {c: np.nan for c in tracking.columns})
-                tracking = tracking.reindex(np.arange(-2, len(tracking)))
-                tracking.index.name = "videoFrameNo"
-                tracking.reset_index(inplace=True)
-            if str(self) in cutTrackingShort:
-                tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
+        #Special cases to fix wrong number of frames
+        if str(self) == "d1_3517_180329":
+             #First frame is dark and from LED intensities it looks like it should be dropped
+            tracking = tracking.iloc[1:-1]
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        elif str(self) == "oprm1_3582_180327":
+            #From LED it looks like first two frames are missing
+            #tracking.insert(0, {c: np.nan for c in tracking.columns})
+            tracking = tracking.reindex(np.arange(-2, len(tracking)))
+            tracking.index.name = "videoFrameNo"
+            tracking.reset_index(inplace=True)
+        if str(self) in cutTrackingShort and self.meta.task=="2choice":
+            tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
     
     def shuffleFrameLabels(self, n=1, switch=True):
@@ -284,10 +287,9 @@ def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None
         yield Session(store, sessionMeta)
     if closeStore: store.close()
 
-def perspectiveTransform(tracking, sessName, boxW=49, boxH=49):
+def perspectiveTransform(tracking, corners, boxW=49, boxH=49):
     import cv2
-    corners = pd.read_hdf("openFieldCorners.hdf", "/corners")
-    src = corners.loc[sessName].unstack().loc[["lowerLeft", "upperLeft", "upperRight", "lowerRight"]]
+    src = corners.unstack().loc[["lowerLeft", "upperLeft", "upperRight", "lowerRight"]]
     src = np.array(src, dtype=np.float32)
     dst = np.array([(0,0), (0, boxH), (boxW, boxH), (boxW, 0)], dtype=np.float32)
     transform = cv2.getPerspectiveTransform(src, dst)
