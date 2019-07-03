@@ -186,6 +186,41 @@ class Session:
         if sensorValues is None:
             sensorValues = self.readSensorValues()
         return findTrials.labelFrameActions(sensorValues, reward, switch, splitCenter)
+    
+    def getRewSwDist(self):
+        apf = self.labelFrameActions(reward='sidePorts', switch=True).reset_index(drop=True)
+        apf.index.name = 'frameNo'
+        
+        actions = apf.reset_index('frameNo').groupby('actionNo').first()
+        actions['switch'] = actions.label.str.contains('p[RL]2.d!').astype('int')
+        actions['reward'] = actions.label.str.contains('p[RL]2.r[.!]').astype('int')
+        actions['switchNo'] = actions.switch.cumsum()
+        actions['rewardNo'] = actions.reward.cumsum().shift(-1)
+        actions = actions.loc[actions.label.str.contains('p[RL]2.d[.!]')]
+    
+        # count trials without a reward
+        actions['sinceReward'] = actions.groupby('rewardNo').cumcount()
+        actions['toReward'] = -(actions.groupby('rewardNo').cumcount(ascending=False).shift(1))
+        actions.loc[actions.rewardNo == 0, 'sinceReward'] = np.nan
+        actions.loc[actions.rewardNo == actions.rewardNo.iloc[-1], 'toReward'] = np.nan
+        actions.loc[actions.sinceReward == 0, 'toReward'] = 0  # otherwise last switch is lost in "toReward"
+        
+        # count trials without switch
+        actions['sinceSwitch'] = actions.groupby('switchNo').cumcount()
+        actions['toSwitch'] = -(actions.groupby('switchNo').cumcount(ascending=False).shift(1))
+        actions.loc[actions.switchNo == 0, 'sinceSwitch'] = np.nan
+        actions.loc[actions.switchNo == actions.switchNo.iloc[-1], 'toSwitch'] = np.nan
+        actions.loc[actions.sinceSwitch == 0, 'toSwitch'] = 0
+        
+        # insert into apf
+        actions = actions.fillna(-999999) # otherwise fillna below causes trouble
+        actions.set_index('frameNo', inplace=True)
+        fields = ['sinceReward','toReward','sinceSwitch','toSwitch','switchNo','rewardNo']
+        apf[fields] = actions[fields]
+        apf[fields] = apf[fields].fillna(method='ffill')
+        apf[fields[:-2]] = apf[fields[:-2]].replace(-999999, np.nan)
+        
+        return apf[fields].reset_index(drop=True).copy()
 
     def readTracking(self, inCm=False):
         if self.meta.task in ("openField", "openFieldAgain"):
@@ -215,13 +250,17 @@ class Session:
                 tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
     
-    def shuffleFrameLabels(self, n=1, switch=True):
-        frameLabels = self.labelFrameActions(reward="sidePorts", switch=True)
+    def shuffleFrameLabels(self, n=1, switch=True, reward='sidePorts', splitCenter=True):
+        frameLabels = self.labelFrameActions(reward=reward, splitCenter=splitCenter,
+                                             switch=True)
         frameLabels.index.name = 'frame'
         frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
         actions = frameLabels.reset_index().groupby('actionNo').first()
-        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')
+#        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')  # doesn't match 'd!'
+#                                                                  # if animal doesn't wait for o/r,
+#                                                                  # switch is not counted. BUG!
+        switch_idx = actions.label.str.contains('p[RL]2.d?!')
         switchFrames = actions.loc[switch_idx, 'frame'].values
         frameLabels.loc[switchFrames, 'switch'] = 1
         frameLabels['switch'] = frameLabels.switch.fillna(0).cumsum()
