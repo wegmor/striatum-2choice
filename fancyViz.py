@@ -363,6 +363,49 @@ class BlockActionsIntensityPlot(IntensityPlot):
         blockCoord.x += 300
         blockCoord.y += 125
         self.setCoordinates(blockCoord.values, np.ones(len(blockCoord), np.bool_))
+
+class WallAnglePlot(IntensityPlot):
+    
+    def __init__(self, session=None, smoothing=12, saturation=1.0, lw=0.5):
+        self.smoothing = smoothing
+        self.saturation = saturation
+        self.lw = lw
+        self.mask = slice(None, None) #No mask, use all values
+        self.setSession(session)
+        self.clearBuffer()
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((301, 301), np.float64)
+        self.normCanvas = np.zeros((301, 301), np.float64)
+        
+    def _drawSchema(self, im, alpha):
+        
+        imshowWithAlpha(im, alpha, self.saturation, extent=(-5, 5, -5, 5), origin="lower")
+        mouseIcon = PIL.Image.open(os.path.dirname(__file__) + "/mouseIcon.png")
+        plt.imshow(mouseIcon, extent=(-3.9, 4.1, -6.1, 3.9), interpolation="bilinear")
+        plt.axis("off")
+        plt.axis("equal")
+        
+    def setSession(self, session):
+        tracking = session.readTracking(inCm=True)
+        coords = 0.5*(tracking.leftEar + tracking.rightEar)
+        wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+        wallDists.columns = ["left", "bottom", "right", "top"]
+        closestWallId = wallDists.idxmin(axis=1)
+        bodyVec = coords - tracking.tailBase
+        bodyDir = np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
+        angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                             'right': -np.pi/2, 'bottom': np.pi})
+        wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+        minWallDist = wallDists.min(axis=1)
+        likelihood = tracking[[("leftEar", "likelihood"),
+                               ("rightEar", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
+                                      np.sin(wallAngle)*minWallDist*30+150]).T
+        self.coordinates[likelihood.values < 0.9, :] = np.nan
+        self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
+        self.coordinates[minWallDist>4.9, :] = np.nan
         
 class AllCombinedPlot:
     def __init__(self, block):
@@ -472,7 +515,71 @@ class RoiPlot:
                                                orientation='vertical',
                                                ticks=[-saturation,0,saturation],
                                                label=colorLabel)
-            
+class SwitchSchematicPlot(IntensityPlot):
+    
+    def __init__(self, session=None, saturation=1.0, smoothing=4, linewidth=2, portRadius=1.0):
+        self.saturation = saturation
+        self.smoothing = smoothing
+        self.linewidth = linewidth
+        self.portRadius = portRadius
+        self.mask = slice(None, None) #No mask, use all values
+        self.clearBuffer()
+        self.setSession(session)
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((300, 600), np.float64)
+        self.normCanvas = np.zeros((300, 600), np.float64)
+    
+    def _drawSchema(self, im, alpha, ax=None):
+        '''Internal function, do not call directly.'''
+        imshowWithAlpha(im, alpha, self.saturation, origin="lower",
+                        extent=(-15,15,-7.5,7.5), zorder=-100000)
+        plt.xlim(-15, 15)
+        plt.ylim(-7.5, 7.5)
+        r = self.portRadius
+        lw = self.linewidth
+        sqrt2 = np.sqrt(2)
+        ax = plt.gca()
+        lw=1
+        
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 6, 6, 0, -90, -45, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 4, 4, 0, -45, 90, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((8, 0), 8, 8, 0, -45, 90, lw=lw, edgecolor="k"))
+        ax.plot([8+1/sqrt2, 8+5/sqrt2], [-1/sqrt2, -5/sqrt2], 'k-', lw=lw)
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 6, 6, 0, 90, 135, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 4, 4, 0, 135, 270, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-8, 0), 8, 8, 0, 135, 270, lw=lw, edgecolor="k"))
+        ax.plot([-8-1/sqrt2, -8-5/sqrt2], [1/sqrt2, 5/sqrt2], 'k-', lw=lw)
+        ax.add_artist(matplotlib.patches.Arc((3, 0), 4, 4, 0, 90, 270, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-3, 0), 4, 4, 0, -90, 90, lw=lw, edgecolor="k"))
+        ax.plot([-8, 8], [4, 4], 'k-', lw=lw)
+        ax.plot([-8, 8], [-4, -4], 'k-', lw=lw)
+        ax.plot([3, 8], [-2, -2], 'k-', lw=lw)
+        ax.plot([3, 8], [2, 2], 'k-', lw=lw)
+        ax.plot([-3, -8], [-2, -2], 'k-', lw=lw)
+        ax.plot([-3, -8], [2, 2], 'k-', lw=lw)
+
+        drawRoundedRect(ax, (8, -6), 5, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawRoundedRect(ax, (-3, -6), 6, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawRoundedRect(ax, (-13, -6), 5, 12, 1, fill=False, edgecolor="k", lw=lw)
+        drawArrowHead(ax, (-7.5,4), (-8, 4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-7.5,2), (-8, 2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (7.5,-4), (8, -4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (7.5,-2), (8, -2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (3.5, 4), (3, 4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (3.5, 2), (3, 2), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-3.5, -4), (-3, -4), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-3.5, -2), (-3, -2), facecolor="k", edgecolor="k")
+       
+        ax.axis("off")
+        
+    def setSession(self, session):
+        lfa = session.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+        schematicCoord = fancyVizUtils.switchSchematicCoordinates(lfa)*20
+        schematicCoord.x += 300
+        schematicCoord.y += 150
+        self.coordinates = schematicCoord.values
+
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     colors = plt.cm.RdYlBu_r(im*0.5 + 0.5)

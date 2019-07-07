@@ -421,3 +421,158 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] label,
         coordinates[i,0] = x
         coordinates[i,1] = y
     return coordinates
+
+def switchSchematicCoordinates(labelPerFrame):
+    '''
+    Similar to taskSchematicCoordinates but for the labels given by labelFrameActions instead
+    of calcActionsPerFrame
+    
+    Returns:
+    A pandas Dataframe with the x and y coordinates in the schematic for each frame
+    '''
+    return pd.DataFrame(_switchSchematicCoordinates(labelPerFrame.label.astype("str").values,
+                                                    labelPerFrame.actionProgress.values),
+                        columns=["x","y"], index=labelPerFrame.index)
+
+cdef cnp.ndarray[cnp.float_t, ndim=2] _switchSchematicCoordinates(str[:] label,
+                                                                cnp.float_t[:] actionProgress):
+    cdef Py_ssize_t i, N = label.shape[0]
+    cdef cnp.float_t x, y, phi, progress, pi = np.pi
+    cdef cnp.ndarray[cnp.float_t, ndim=2] coordinates = np.nan*np.ones((N,2))
+    cdef cnp.float_t NaN = np.nan
+    cdef str port
+    for i in range(N):
+        progress = actionProgress[i]
+        
+        # Center port
+        if label[i] == "pC2Lr.":
+            phi = progress*pi - pi/2
+            x = -3 + 1.5*libc.math.cos(phi)
+            y =  0 + 1.5*libc.math.sin(phi)
+        elif label[i] == "pC2Lo.":
+            phi = progress*pi - pi/2
+            x = -3 + 2.5*libc.math.cos(phi)
+            y =  0 + 2.5*libc.math.sin(phi)
+        elif label[i] == "pC2Lr!":
+            x = 3 - 6*progress
+            y = 3.5
+        elif label[i] == "pC2Lo!":
+            x = 3 - 6*progress
+            y = 4.5
+        elif label[i] == "pC2Rr.":
+            phi = progress*pi + pi/2
+            x =  3 + 1.5*libc.math.cos(phi)
+            y =  0 + 1.5*libc.math.sin(phi)
+        elif label[i] == "pC2Ro.":
+            phi = progress*pi + pi/2
+            x =  3 + 2.5*libc.math.cos(phi)
+            y =  0 + 2.5*libc.math.sin(phi)
+        elif label[i] == "pC2Rr!":
+            x = -3 + 6*progress
+            y = -3.5
+        elif label[i] == "pC2Ro!":
+            x = -3 + 6*progress
+            y = -4.5
+            
+        # Left port
+        elif label[i] == "pL2Cd." or label[i] == "pL2Cd!":
+            phi = progress*pi/4 + pi/2
+            x = -8 + 3*libc.math.cos(phi)
+            y =  0 + 3*libc.math.sin(phi)
+        elif label[i] == "pL2Cr.":
+            phi = progress*pi*3/4.0 + pi/2 + pi/4
+            x = -8 + 1.5*libc.math.cos(phi)
+            y =  0 + 1.5*libc.math.sin(phi)
+        elif label[i] == "pL2Co.":
+            phi = progress*pi*3/4.0 + pi/2 + pi/4
+            x = -8 + 2.5*libc.math.cos(phi)
+            y =  0 + 2.5*libc.math.sin(phi)
+        elif label[i] == "pL2Cr!":
+            phi = progress*pi*3/4.0 + pi/2 + pi/4
+            x = -8 + 3.5*libc.math.cos(phi)
+            y =  0 + 3.5*libc.math.sin(phi)
+        elif label[i] == "pL2Co!":
+            phi = progress*pi*3/4.0 + pi/2 + pi/4
+            x = -8 + 4.5*libc.math.cos(phi)
+            y =  0 + 4.5*libc.math.sin(phi)
+        
+        # Right port
+        elif label[i] == "pR2Cd." or label[i] == "pR2Cd!":
+            phi = progress*pi/4 - pi/2
+            x =  8 + 3*libc.math.cos(phi)
+            y =  0 + 3*libc.math.sin(phi)
+        elif label[i] == "pR2Cr.":
+            phi = progress*pi*3/4.0 - pi/2 + pi/4
+            x =  8 + 1.5*libc.math.cos(phi)
+            y =  0 + 1.5*libc.math.sin(phi)
+        elif label[i] == "pR2Co.":
+            phi = progress*pi*3/4.0 - pi/2 + pi/4
+            x =  8 + 2.5*libc.math.cos(phi)
+            y =  0 + 2.5*libc.math.sin(phi)
+        elif label[i] == "pR2Cr!":
+            phi = progress*pi*3/4.0 - pi/2 + pi/4
+            x =  8 + 3.5*libc.math.cos(phi)
+            y =  0 + 3.5*libc.math.sin(phi)
+        elif label[i] == "pR2Co!":
+            phi = progress*pi*3/4.0 - pi/2 + pi/4
+            x =  8 + 4.5*libc.math.cos(phi)
+            y =  0 + 4.5*libc.math.sin(phi)
+            
+        # Rightward movements
+        elif label[i] == "mL2Cr.":
+            x = -8 + 5*progress
+            y = -1.5
+        elif label[i] == "mL2Co.":
+            x = -8 + 5*progress
+            y = -2.5
+        elif label[i] == "mL2Cr!":
+            x = -8 + 5*progress
+            y = -3.5
+        elif label[i] == "mL2Co!":
+            x = -8 + 5*progress
+            y = -4.5
+        elif label[i] == "mC2Rr.":
+            x =  3 + 5*progress
+            y = -1.5
+        elif label[i] == "mC2Ro.":
+            x =  3 + 5*progress
+            y = -2.5
+        elif label[i] == "mC2Rr!":
+            x =  3 + 5*progress
+            y = -3.5
+        elif label[i] == "mC2Ro!":
+            x =  3 + 5*progress
+            y = -4.5
+            
+        # Leftward movements
+        elif label[i] == "mR2Cr.":
+            x =  8 - 5*progress
+            y =  1.5
+        elif label[i] == "mR2Co.":
+            x =  8 - 5*progress
+            y =  2.5
+        elif label[i] == "mR2Cr!":
+            x =  8 - 5*progress
+            y =  3.5
+        elif label[i] == "mR2Co!":
+            x =  8 - 5*progress
+            y =  4.5
+        elif label[i] == "mC2Lr.":
+            x = -3 - 5*progress
+            y =  1.5
+        elif label[i] == "mC2Lo.":
+            x = -3 - 5*progress
+            y =  2.5
+        elif label[i] == "mC2Lr!":
+            x = -3 - 5*progress
+            y =  3.5
+        elif label[i] == "mC2Lo!":
+            x = -3 - 5*progress
+            y =  4.5
+            
+        else:
+            x = NaN
+            y = NaN
+        coordinates[i,0] = x
+        coordinates[i,1] = y
+    return coordinates
