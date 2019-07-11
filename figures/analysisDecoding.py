@@ -58,3 +58,41 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
                         res.append((str(sess), sess.meta.task, nNeurons)+scores)
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
+
+def decodeMovementProgress(dataFile, label="mR2C-"):
+    allSess = []
+    for sess in readSessions.findSessions(dataFile, task="2choice"):
+        for shuffle in (False, True):
+            if shuffle:
+                lfa = sess.shuffleFrameLabels(switch=False)[0]
+            else:
+                lfa = sess.labelFrameActions(reward="sidePorts")
+            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            if len(lfa) != len(deconv): continue
+            if deconv.isna().any().any(): continue #TODO: Fix this
+            X = deconv[lfa.label==label]
+            Y = lfa.actionProgress[lfa.label==label]
+
+            actionNos = lfa.actionNo[lfa.label==label]
+
+            XactionNo = X.set_index(actionNos).sort_index()
+            YactionNo = pd.Series(Y.values, index=XactionNo.index)
+
+            splitter = sklearn.model_selection.KFold(5, shuffle=True)
+            uniqueActionNos = actionNos.unique()
+
+            for trainInd, testInd in tqdm.tqdm(splitter.split(uniqueActionNos), total=5, desc=str(sess)):
+                trainActionNos = uniqueActionNos[trainInd]
+                testActionNos = uniqueActionNos[testInd]
+                trainX = XactionNo.loc[trainActionNos]
+                trainY = YactionNo.loc[trainActionNos]
+                testX = XactionNo.loc[testActionNos]
+                testY = YactionNo.loc[testActionNos]
+
+                classifier = sklearn.linear_model.LinearRegression()
+                classifier.fit(trainX, trainY)
+                pred = classifier.predict(testX)
+                allSess.append(pd.DataFrame({'true': testY, 'predicted': pred, 'sess': str(sess),
+                                             'nNeurons': X.shape[1], 'nTrials': len(uniqueActionNos),
+                                             'shuffle': shuffle, 'label': label}))
+    return pd.concat(allSess)
