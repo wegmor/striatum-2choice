@@ -11,7 +11,7 @@ import PIL
 import numbers
 from deprecated import deprecated
 
-from . import fancyVizUtils, trackingGeometryUtils
+import fancyVizUtils, trackingGeometryUtils
 
 class IntensityPlot:
 

@@ -1,10 +1,10 @@
 import pandas as pd
 import numpy as np
-
+from deprecated import deprecated
 import pyximport
 pyximport.install(setup_args={'include_dirs': np.get_include()})
-from . import findTrials
-from deprecated import deprecated
+
+import findTrials
 
 class Session:
     

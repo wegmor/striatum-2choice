@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:figurefirst="http://flyranch.github.io/figurefirst/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="180mm"
+   height="150mm"
+   viewBox="0 0 180 150"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="decoding.svg"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="-57.454067"
+     inkscape:cy="330.0911"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="true"
+     inkscape:window-width="1920"
+     inkscape:window-height="1043"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1">
+    <inkscape:grid
+       type="xygrid"
+       id="grid4586"
+       units="mm"
+       spacingx="1"
+       spacingy="1" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(0,-147)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <rect
+       style="fill:#808080;stroke:none;stroke-width:0.112215"
+       y="157"
+       x="15"
+       height="35.000004"
+       width="43"
+       id="rect10">
+      <figurefirst:axis
+         figurefirst:name="decodeWithIncreasingNumberOfNeurons" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33727875"
+       id="rect4612"
+       width="24.999996"
+       height="12.999991"
+       x="95"
+       y="154">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyPerLabel_oprm1" />
+    </rect>
+    <rect
+       y="168"
+       x="95"
+       height="13"
+       width="24.999996"
+       id="rect4614"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33727887">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyPerLabel_d1" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33727887"
+       id="rect4616"
+       width="24.999996"
+       height="13.000001"
+       x="95"
+       y="182">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyPerLabel_a2a" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15875"
+       id="rect4618"
+       width="1"
+       height="9.000001"
+       x="122"
+       y="156">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyCbar_oprm1" />
+    </rect>
+    <rect
+       y="170"
+       x="122"
+       height="9.0000019"
+       width="1"
+       id="rect4620"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15875">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyCbar_d1" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15875001"
+       id="rect4622"
+       width="1"
+       height="9.0000048"
+       x="122"
+       y="184">
+      <figurefirst:axis
+         figurefirst:name="decodingAccuracyCbar_a2a" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.31305924"
+       id="rect4924"
+       width="20"
+       height="35"
+       x="80"
+       y="207">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_1" />
+    </rect>
+    <rect
+       y="207"
+       x="105"
+       height="35"
+       width="20"
+       id="rect4926"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.31305924">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_2" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.31305924"
+       id="rect4928"
+       width="20"
+       height="35"
+       x="130"
+       y="207">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_3" />
+    </rect>
+    <rect
+       y="207"
+       x="155"
+       height="35"
+       width="20"
+       id="rect4930"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.31305924">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_4" />
+    </rect>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Panel numbers">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="5.0199766"
+       y="6.0995407"
+       id="text4610"><tspan
+         sodipodi:role="line"
+         id="tspan4608"
+         x="5.0199766"
+         y="6.0995407"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">A</tspan></text>
+    <text
+       id="text4806"
+       y="6.0995417"
+       x="83.403549"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="6.0995417"
+         x="83.403549"
+         id="tspan4804"
+         sodipodi:role="line">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#59a257;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="-19.067837"
+       y="92.757301"
+       id="text4810"
+       transform="rotate(-90)"><tspan
+         sodipodi:role="line"
+         id="tspan4808"
+         x="-19.067837"
+         y="92.757301"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;fill:#59a257;fill-opacity:1;stroke-width:0.26458332">oprm1</tspan></text>
+    <text
+       transform="rotate(-90)"
+       id="text4814"
+       y="92.757301"
+       x="-29.462183"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#d1494b;fill-opacity:0.97254902;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan4820"
+         x="-29.462183"
+         y="92.757301">d1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.52777767px;line-height:1.25;font-family:'Fira Sans';-inkscape-font-specification:'Fira Sans, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#477ca8;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="-44.297745"
+       y="92.757301"
+       id="text4818"
+       transform="rotate(-90)"><tspan
+         sodipodi:role="line"
+         id="tspan4822"
+         x="-44.297745"
+         y="92.757301">a2a</tspan></text>
+    <g
+       transform="matrix(0.35277777,0,0,0.35277777,1.7911141,-1.8411147)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+       id="legend_1">
+      <g
+         id="patch_5">
+        <path
+           inkscape:connector-curvature="0"
+           d="m 167.16157,109.7008 h 61.08025 q 1.76,0 1.76,-1.76 V 57.324297 q 0,-1.76 -1.76,-1.76 h -61.08025 q -1.76,0 -1.76,1.76 V 107.9408 q 0,1.76 1.76,1.76 z"
+           style="opacity:0.8;fill:#ffffff;stroke:#cccccc;stroke-width:0.80000001;stroke-linejoin:miter"
+           id="path529" />
+      </g>
+      <g
+         id="line2d_143">
+        <path
+           inkscape:connector-curvature="0"
+           d="m 168.92157,62.604297 h 17.60001"
+           style="fill:none;stroke:#59a257;stroke-width:2;stroke-linecap:round"
+           id="path532" />
+      </g>
+      <g
+         id="line2d_144" />
+      <g
+         id="text_11">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:8.80000019px;font-family:'Fira Sans';text-anchor:start;fill:#262626"
+           x="193.56157"
+           y="65.684296"
+           id="text536">oprm1</text>
+      </g>
+      <g
+         id="line2d_145">
+        <path
+           inkscape:connector-curvature="0"
+           d="m 168.92157,75.478422 h 17.60001"
+           style="fill:none;stroke:#cb3335;stroke-width:2;stroke-linecap:round"
+           id="path539" />
+      </g>
+      <g
+         id="line2d_146" />
+      <g
+         id="text_12">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:8.80000019px;font-family:'Fira Sans';text-anchor:start;fill:#262626"
+           x="193.56157"
+           y="78.558418"
+           id="text543">d1</text>
+      </g>
+      <g
+         id="line2d_147">
+        <path
+           inkscape:connector-curvature="0"
+           d="m 168.92157,88.352547 h 17.60001"
+           style="fill:none;stroke:#477ca8;stroke-width:2;stroke-linecap:round"
+           id="path546" />
+      </g>
+      <g
+         id="line2d_148" />
+      <g
+         id="text_13">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:8.80000019px;font-family:'Fira Sans';text-anchor:start;fill:#262626"
+           x="193.56157"
+           y="91.432549"
+           id="text550">a2a</text>
+      </g>
+      <g
+         id="line2d_149">
+        <path
+           inkscape:connector-curvature="0"
+           d="m 168.92157,101.22667 h 17.60001"
+           style="fill:none;stroke:#808080;stroke-width:2;stroke-linecap:round"
+           id="path553" />
+      </g>
+      <g
+         id="line2d_150" />
+      <g
+         id="text_14">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:8.80000019px;font-family:'Fira Sans';text-anchor:start;fill:#262626"
+           x="193.56157"
+           y="104.30667"
+           id="text557">shuffled</text>
+      </g>
+    </g>
+    <text
+       id="text4934"
+       y="57.015621"
+       x="70.019974"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="57.015621"
+         x="70.019974"
+         id="tspan4932"
+         sodipodi:role="line">D</tspan></text>
+  </g>
+</svg>
