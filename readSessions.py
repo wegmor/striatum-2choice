@@ -4,7 +4,7 @@ from deprecated import deprecated
 import pyximport
 pyximport.install(setup_args={'include_dirs': np.get_include()})
 
-import findTrials
+from striatum_2choice import findTrials
 
 class Session:
     

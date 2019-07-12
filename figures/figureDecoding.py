@@ -136,22 +136,24 @@ for i,l,h in ((0,1,3), (1,4,6), (2,7,14), (3,14,100)):
     sameDayShuffled = g.sameDayShuffled.mean()
     nextDayShuffled = g.sameDayShuffled.mean()
     
-    both = pd.concat([sameDayMeans, nextDayMeans], axis=1)
-    bothShuffled = pd.concat([sameDayShuffled, nextDayShuffled], axis=1)
+    #both = pd.concat([sameDayMeans, nextDayMeans], axis=1)
+    #bothShuffled = pd.concat([sameDayShuffled, nextDayShuffled], axis=1)
 
     plt.sca(layout.axes["decodingAccrossDays_{}".format(i+1)]["axis"])
-    colors = [style.getColor(gt) for gt in g.genotype.first()]
-    plt.scatter(np.zeros(len(both)), sameDayShuffled.values, s=nNeurons/5,
-                edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
-    plt.scatter(np.ones(len(both)), nextDayShuffled.values, s=nNeurons/5,
-                edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
-    plt.scatter(np.zeros(len(both)), sameDayMeans.values, s=nNeurons/5,
-                edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
-    plt.scatter(np.ones(len(both)), nextDayMeans.values, s=nNeurons/5,
-                edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
-    for gt, b in both.groupby(g.genotype.first()):
-        plt.plot(b.T.values, color=style.getColor(gt), lw=style.lw(), alpha=0.5)
-    plt.plot(bothShuffled.T.values.mean(axis=1), color=style.getColor("shuffled"), lw=3)
+    #colors = [style.getColor(gt) for gt in g.genotype.first()]
+    #plt.scatter(np.zeros(len(both)), sameDayShuffled.values, s=nNeurons/5,
+    #            edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
+    #plt.scatter(np.ones(len(both)), nextDayShuffled.values, s=nNeurons/5,
+    #            edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
+    #plt.scatter(np.zeros(len(both)), sameDayMeans.values, s=nNeurons/5,
+    #            edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
+    #plt.scatter(np.ones(len(both)), nextDayMeans.values, s=nNeurons/5,
+    #            edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
+    #for gt, b in both.groupby(g.genotype.first()):
+    #    plt.plot(b.T.values, color=style.getColor(gt), lw=style.lw(), alpha=0.5)
+    #plt.plot(bothShuffled.T.values.mean(axis=1), color=style.getColor("shuffled"), lw=3)
+    for n, d1, d2, gt in zip(nNeurons, sameDayMeans, nextDayMeans, g.genotype.first()):
+        plt.plot([0,1], [d1, d2], lw=style.lw()*n/200.0, c=style.getColor(gt), alpha=0.25)
     plt.ylim(0,1)
     plt.xlim(-0.4, 1.4)
     xlab = ("1-3 days\nlater", "4-6 days\nlater", "7-14 days\nlater", "14+ days\nlater")
@@ -174,7 +176,7 @@ sorting = avgActivity.idxmax(axis=1).argsort()
 plt.sca(layout.axes["movementProgressRaster"]["axis"])
 plt.imshow(avgActivity.iloc[sorting], aspect="auto",
            interpolation="nearest", vmin=-1, vmax=1, cmap="RdYlBu_r")
-plt.xticks((-0.5,4.5,9.5), (0, 50, 100))
+plt.xticks((-0.5,4.5,9.5), ("Right port", "Half-way", "Center port"), rotation=30, ha="right", va="top")#(0, 50, 100))
 plt.yticks([0, len(sorting)-1], [len(sorting), 0])
 plt.xlabel("Progress (%)")
 plt.ylabel("Neuron (by peak)")
@@ -208,9 +210,10 @@ plt.plot([0,100], [0, 100], 'k--', alpha=0.2)
 plt.errorbar(means.index*100, means*100, yerr=stds*100, fmt='.-', ms=10, color=style.getColor("oprm1"))
 plt.xlim(-5,100)
 plt.ylim(-5,100)
-plt.yticks((0,50,100))
-plt.xlabel("True progress (%)")
-plt.ylabel("Predicted progress (%)")
+plt.xticks((0,50,100), ("Right port", "Half-way", "Center port"))#, rotation=30, ha="right", va="top")
+plt.yticks((0,50,100), ("Right port", "Half-way", "Center port"))
+plt.xlabel("Truth")
+plt.ylabel("Decoded")
 corr = calcCorr(exampleSession).loc["correlation"]
 plt.text(100, 10, "r = {:.3f}".format(corr), fontsize=8, color="k", ha="right")
 sns.despine(ax=plt.gca())
@@ -240,7 +243,7 @@ plt.scatter(x, avgCorr.correlation, avgCorr.nNeurons/20, colors, alpha=0.5)
 plt.xticks(xticks, xticks.index)
 plt.ylim(0,1)
 sns.despine(ax=plt.gca())
-plt.ylabel("Correlation")
+plt.ylabel("Correlation truth / decoded")
     
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "decoding.svg")
