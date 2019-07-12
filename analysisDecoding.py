@@ -10,7 +10,7 @@ import tqdm
 import multiprocessing
 import functools
 
-import readSessions
+from utils import readSessions
 
 #The bins that the decoder needs to distinguish
 selectedLabels = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pC2L-", "pC2R-",

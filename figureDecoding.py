@@ -8,33 +8,37 @@ import h5py
 import pathlib
 import figurefirst
 
-import sys
-thisFolder = pathlib.Path(__file__).resolve().parent
-sys.path.append(str(thisFolder.parent))
+#import sys
+#thisFolder = pathlib.Path(__file__).resolve().parent
+#sys.path.append(str(thisFolder.parent))
 
-import fancyViz
-import readSessions
+from utils import fancyViz
+from utils import readSessions
 import analysisDecoding
 import style
 
 style.set_context("paper")
 
 endoDataPath = "endoData_2019.hdf"
-outputFolder = thisFolder / "svg"
+
+outputFolder = pathlib.Path("svg")
+cacheFolder = pathlib.Path("cache")
+templateFolder = pathlib.Path(__file__).parent / "templates"
+
 if not outputFolder.is_dir():
     outputFolder.mkdir()
+if not cacheFolder.is_dir():
+    cacheFolder.mkdir()
 
-layout = figurefirst.FigureLayout(thisFolder / "templates" / "decoding.svg")
+layout = figurefirst.FigureLayout(templateFolder / "decoding.svg")
 layout.make_mplfigures()
 
 ## Panel A
-cachedDataPath = thisFolder / "cache" / "decodeWithIncreasingNumberOfNeurons.pkl"
+cachedDataPath = cacheFolder / "decodeWithIncreasingNumberOfNeurons.pkl"
 if cachedDataPath.is_file():
     decodingData = pd.read_pickle(cachedDataPath)
 else:
     decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
-    if not cachedDataPath.parent.is_dir():
-        cachedDataPath.parent.mkdir()
     decodingData.to_pickle(cachedDataPath)
 decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
 plt.sca(layout.axes["decodeWithIncreasingNumberOfNeurons"]["axis"])
@@ -57,13 +61,11 @@ plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
 
 ## Panel B
-cachedDataPath = thisFolder / "cache" / "decodingConfusionDiagonal.pkl"
+cachedDataPath = cacheFolder / "decodingConfusionDiagonal.pkl"
 if cachedDataPath.is_file():
     confusionDiagonal = pd.read_pickle(cachedDataPath)
 else:
     confusionDiagonal = analysisDecoding.decodingConfusionDiagonal(endoDataPath)
-    if not cachedDataPath.parent.is_dir():
-        cachedDataPath.parent.mkdir()
     confusionDiagonal.to_pickle(cachedDataPath)
 means = confusionDiagonal.groupby("sess").mean()
 nNeurons = means.nNeurons
@@ -110,13 +112,11 @@ for i in range(3):
         fv.draw(signal, ax=ax)
 
 ## Panel D
-cachedDataPath = thisFolder / "cache" / "decodingAccrossDays.pkl"
+cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAccrossDays = pd.read_pickle(cachedDataPath)
 else:
     decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath)
-    if not cachedDataPath.parent.is_dir():
-        cachedDataPath.parent.mkdir()
     decodingAccrossDays.to_pickle(cachedDataPath)
 
 #accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
@@ -189,13 +189,11 @@ for i in range(3):
     fv.draw(deconv[exampleNeurons[i]], ax=ax)
     
 ## Panel F
-cachedDataPath = thisFolder / "cache" / "decodingMovementProgress.pkl"
+cachedDataPath = cacheFolder / "decodingMovementProgress.pkl"
 if cachedDataPath.is_file():
     decodingMovementProgress = pd.read_pickle(cachedDataPath)
 else:
     decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath)
-    if not cachedDataPath.parent.is_dir():
-        cachedDataPath.parent.mkdir()
     decodingMovementProgress.to_pickle(cachedDataPath)
     
 def calcCorr(df):
