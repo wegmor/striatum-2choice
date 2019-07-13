@@ -111,6 +111,7 @@ for i in range(3):
         fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5)
         fv.draw(signal, ax=ax)
 
+        
 ## Panel D
 cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
 if cachedDataPath.is_file():
@@ -119,6 +120,13 @@ else:
     decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath)
     decodingAccrossDays.to_pickle(cachedDataPath)
 
+def bootstrapSEM(values, weights, iterations=1000):
+    avgs = []
+    for _ in range(iterations):
+        idx = np.random.choice(len(values), len(values), replace=True)
+        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
+    return np.std(avgs)
+    
 #accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
 fromDate = pd.to_datetime(decodingAccrossDays.fromDate, format="%y%m%d")
 toDate = pd.to_datetime(decodingAccrossDays.toDate, format="%y%m%d")
@@ -126,37 +134,39 @@ td = (toDate - fromDate).dt.days
 decodingAccrossDays["dayDifference"] = td
 
 selection = decodingAccrossDays.query("fromTask=='2choice' & toTask=='2choice'")
-for i,l,h in ((0,1,3), (1,4,6), (2,7,14), (3,14,100)):
+for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
-    nNeurons = g.nNeurons.mean()
-    sameDayMeans = g.sameDayScore.mean()
-    sameDaySDs = g.sameDayScore.std()
-    nextDayMeans = g.nextDayScore.mean()
-    nextDaySDs = g.nextDayScore.std()
-    sameDayShuffled = g.sameDayShuffled.mean()
-    nextDayShuffled = g.sameDayShuffled.mean()
     
-    #both = pd.concat([sameDayMeans, nextDayMeans], axis=1)
-    #bothShuffled = pd.concat([sameDayShuffled, nextDayShuffled], axis=1)
-
+    perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
+    perAnimal["genotype"] = g.genotype.first()
+    
+    
+    scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * perAnimal.nNeurons[:,np.newaxis]
+    perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
+    perGenotype /= perAnimal.groupby("genotype").nNeurons.sum()[:, np.newaxis]
+    
+    shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * perAnimal.nNeurons[:,np.newaxis]
+    shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
+    
     plt.sca(layout.axes["decodingAccrossDays_{}".format(i+1)]["axis"])
-    #colors = [style.getColor(gt) for gt in g.genotype.first()]
-    #plt.scatter(np.zeros(len(both)), sameDayShuffled.values, s=nNeurons/5,
-    #            edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
-    #plt.scatter(np.ones(len(both)), nextDayShuffled.values, s=nNeurons/5,
-    #            edgecolor=style.getColor("shuffled"), marker="o", facecolor="none", lw=style.lw())
-    #plt.scatter(np.zeros(len(both)), sameDayMeans.values, s=nNeurons/5,
-    #            edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
-    #plt.scatter(np.ones(len(both)), nextDayMeans.values, s=nNeurons/5,
-    #            edgecolor=colors, marker="o", facecolor="none", lw=style.lw())
-    #for gt, b in both.groupby(g.genotype.first()):
-    #    plt.plot(b.T.values, color=style.getColor(gt), lw=style.lw(), alpha=0.5)
-    #plt.plot(bothShuffled.T.values.mean(axis=1), color=style.getColor("shuffled"), lw=3)
-    for n, d1, d2, gt in zip(nNeurons, sameDayMeans, nextDayMeans, g.genotype.first()):
-        plt.plot([0,1], [d1, d2], lw=style.lw()*n/200.0, c=style.getColor(gt), alpha=0.25)
+    
+    for r in perAnimal.itertuples():
+        plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
+                 c=style.getColor(r.genotype), alpha=0.2)
+    for r in perGenotype.itertuples():
+        gt = r.Index
+        animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
+        sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+        nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
+        plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                     lw=style.lw(), c=style.getColor(gt))
+        
+    plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+             lw=style.lw(), c=style.getColor("shuffled"))
+    
     plt.ylim(0,1)
     plt.xlim(-0.4, 1.4)
-    xlab = ("1-3 days\nlater", "4-6 days\nlater", "7-14 days\nlater", "14+ days\nlater")
+    xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
     plt.xticks((0,1), ("Same\nday", xlab[i]))
     if i==0:
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
@@ -208,8 +218,8 @@ plt.plot([0,100], [0, 100], 'k--', alpha=0.2)
 plt.errorbar(means.index*100, means*100, yerr=stds*100, fmt='.-', ms=10, color=style.getColor("oprm1"))
 plt.xlim(-5,100)
 plt.ylim(-5,100)
-plt.xticks((0,50,100), ("Right port", "Half-way", "Center port"))#, rotation=30, ha="right", va="top")
-plt.yticks((0,50,100), ("Right port", "Half-way", "Center port"))
+plt.xticks((0,50,100), ("Right\nport", "Half-way", "Center\nport"))#, rotation=30, ha="right", va="top")
+plt.yticks((0,50,100), ("Right\nport", "Half-way", "Center\nport"))
 plt.xlabel("Truth")
 plt.ylabel("Decoded")
 corr = calcCorr(exampleSession).loc["correlation"]
@@ -241,7 +251,7 @@ plt.scatter(x, avgCorr.correlation, avgCorr.nNeurons/20, colors, alpha=0.5)
 plt.xticks(xticks, xticks.index)
 plt.ylim(0,1)
 sns.despine(ax=plt.gca())
-plt.ylabel("Correlation truth / decoded")
+plt.ylabel("Correlation\ntruth and decoded")
     
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "decoding.svg")
