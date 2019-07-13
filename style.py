@@ -1,44 +1,80 @@
 import seaborn as sns
-import matplotlib as mpl
 
-def set_context(context):
-    sns.set_context(context)
-    sns.set_style('ticks')
-    #sns.set_color_codes()
-
-
-    sns.set_palette("Set1", 9, .75)
-
-
-    # modifications to style
-
-    mpl.rc('xtick')#, direction = 'in')
-    mpl.rc('ytick')#, direction = 'in')
-
-    #fontpath = '/usr/share/fonts/opentype/firacode/FiraCode-Regular.otf'
-    #import matplotlib.font_manager
-    #prop = matplotlib.font_manager.FontProperties(fname=fontpath)
-
-    mpl.rcParams['font.sans-serif'] = ["Fira Sans"]
-    mpl.rcParams['mathtext.default'] = 'regular'
-    #mpl.rcParams['pdf.fonttype'] = 42  # illustrator fix
-    mpl.rcParams['svg.fonttype'] = 'none'
-    #mpl.rcParams['savefig.dpi'] = 200
-
+def set_context():
+    sns.set(context='paper', style='ticks', font_scale=.7, palette='tab10',
+            rc={'font.size': 7,
+                'axes.labelsize': 7,
+                'axes.titlesize': 7,
+                'xtick.labelsize': 6,
+                'ytick.labelsize': 6,
+                'legend.fontsize': 6,
+                'axes.linewidth': .5,
+                'axes.labelpad': 1.25,
+                'lines.linewidth': .8,
+                'lines.markersize': 3,
+                'patch.linewidth': .5,
+                'xtick.major.width': .5,
+                'ytick.major.width': .5,
+                'xtick.minor.width': .35,
+                'ytick.minor.width': .35,
+                'xtick.major.size': 2.5,
+                'ytick.major.size': 2.5,
+                'xtick.minor.size': 1.5,
+                'ytick.minor.size': 1.5,
+                'xtick.major.pad': 1.25,
+                'ytick.major.pad': 1.25,
+                'legend.handletextpad': .25,
+                'legend.labelspacing': .25,
+                'legend.handlelength': 1,
+                'legend.borderaxespad': 0,
+                'legend.borderpad': 0,
+                'legend.frameon': False,
+                'axes.facecolor': 'none',
+                'axes.edgecolor': '0',
+                'axes.grid': False,
+                'axes.axisbelow': True,
+                'axes.labelcolor': '0',
+                'figure.facecolor': 'none',
+                'text.color': '0',
+                'xtick.color': '0',
+                'ytick.color': '0',
+                'patch.edgecolor': 'none',
+                'font.family': ['sans-serif'],
+                'font.sans-serif': ['Arial'],
+                'mathtext.default': 'regular',
+                'patch.force_edgecolor': False,
+                'svg.fonttype': 'none',
+                'savefig.dpi': 300})
+    
+    
 def getColor(key):
     cdict = dict()
-    cdict['d1'] = sns.color_palette()[0]
-    cdict['a2a'] = sns.color_palette()[1]
-    cdict['oprm1'] = sns.color_palette()[2]
-    cdict['none'] = sns.color_palette()[8]
-    cdict['sal'] = sns.color_palette()[3]
-    cdict['fen'] = sns.color_palette()[2]
-    #cdict['coc'] = sns.color_palette()[3]
-    cdict['leftTurn'] = sns.color_palette()[2]
-    cdict['rightTurn'] = sns.color_palette()[4]
-    cdict['running'] = sns.color_palette()[0]
-    cdict['stationary'] = sns.color_palette()[1]
-    cdict['shuffled'] = 'gray'
+    cdict['d1'] = sns.color_palette()[0] # or color by port -> cyan
+    cdict['a2a'] = sns.color_palette()[3] # -> orange
+    cdict['oprm1'] = sns.color_palette()[4]
+
+    cdict['pL'] = sns.color_palette()[9]
+    cdict['pLd'] = tuple(list(cdict['pL']) + [.66])
+    cdict['pLo'] = tuple(list(cdict['pL']) + [.38])
+    cdict['pR'] = sns.color_palette()[1]
+    cdict['pRd'] = tuple(list(cdict['pR']) + [.66])
+    cdict['pRo'] = tuple(list(cdict['pR']) + [.38])
+    cdict['pC'] = sns.color_palette()[4]
+    cdict['pC2L'] = cdict['pC']
+    cdict['pC2R'] = tuple(list(cdict['pC']) + [.38])
+    
+    cdict['mC2L'] = sns.color_palette()[0]
+    cdict['mC2R'] = sns.color_palette()[3]
+    cdict['mL2C'] = sns.color_palette()[2]
+    cdict['mR2C'] = sns.color_palette()[5]
+    
+    cdict['correct'] = cdict['oprm1']
+    cdict['error'] = sns.color_palette()[7]
+    cdict['stay'] = cdict['d1']
+    cdict['switch'] = cdict['a2a']
+
+    cdict['shuffled'] = 'k'
+    
     return cdict[key]
 
 def lw():
