@@ -9,6 +9,8 @@ import sklearn.model_selection
 import tqdm
 import multiprocessing
 import functools
+import h5py
+import datetime
 
 from utils import readSessions
 
@@ -39,6 +41,27 @@ def _prepareTrials(deconv, lfa):
     Y = labels[validTrials]
     return X, Y
 
+def _testSameAndNextDay(i, realX, realY, shuffledX, shuffledY, nextX, nextY):
+    np.random.seed(np.random.randint(1000000)+i)
+    trainX, testX, trainY, testY = sklearn.model_selection.train_test_split(realX, realY,
+                                                                            test_size=0.2, stratify=realY)
+    svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
+    fromAcc = np.mean(svm.predict(testX) == testY)
+    toAcc = np.mean(svm.predict(nextX) == nextY)
+    
+    trainX, testX, trainY, testY = sklearn.model_selection.train_test_split(shuffledX, shuffledY,
+                                                                            test_size=0.2, stratify=shuffledY)
+    svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
+    shuffledFromAcc = np.mean(svm.predict(testX) == testY)
+    shuffledToAcc   = np.mean(svm.predict(nextX) == nextY)
+    
+    return (i, fromAcc, toAcc, shuffledFromAcc, shuffledToAcc)
+
+def _dateDiff(fromDate, toDate):
+    fromDate = datetime.datetime.strptime(fromDate, "%y%m%d")
+    toDate = datetime.datetime.strptime(toDate, "%y%m%d")
+    return (toDate-fromDate).days
+
 def decodeWithIncreasingNumberOfNeurons(dataFile):
     nShufflesPerNeuronNum = 10
     with multiprocessing.Pool(5) as pool:
@@ -58,6 +81,68 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
                         res.append((str(sess), sess.meta.task, nNeurons)+scores)
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
+
+def decodingConfusionDiagonal(dataFile):
+    confMats = []
+    nNeurons = []
+    sessLabels = []
+    for sess in readSessions.findSessions(dataFile, task="2choice"):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions(reward="sidePorts")
+        if len(deconv) != len(lfa): continue
+        realX, realY = _prepareTrials(deconv, lfa)
+        for i in tqdm.trange(5, desc=str(sess)):
+            trainX, testX, trainY, testY = sklearn.model_selection.train_test_split(realX, realY,
+                                                                                test_size=0.2, stratify=realY)
+            svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
+            pred = svm.predict(testX)
+            m = sklearn.metrics.confusion_matrix(testY, pred)
+            m = np.diag(m / m.sum(axis=1)[:, np.newaxis])
+            sessLabels.append(str(sess))
+            confMats.append(pd.Series(m ,index=svm.classes_))
+            nNeurons.append(deconv.shape[1])
+    return pd.concat(confMats,axis=1).T.assign(nNeurons = nNeurons, sess = sessLabels)
+
+def decodingAccrossDays(dataFile, alignmentFile):
+    alignmentStore = h5py.File(alignmentFile, "r")
+    with multiprocessing.Pool(5) as pool:
+        acrossDaysResult = []
+        for genotype in alignmentStore["data"]:
+            for animal in alignmentStore["data/{}".format(genotype)]:
+                for fromDate in alignmentStore["data/{}/{}".format(genotype, animal)]:
+                    fromSess = next(readSessions.findSessions("endoData_2019.hdf", animal=animal, date=fromDate))
+                    fromTask = fromSess.meta.task
+                    if fromTask == "openField": continue
+                    fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                    fromLfa = fromSess.labelFrameActions(reward="sidePorts")
+                    if len(fromDeconv) != len(fromLfa): continue
+                    suffledLfa = fromSess.shuffleFrameLabels(switch=False)[0]
+                    fromX, fromY = _prepareTrials(fromDeconv, fromLfa)
+                    shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa)
+                    for toDate in alignmentStore["data/{}/{}/{}".format(genotype, animal, fromDate)]:
+                        if toDate <= fromDate: continue
+                        match = alignmentStore["data/{}/{}/{}/{}/match".format(genotype, animal, fromDate, toDate)][()]
+
+                        toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
+                        toTask = toSess.meta.task
+                        if toTask == "openField": continue
+                        toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                        toLfa = toSess.labelFrameActions(reward="sidePorts")
+                        if len(toDeconv) != len(toLfa): continue
+
+                        if _dateDiff(fromDate, toDate) <= 0: continue
+                        toX, toY = _prepareTrials(toDeconv, toLfa)
+
+                        fcn = functools.partial(_testSameAndNextDay, realX=fromX[match[:,0]], realY=fromY,
+                                                shuffledX=shuffledX[match[:,0]], shuffledY=shuffledY,
+                                                nextX=toX[match[:,1]], nextY=toY)
+                        for scores in tqdm.tqdm(pool.imap(fcn, range(5)), total=5, desc="{} to {}".format(fromSess, toDate)):
+                            acrossDaysResult.append((genotype, animal, fromDate, toDate,
+                                                     fromTask, toTask, match.shape[0])+scores)
+    columns=["genotype", "animal", "fromDate", "toDate", "fromTask",
+             "toTask", "nNeurons", "i", "sameDayScore",  "nextDayScore",
+             "sameDayShuffled", "nextDayShuffled"]
+    return pd.DataFrame(acrossDaysResult, columns)
 
 def decodeMovementProgress(dataFile, label="mR2C-"):
     allSess = []
