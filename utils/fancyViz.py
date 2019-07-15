@@ -571,6 +571,18 @@ class SwitchSchematicPlot(IntensityPlot):
         drawArrowHead(ax, (-3.5, -4), (-3, -4), facecolor="k", edgecolor="k")
         drawArrowHead(ax, (-3.5, -2), (-3, -2), facecolor="k", edgecolor="k")
        
+        wdBase = np.array((-8.7, 1.5))
+        drawWaterDrop(ax, wdBase+(-0, 0), 0.4, cross=False)
+        drawWaterDrop(ax, wdBase+(-0.7, 0.7), 0.4, cross=True)
+        drawWaterDrop(ax, wdBase+(-0.7*2, 0.7*2), 0.4, cross=False)
+        drawWaterDrop(ax, wdBase+(-0.7*3, 0.7*3), 0.4, cross=True)
+
+        wdBase = np.array((8.8, -1.4))
+        drawWaterDrop(ax, wdBase+(0, 0), 0.4, cross=False)
+        drawWaterDrop(ax, wdBase+(0.7, -0.7), 0.4, cross=True)
+        drawWaterDrop(ax, wdBase+(0.7*2, -0.7*2), 0.4, cross=False)
+        drawWaterDrop(ax, wdBase+(0.7*3, -0.7*3), 0.4, cross=True)
+    
         ax.axis("off")
         
     def setSession(self, session):
