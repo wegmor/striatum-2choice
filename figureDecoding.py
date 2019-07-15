@@ -14,12 +14,14 @@ import figurefirst
 
 from utils import fancyViz
 from utils import readSessions
+from utils import sessionBarPlot
 import analysisDecoding
 import style
 
-style.set_context("paper")
+style.set_context()
 
 endoDataPath = "endoData_2019.hdf"
+alignmentDataPath = "alignment_190227.hdf"
 
 outputFolder = pathlib.Path("svg")
 cacheFolder = pathlib.Path("cache")
@@ -50,9 +52,9 @@ for genotype, df in decodingData.groupby("genotype"):
     plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype), alpha=1.0, lw=style.lw()*2)
 plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"), alpha=1.0, lw=style.lw()*2)
 order = ("oprm1", "d1", "a2a")
-#meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g), lw=style.lw()*2) for g in order]
-#shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"), lw=style.lw()*2)
-#plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(1.02, 0.18))
+meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g), lw=style.lw()*2) for g in order]
+shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"), lw=style.lw()*2)
+plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(1.02, 0.35))
 plt.ylim(0,1)
 plt.xlim(0, 200)
 plt.xlabel("Number of neurons")
@@ -76,7 +78,8 @@ genotypes = means.index.str.split("_").str[0]
 for i, gt in enumerate(("oprm1", "d1", "a2a")):
     gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
 
-    cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
+    #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
+    cmap = sns.light_palette(style.getColor(gt), 256, as_cmap=True)
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
     lw = matplotlib.rcParams["lines.linewidth"]
@@ -87,7 +90,7 @@ for i, gt in enumerate(("oprm1", "d1", "a2a")):
                                            orientation='vertical')
 
 ## Panel C
-alignmentStore = h5py.File("alignment_190227.hdf", "r")
+alignmentStore = h5py.File(alignmentDataPath, "r")
 def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
     if fromDate == toDate:
         return neuron
@@ -117,7 +120,7 @@ cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAccrossDays = pd.read_pickle(cachedDataPath)
 else:
-    decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath)
+    decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath, alignmentDataPath)
     decodingAccrossDays.to_pickle(cachedDataPath)
 
 def bootstrapSEM(values, weights, iterations=1000):
@@ -165,7 +168,7 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
              lw=style.lw(), c=style.getColor("shuffled"))
     
     plt.ylim(0,1)
-    plt.xlim(-0.4, 1.4)
+    plt.xlim(-0.25, 1.25)
     xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
     plt.xticks((0,1), ("Same\nday", xlab[i]))
     if i==0:
@@ -186,7 +189,7 @@ sorting = avgActivity.idxmax(axis=1).argsort()
 plt.sca(layout.axes["movementProgressRaster"]["axis"])
 plt.imshow(avgActivity.iloc[sorting], aspect="auto",
            interpolation="nearest", vmin=-1, vmax=1, cmap="RdYlBu_r")
-plt.xticks((-0.5,4.5,9.5), ("Right port", "Half-way", "Center port"), rotation=30, ha="right", va="top")#(0, 50, 100))
+plt.xticks((-0.5,4.5,9.5), ("Right\nport", "Half-way", "Center\nport"))#, rotation=30, ha="right", va="top")#(0, 50, 100))
 plt.yticks([0, len(sorting)-1], [len(sorting), 0])
 plt.xlabel("Progress (%)")
 plt.ylabel("Neuron (by peak)")
@@ -223,7 +226,7 @@ plt.yticks((0,50,100), ("Right\nport", "Half-way", "Center\nport"))
 plt.xlabel("Truth")
 plt.ylabel("Decoded")
 corr = calcCorr(exampleSession).loc["correlation"]
-plt.text(100, 10, "r = {:.3f}".format(corr), fontsize=8, color="k", ha="right")
+plt.text(100, 10, "r = {:.3f}".format(corr), fontsize=matplotlib.rcParams['font.size'], color="k", ha="right")
 sns.despine(ax=plt.gca())
 
 
@@ -233,25 +236,16 @@ avgCorr["genotype"] = avgCorr.index.str.split("_").str[0]
 avgCorr["animal"] = avgCorr.index.str.split("_").str[1]
 avgCorr["date"] = avgCorr.index.str.split("_").str[2]
 avgCorr.sort_values(["genotype", "animal", "date"], ascending=False, inplace=True)
+ax = layout.axes["movementProgressCorrelations"]["axis"]
+sessionBarPlot.sessionBarPlot(avgCorr, yCol="correlation", weightCol="nNeurons",
+                              ax=ax, colorFunc=style.getColor, weightScale=0.05)
 #shuffledCorr = calcCorr(decodingMovementProgress.query("shuffle").set_index("sess")).to_frame()
 #shuffledCorr["genotype"] = "shuffled"
 #shuffledCorr["animal"] = shuffledCorr.index.str.split("_").str[1]
 #shuffledCorr["date"] = shuffledCorr.index.str.split("_").str[2]
-#avgCorr = pd.concat((avgCorr, shuffledCorr))
-x = 7*avgCorr.groupby("genotype", sort=False).ngroup() + avgCorr.groupby("animal", sort=False).ngroup()
-colors = [style.getColor(gt) for gt in avgCorr.genotype]
-plt.sca(layout.axes["movementProgressCorrelations"]["axis"])
-xticks = x.groupby(avgCorr.genotype).mean()
-genotypeMeans = avgCorr.groupby("genotype").apply(lambda df: np.average(df.correlation, weights=df.nNeurons))
-barColors = [style.getColor(gt) for gt in genotypeMeans.index]
-barColorsAlpha = [matplotlib.colors.to_rgb(c)+(0.1,) for c in barColors]
-barWidths = avgCorr.groupby("genotype").animal.nunique().reindex(genotypeMeans.index) + 3
-plt.bar(xticks, genotypeMeans, barWidths, color=barColorsAlpha, edgecolor=barColors, linewidth=style.lw())
-plt.scatter(x, avgCorr.correlation, avgCorr.nNeurons/20, colors, alpha=0.5)
-plt.xticks(xticks, xticks.index)
-plt.ylim(0,1)
-sns.despine(ax=plt.gca())
-plt.ylabel("Correlation\ntruth and decoded")
+ax.set_ylim(0,1)
+sns.despine(ax=ax)
+ax.set_ylabel("Correlation\ntruth and decoded")
     
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "decoding.svg")
