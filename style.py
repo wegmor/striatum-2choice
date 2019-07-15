@@ -54,14 +54,19 @@ def getColor(key):
     cdict['oprm1'] = sns.color_palette()[4]
 
     cdict['pL'] = sns.color_palette()[9]
-    cdict['pLd'] = tuple(list(cdict['pL']) + [.66])
-    cdict['pLo'] = tuple(list(cdict['pL']) + [.38])
+    cdict['pL2C'] = cdict['pL']
+#    cdict['pL2Cr'] = cdict['pL']
+#    cdict['pL2Cd'] = tuple(list(cdict['pL']) + [.66])
+#    cdict['pL2Co'] = tuple(list(cdict['pL']) + [.38])
     cdict['pR'] = sns.color_palette()[1]
-    cdict['pRd'] = tuple(list(cdict['pR']) + [.66])
-    cdict['pRo'] = tuple(list(cdict['pR']) + [.38])
+    cdict['pR2C'] = cdict['pR']
+#    cdict['pR2Cr'] = cdict['pR']
+#    cdict['pR2Cd'] = tuple(list(cdict['pR']) + [.66])
+#    cdict['pR2Co'] = tuple(list(cdict['pR']) + [.38])
     cdict['pC'] = sns.color_palette()[4]
     cdict['pC2L'] = cdict['pC']
-    cdict['pC2R'] = tuple(list(cdict['pC']) + [.38])
+    cdict['pC2R'] = cdict['pC']
+#    cdict['pC2R'] = tuple(list(cdict['pC']) + [.38])
     
     cdict['mC2L'] = sns.color_palette()[0]
     cdict['mC2R'] = sns.color_palette()[3]
