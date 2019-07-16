@@ -82,10 +82,8 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
 
-def decodingConfusionDiagonal(dataFile):
+def decodingConfusion(dataFile):
     confMats = []
-    nNeurons = []
-    sessLabels = []
     for sess in readSessions.findSessions(dataFile, task="2choice"):
         deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward="sidePorts")
@@ -97,11 +95,14 @@ def decodingConfusionDiagonal(dataFile):
             svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
             pred = svm.predict(testX)
             m = sklearn.metrics.confusion_matrix(testY, pred)
-            m = np.diag(m / m.sum(axis=1)[:, np.newaxis])
-            sessLabels.append(str(sess))
-            confMats.append(pd.Series(m ,index=svm.classes_))
-            nNeurons.append(deconv.shape[1])
-    return pd.concat(confMats,axis=1).T.assign(nNeurons = nNeurons, sess = sessLabels)
+            m = pd.DataFrame(m, index=svm.classes_, columns=svm.classes_)
+            m = m.rename_axis(index="true", columns="predicted").unstack()
+            m = m.rename("occurencies").reset_index()
+            m["sess"] = str(sess)
+            m["i"] = i
+            m["nNeurons"] = deconv.shape[1]
+            confMats.append(m)
+    return pd.concat(confMats)
 
 def decodingAccrossDays(dataFile, alignmentFile):
     alignmentStore = h5py.File(alignmentFile, "r")

@@ -63,26 +63,32 @@ plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
 
 ## Panel B
-cachedDataPath = cacheFolder / "decodingConfusionDiagonal.pkl"
+cachedDataPath = cacheFolder / "decodeConfusion.pkl"
 if cachedDataPath.is_file():
-    confusionDiagonal = pd.read_pickle(cachedDataPath)
+    decodingData = pd.read_pickle(cachedDataPath)
 else:
-    confusionDiagonal = analysisDecoding.decodingConfusionDiagonal(endoDataPath)
-    confusionDiagonal.to_pickle(cachedDataPath)
-means = confusionDiagonal.groupby("sess").mean()
-nNeurons = means.nNeurons
-labels = list(means.columns)
-for i in range(6):
-     labels[i] = labels[i][:4]
-genotypes = means.index.str.split("_").str[0]
-for i, gt in enumerate(("oprm1", "d1", "a2a")):
-    gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
-
+    decodingData = analysisDecoding.decodingConfusion(endoDataPath)
+    decodingData.to_pickle(cachedDataPath)
+#means = confusionDiagonal.groupby("sess").mean()
+#nNeurons = means.nNeurons
+#labels = list(means.columns)
+#for i in range(6):
+#     labels[i] = labels[i][:4]
+#genotypes = means.index.str.split("_").str[0]
+decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
+for gt, data in decodingData.groupby("genotype"):
+    #gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
+    weightedData = data.set_index(["true", "predicted"]).eval("occurencies * nNeurons")
+    weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
+    weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
+    gtMeans = np.diag(weightedData)
+    
     #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
     cmap = sns.light_palette(style.getColor(gt), 256, as_cmap=True)
+    labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
-    lw = matplotlib.rcParams["lines.linewidth"]
+    lw = matplotlib.rcParams["axes.linewidth"]
     fancyViz.drawBinnedSchematicPlot(di, lw=lw)
    
     cb1 = matplotlib.colorbar.ColorbarBase(layout.axes["decodingAccuracyCbar_{}".format(gt)], cmap=cmap,
