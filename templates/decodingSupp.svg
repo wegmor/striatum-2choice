@@ -24,19 +24,19 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.4142136"
-     inkscape:cx="490.43827"
-     inkscape:cy="875.31732"
+     inkscape:zoom="2.8284271"
+     inkscape:cx="390.2057"
+     inkscape:cy="604.9807"
      inkscape:document-units="mm"
-     inkscape:current-layer="g1242"
+     inkscape:current-layer="layer1"
      showgrid="true"
      units="in"
      inkscape:showpageshadow="false"
-     inkscape:window-width="1853"
-     inkscape:window-height="1016"
-     inkscape:window-x="1987"
-     inkscape:window-y="27"
-     inkscape:window-maximized="1">
+     inkscape:window-width="1013"
+     inkscape:window-height="986"
+     inkscape:window-x="2823"
+     inkscape:window-y="57"
+     inkscape:window-maximized="0">
     <inkscape:grid
        type="xygrid"
        id="grid19182"
@@ -145,6 +145,47 @@
        y="41">
       <figurefirst:axis
          figurefirst:name="confusionMatrix_a2a" />
+    </rect>
+    <rect
+       transform="translate(0,17.6)"
+       y="104.4"
+       x="30"
+       height="35"
+       width="20"
+       id="rect10825"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="movementProgressCorrelations_mC2L" />
+    </rect>
+    <rect
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect5590"
+       width="20"
+       height="35"
+       x="52"
+       y="122.00001">
+      <figurefirst:axis
+         figurefirst:name="movementProgressCorrelations_mC2R" />
+    </rect>
+    <rect
+       y="122.00001"
+       x="74"
+       height="35"
+       width="20"
+       id="rect5592"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="movementProgressCorrelations_mL2C" />
+    </rect>
+    <rect
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect5594"
+       width="20"
+       height="35"
+       x="96"
+       y="122">
+      <figurefirst:axis
+         figurefirst:name="movementProgressCorrelations_mR2C" />
     </rect>
   </g>
   <g
@@ -1124,5 +1165,16 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
          x="19.128756"
          y="39.752991">A</tspan></text>
+    <text
+       id="text5598"
+       y="103.90924"
+       x="19.128756"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       xml:space="preserve"><tspan
+         y="103.90924"
+         x="19.128756"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         id="tspan5596"
+         sodipodi:role="line">B</tspan></text>
   </g>
 </svg>

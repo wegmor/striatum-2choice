@@ -208,7 +208,7 @@ for i in range(3):
     fv.draw(deconv[exampleNeurons[i]], ax=ax)
     
 ## Panel F
-cachedDataPath = cacheFolder / "decodingMovementProgress.pkl"
+cachedDataPath = cacheFolder / "decodeMovementProgress_mR2C.pkl"
 if cachedDataPath.is_file():
     decodingMovementProgress = pd.read_pickle(cachedDataPath)
 else:

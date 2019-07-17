@@ -56,6 +56,35 @@ for gt, data in decodingData.groupby("genotype"):
                 linewidths=matplotlib.rcParams["axes.linewidth"])
     ax.set_xlabel(None)
     ax.set_ylabel(None)
+
+## Panel B
+def calcCorr(df):
+    r = scipy.stats.pearsonr(df.true, df.predicted)[0]
+    return pd.Series((r, df.nNeurons.iloc[0]), ("correlation", "nNeurons"))
+titles = {'mC2L': 'Center-to-left', 'mC2R': 'Center-to-right',
+          'mL2C': 'Left-to-center', 'mR2C': 'Right-to-center'}
+for label in ("mC2L", "mC2R", "mL2C", "mR2C"):
+    cachedDataPath = cacheFolder / "decodeMovementProgress_{}.pkl".format(label)
+    if cachedDataPath.is_file():
+        decodingMovementProgress = pd.read_pickle(cachedDataPath)
+    else:
+        decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath, label=label+"-")
+        decodingMovementProgress.to_pickle(cachedDataPath)
+    avgCorr = decodingMovementProgress.query("not shuffle").groupby("sess").apply(calcCorr)
+    avgCorr["genotype"] = avgCorr.index.str.split("_").str[0]
+    avgCorr["animal"] = avgCorr.index.str.split("_").str[1]
+    avgCorr["date"] = avgCorr.index.str.split("_").str[2]
+    avgCorr.sort_values(["genotype", "animal", "date"], ascending=False, inplace=True)
+    ax = layout.axes["movementProgressCorrelations_{}".format(label)]["axis"]
+    sessionBarPlot.sessionBarPlot(avgCorr, yCol="correlation", weightCol="nNeurons",
+                                  ax=ax, colorFunc=style.getColor, weightScale=0.05)
+    if label=="mC2L":
+        ax.set_ylabel("Correlation\ntruth and decoded")
+    else:
+        ax.set_yticklabels([])
+    ax.set_title(titles[label])
+    ax.set_ylim(0,1)
+    sns.despine(ax=ax)
     
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "decodingSupp.svg")
