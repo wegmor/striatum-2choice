@@ -54,7 +54,7 @@ plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.g
 order = ("oprm1", "d1", "a2a")
 meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g), lw=style.lw()*2) for g in order]
 shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"), lw=style.lw()*2)
-plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(1.02, 0.35))
+plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(0.45, 0.22), ncol=2)
 plt.ylim(0,1)
 plt.xlim(0, 200)
 plt.xlabel("Number of neurons")
@@ -95,7 +95,7 @@ for gt, data in decodingData.groupby("genotype"):
                                            norm=matplotlib.colors.Normalize(vmin=0, vmax=100),
                                            orientation='vertical')
 
-## Panel C
+## Panel D
 alignmentStore = h5py.File(alignmentDataPath, "r")
 def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
     if fromDate == toDate:
@@ -121,7 +121,7 @@ for i in range(3):
         fv.draw(signal, ax=ax)
 
         
-## Panel D
+## Panel E
 cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAccrossDays = pd.read_pickle(cachedDataPath)
@@ -184,7 +184,7 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
         plt.yticks(np.linspace(0,1,5), [""]*5)
     sns.despine(ax=plt.gca())
 
-## Panel E
+## Panel F
 sess = next(readSessions.findSessions("endoData_2019.hdf", animal="5308", date="190131"))
 lfa = sess.labelFrameActions(reward="sidePorts")
 deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
@@ -207,7 +207,7 @@ for i in range(3):
     ax = layout.axes["movementExample{}".format(i+1)]["axis"]
     fv.draw(deconv[exampleNeurons[i]], ax=ax)
     
-## Panel F
+## Panel G
 cachedDataPath = cacheFolder / "decodeMovementProgress_mR2C.pkl"
 if cachedDataPath.is_file():
     decodingMovementProgress = pd.read_pickle(cachedDataPath)
@@ -236,7 +236,7 @@ plt.text(100, 10, "r = {:.3f}".format(corr), fontsize=matplotlib.rcParams['font.
 sns.despine(ax=plt.gca())
 
 
-## Panel G
+## Panel H
 avgCorr = decodingMovementProgress.query("not shuffle").groupby("sess").apply(calcCorr)
 avgCorr["genotype"] = avgCorr.index.str.split("_").str[0]
 avgCorr["animal"] = avgCorr.index.str.split("_").str[1]
