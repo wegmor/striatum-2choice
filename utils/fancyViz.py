@@ -540,7 +540,7 @@ class SwitchSchematicPlot(IntensityPlot):
         lw = self.linewidth
         sqrt2 = np.sqrt(2)
         ax = plt.gca()
-        lw=1
+        #lw=1
         
         ax.add_artist(matplotlib.patches.Arc((8, 0), 6, 6, 0, -90, -45, lw=lw, edgecolor="k"))
         ax.add_artist(matplotlib.patches.Arc((8, 0), 4, 4, 0, -45, 90, lw=lw, edgecolor="k"))
@@ -571,6 +571,18 @@ class SwitchSchematicPlot(IntensityPlot):
         drawArrowHead(ax, (-3.5, -4), (-3, -4), facecolor="k", edgecolor="k")
         drawArrowHead(ax, (-3.5, -2), (-3, -2), facecolor="k", edgecolor="k")
        
+        wdBase = np.array((-8.7, 1.5))
+        drawWaterDrop(ax, wdBase+(-0, 0), 0.4, cross=False, lw=lw)
+        drawWaterDrop(ax, wdBase+(-0.7, 0.7), 0.4, cross=True, lw=lw)
+        drawWaterDrop(ax, wdBase+(-0.7*2, 0.7*2), 0.4, cross=False, lw=lw)
+        drawWaterDrop(ax, wdBase+(-0.7*3, 0.7*3), 0.4, cross=True, lw=lw)
+
+        wdBase = np.array((8.7, -1.3))
+        drawWaterDrop(ax, wdBase+(0, 0), 0.4, cross=False, lw=lw)
+        drawWaterDrop(ax, wdBase+(0.7, -0.7), 0.4, cross=True, lw=lw)
+        drawWaterDrop(ax, wdBase+(0.7*2, -0.7*2), 0.4, cross=False, lw=lw)
+        drawWaterDrop(ax, wdBase+(0.7*3, -0.7*3), 0.4, cross=True, lw=lw)
+    
         ax.axis("off")
         
     def setSession(self, session):
