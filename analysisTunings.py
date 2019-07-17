@@ -8,6 +8,7 @@ Created on Mon Jul 15 11:24:45 2019
 
 import numpy as np
 import pandas as pd
+from sklearn.manifold import TSNE
 from utils import readSessions
 
 
@@ -96,3 +97,44 @@ def getTuningData(dataFilePath, no_shuffles=1000):
 
 
 #%%
+def getTunedNoHistData(tuningData):
+    count_df = (tuningData.groupby(['genotype','animal','date','neuron'])[['signp']]
+                          .sum().astype('int').copy())
+    
+    hist_df = pd.DataFrame()
+    for (g,a,d), data in count_df.groupby(['genotype','animal','date']):
+        signpHist = pd.Series(dict(zip(np.arange(13), 
+                                       np.bincount(data.signp, minlength=13))))
+        df = pd.DataFrame({'signp':signpHist})
+        df.index.name = 'count'
+        df['genotype'], df['animal'], df['date'] = g, a, d
+        hist_df = hist_df.append(df.reset_index().set_index(['genotype','animal','date','count']))
+    
+    hist_df = hist_df.reset_index('count')
+    hist_df['bin'] = pd.cut(hist_df['count'], bins=[-.5,.5,1.5,2.5,3.5,4.5,13]).cat.codes
+    hist_df = (hist_df.groupby(['genotype','animal','date','bin'])[['signp']].sum()
+                      .reset_index('bin'))
+    hist_df['noNeurons'] = count_df.groupby(['genotype','animal','date']).size()
+    hist_df['signp'] /= hist_df.noNeurons
+    
+    return hist_df
+
+
+#%% TSNE
+def getTSNEProjection(tuningData, perplexity=30):
+    df = tuningData.set_index(['genotype','animal','date','neuron']).copy()
+    df = df.loc[df.groupby(['genotype','animal','date','neuron']).signp.sum() >= 1]
+    df = df.set_index('action', append=True).tuning.unstack('action')
+    
+    tsne = TSNE(perplexity=perplexity, n_iter=10000, init='pca').fit_transform(df)
+    tsne_df = pd.DataFrame(tsne, index=df.index).reset_index()
+    
+    df = tuningData.copy()
+    maxdf = df.loc[df.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+    maxdf = maxdf.loc[df.signp]
+    #maxdf.loc[~df.signp, 'action'] = 'none'
+    tsne_df = tsne_df.merge(maxdf[['genotype','animal','date','neuron','action','tuning']],
+                            on=['genotype','animal','date','neuron'])
+    
+    return tsne_df
+

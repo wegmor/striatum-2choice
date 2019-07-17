@@ -10,6 +10,7 @@ def set_context():
                 'legend.fontsize': 6,
                 'axes.linewidth': .5,
                 'axes.labelpad': 1.25,
+                'axes.titlepad': 0,
                 'lines.linewidth': .8,
                 'lines.markersize': 3,
                 'patch.linewidth': .5,
@@ -79,6 +80,7 @@ def getColor(key):
     cdict['switch'] = cdict['a2a']
 
     cdict['shuffled'] = 'k'
+    cdict['none'] = 'k'
     
     return cdict[key]
 

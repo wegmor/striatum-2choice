@@ -12,7 +12,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
-from matplotlib.ticker import MultipleLocator
+from matplotlib.ticker import MultipleLocator, FixedLocator
 from utils import readSessions, fancyViz
 from collections import defaultdict
 import pathlib
@@ -161,6 +161,7 @@ ax1.text(7.5,400,'center to left\nturn',ha='center',va='center',fontdict={'fonts
 #ax2.text(7.5,500,'center to right\nturn',ha='center',va='center',fontdict={'fontsize':6})
 
 ax1.set_yticks((0,200,400))
+ax1.yaxis.set_minor_locator(MultipleLocator(100))
 #ax2.set_yticks((0,250,500))
 ax1.set_xticks((-15,0,15,30))
 #ax2.set_xticks((-15,0,15,30))
@@ -168,6 +169,7 @@ ax1.set_xlim((-15,30))
 ax1.set_ylim((0,400))
 #ax1.set_xticklabels(())
 ax1.set_xlabel('tuning score')
+ax1.set_ylabel('# neurons')
 
 sns.despine(ax=ax1)
 #sns.despine(ax=ax2)
@@ -203,6 +205,76 @@ for g in ['d1','a2a','oprm1']:
 
     ax.set_aspect('equal')
     #ax.set_xlabel(g)
+
+
+#%% tuning counts (simple)
+hist_df = analysisTunings.getTunedNoHistData(tuningData)
+
+axs = {}
+for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
+    ax = layout.axes['no_tuned_'+g]['axis']
+    axs[g] = ax
+    
+    ax.scatter(analysisTunings.jitter(gdata.bin, .12), gdata.signp,
+               s=gdata.noNeurons/25, edgecolor=style.getColor(g),
+               facecolor='none', alpha=.8, zorder=0, clip_on=False,
+               lw=mpl.rcParams['axes.linewidth'])
+    
+    avg = gdata.groupby('bin').apply(analysisTunings.wAvg, 'signp', 'noNeurons')
+    sem = gdata.groupby('bin').apply(analysisTunings.bootstrap, 'signp', 'noNeurons')
+    ax.bar(avg.index, avg, yerr=sem, color=style.getColor(g),
+           lw=0, alpha=.3, zorder=1)
+    
+    ax.set_title(g)
+    ax.set_ylim((0,.5))
+    ax.set_yticks((0,.25,.5))
+    ax.set_yticklabels(())
+    ax.yaxis.set_minor_locator(MultipleLocator(.125))
+    ax.set_xlim((0.25,5.75))
+    ax.set_xticks((1,3,5))
+    ax.xaxis.set_minor_locator(FixedLocator((2,4)))
+    ax.set_xticklabels(['1','3','5+'])
+    sns.despine(ax=ax)
+    
+
+axs['d1'].set_yticklabels((0,25,50))
+axs['d1'].set_ylabel('neurons (%)')
+axs['a2a'].set_xlabel('number of actions')
+
+
+#%% TSNE
+cachedDataPath = cacheFolder / "tuning_tsne.pkl.bak"
+if cachedDataPath.is_file():
+    tuningTsne = pd.read_pickle(cachedDataPath)
+else:
+    tuningTsne = analysisTunings.getTSNEProjection(tuningData)
+    tuningTsne.to_pickle(cachedDataPath)
+
+#%%
+for g,gdata in tuningTsne.groupby('genotype'):
+    ax = layout.axes['tsne_'+g]['axis']
+    
+    ax.scatter(gdata[0], gdata[1],
+               c=gdata.action.str.slice(0,4).apply(style.getColor),
+               marker='.', alpha=.75, s=1.25, lw=0)
+
+    ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
+    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max() - 20))
+    ax.invert_xaxis()
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+ax = layout.axes['tsne_tuning']['axis']
+
+ax.scatter(tuningTsne[0], tuningTsne[1],
+           c=tuningTsne.action.str.slice(0,4).apply(style.getColor),
+           marker='.', alpha=.75, s=3, lw=0)
+
+ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
+ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max() - 20))
+ax.invert_xaxis()
+ax.set_aspect('equal')
+ax.axis('off')
 
 
 #%%
