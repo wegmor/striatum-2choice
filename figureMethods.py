@@ -19,7 +19,7 @@ import analysisMethods
 
 #%%
 style.set_context()
-endoDataPath = "./data/endoData_2019.hdf"
+endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 
 #%% TODO: only works if in top folder of repository! __file__ doesn't work inside Spyder!
 outputFolder = pathlib.Path("svg")

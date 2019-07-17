@@ -218,8 +218,10 @@ class Session:
             tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
     
-    def shuffleFrameLabels(self, n=1, switch=True):
-        frameLabels = self.labelFrameActions(reward="sidePorts", switch=True)
+    def shuffleFrameLabels(self, n=1, switch=True, reward='sidePorts',
+                           splitCenter=True):
+        frameLabels = self.labelFrameActions(reward=reward, splitCenter=splitCenter,
+                                             switch=True)
         frameLabels.index.name = 'frame'
         frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
