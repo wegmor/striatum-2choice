@@ -41,7 +41,7 @@ layout.make_mplfigures()
 
 
 #%%
-cachedDataPath = cacheFolder / "actionTunings.pkl.bak"
+cachedDataPath = cacheFolder / "actionTunings.pkl"
 if cachedDataPath.is_file():
     tuningData = pd.read_pickle(cachedDataPath)
 else:
@@ -50,7 +50,6 @@ else:
 
 tuningData['signp'] = tuningData['pct'] > .99
 tuningData['signn'] = tuningData['pct'] < .01
-tuningData['tuning'] = (tuningData['mean']-tuningData['s_mean'])/tuningData['s_std']
 
 #%%
 ex_session = ('oprm1','5308','190131')
@@ -59,7 +58,7 @@ s = next(readSessions.findSessions(endoDataPath, genotype=ex_session[0],
                                    task='2choice'))
 traces = s.readDeconvolvedTraces(zScore=True)
 lfa = s.labelFrameActions(reward='sidePorts').set_index(traces.index)
-actions = ['pC2L','mC2R','pL2Cr']
+actions = ['pC2L-','mC2R-','pL2Cr']
 tunings = tuningData.query("genotype == @ex_session[0] & animal == @ex_session[1] & "+
                            "date == @ex_session[2] & action in @actions").copy()
 
@@ -138,41 +137,26 @@ axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02
 
 
 #%%
-ax1 = layout.axes['tuning_hist1']['axis']
+ax = layout.axes['tuning_hist1']['axis']
+hdata = tuningData.query('genotype == "oprm1" & action == "mC2L-"').copy()
 
-hdata = tuningData.query('genotype == "oprm1" & action == "mC2L"').copy()
-ax1.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
-         histtype='stepfilled')
-ax1.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
-         histtype='stepfilled', color=style.getColor('mC2L'))
-ax1.text(30,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
-         color=style.getColor('mC2L'))
-ax1.text(7.5,400,'center to left\nturn',ha='center',va='center',fontdict={'fontsize':7})
+ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
+        histtype='stepfilled')
+ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
+        histtype='stepfilled', color=style.getColor('mC2L'))
 
-#ax2 = layout.axes['tuning_hist2']['axis']
-#ax2.get_shared_x_axes().join(ax1, ax2)
-#ax2.get_shared_y_axes().join(ax1, ax2)
-#
-#hdata = tuningData.query('genotype == "oprm1" & action == "mC2R"').copy()
-#ax2.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
-#         histtype='stepfilled')
-#ax2.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
-#         histtype='stepfilled', color=style.getColor('mC2R'))
-#ax2.text(7.5,500,'center to right\nturn',ha='center',va='center',fontdict={'fontsize':6})
+ax.text(30,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+        color=style.getColor('mC2L'))
+ax.text(7.5,400,'center to left\nturn',ha='center',va='center',fontdict={'fontsize':7})
 
-ax1.set_yticks((0,200,400))
-ax1.yaxis.set_minor_locator(MultipleLocator(100))
-#ax2.set_yticks((0,250,500))
-ax1.set_xticks((-15,0,15,30))
-#ax2.set_xticks((-15,0,15,30))
-ax1.set_xlim((-15,30))
-ax1.set_ylim((0,400))
-#ax1.set_xticklabels(())
-ax1.set_xlabel('tuning score')
-ax1.set_ylabel('# neurons')
-
-sns.despine(ax=ax1)
-#sns.despine(ax=ax2)
+ax.set_yticks((0,200,400))
+ax.yaxis.set_minor_locator(MultipleLocator(100))
+ax.set_xticks((-15,0,15,30))
+ax.set_xlim((-15,30))
+ax.set_ylim((0,400))
+ax.set_xlabel('tuning score')
+ax.set_ylabel('# neurons')
+sns.despine(ax=ax)
 
 
 #%% pie charts
@@ -185,15 +169,15 @@ maxdf = maxdf.groupby(['genotype','action'])[['signp']].count() # get counts
 
 # create dictionary with modified alpha to separate r/o/d phases
 cdict = defaultdict(lambda: np.array([1,1,1]),
-                    {a:style.getColor(a) for a 
-                     in ['mC2L','mC2R','mL2C','mR2C','pC2L','pC2R','pL2C','pR2C']})
-cdict['pL2Cr'] = cdict['pL2C']
-cdict['pL2Co'] = np.append(cdict['pL2C'], .45)
-cdict['pL2Cd'] = np.append(cdict['pL2C'], .7)
-cdict['pR2Cr'] = cdict['pR2C']
-cdict['pR2Co'] = np.append(cdict['pR2C'], .45)
-cdict['pR2Cd'] = np.append(cdict['pR2C'], .7)
-cdict['pC2L'] = np.append(cdict['pC2L'], .45)
+                    {a:style.getColor(a[:4]) for a 
+                     in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
+cdict['pL2Cr'] = cdict['pL2C-']
+cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
+cdict['pL2Cd'] = np.append(cdict['pL2C-'], .7)
+cdict['pR2Cr'] = cdict['pR2C-']
+cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
+cdict['pR2Cd'] = np.append(cdict['pR2C-'], .7)
+cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
 
 for g in ['d1','a2a','oprm1']:
     ax = layout.axes['pie_{}'.format(g)]['axis']
@@ -204,7 +188,6 @@ for g in ['d1','a2a','oprm1']:
                     textprops={'color':'k'}, colors=[cdict[a] for a in gdata.index])
 
     ax.set_aspect('equal')
-    #ax.set_xlabel(g)
 
 
 #%% tuning counts (simple)
@@ -243,7 +226,7 @@ axs['a2a'].set_xlabel('number of actions')
 
 
 #%% TSNE
-cachedDataPath = cacheFolder / "tuning_tsne.pkl.bak"
+cachedDataPath = cacheFolder / "tuning_tsne.pkl"
 if cachedDataPath.is_file():
     tuningTsne = pd.read_pickle(cachedDataPath)
 else:
@@ -259,7 +242,7 @@ for g,gdata in tuningTsne.groupby('genotype'):
                marker='.', alpha=.75, s=1.25, lw=0)
 
     ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max() - 20))
+    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
     ax.invert_xaxis()
     ax.set_aspect('equal')
     ax.axis('off')
@@ -271,10 +254,70 @@ ax.scatter(tuningTsne[0], tuningTsne[1],
            marker='.', alpha=.75, s=3, lw=0)
 
 ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max() - 20))
+ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
 ax.invert_xaxis()
 ax.set_aspect('equal')
 ax.axis('off')
+
+
+#%% similar tuning == closer spatially?
+cachedDataPath = cacheFolder / "tuning_pdists.pkl"
+if cachedDataPath.is_file():
+    pdists = pd.read_pickle(cachedDataPath)
+else:
+    pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
+    pdists.to_pickle(cachedDataPath)
+    
+#%%
+#dist['diff'] = dist.dist - dist.dist_shuffle
+
+ax = layout.axes['dist_scatter']['axis']
+
+for g, gdata in pdists.groupby('genotype'):
+    ax.scatter(gdata.dist_shuffle, gdata.dist, s=gdata.noNeurons/25,
+               edgecolor=style.getColor(g), facecolor='none',
+               alpha=1)
+
+ax.plot([25,75],[25,75], ls=':', color='k', alpha=.5, zorder=-1)    
+
+ax.set_xlim((25,75))
+ax.set_ylim((25,75))
+ax.set_xticks(np.arange(25,76,25))
+ax.set_yticks(np.arange(25,76,25))
+ax.set_aspect('equal')
+ax.set_xlabel('expected')
+ax.set_ylabel('observed')
+ax.set_title('μm to nearest\ntuned neighbor')
+sns.despine(ax=ax)
+#%%
+#sns.boxplot('genotype','diff', data=dist.reset_index(), order=['d1','a2a','oprm1'],
+#            palette={'d1':'m','a2a':'c','oprm1':'g'},
+#            saturation=.85, linewidth=2, showcaps=False,  showfliers=False,
+#            boxprops={'alpha':0.6, 'lw':0, 'zorder':-99}, width=.6,
+#            whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+#            medianprops={'c':'k','zorder':99},
+#            ax=bax)
+dist['x'] = dist.genotype.replace({'d1':0,'a2a':1,'oprm1':2})
+bax.scatter(jitter(dist.x, .13), dist['diff'],
+            edgecolor=dist.genotype.replace({'d1':'m','a2a':'c','oprm1':'g'}),
+            s=dist.noNeurons/5, facecolor='none', lw=1, alpha=.45)
+avg = dist.groupby('x').apply(wAvg, 'diff')
+sem = dist.groupby('x').apply(bootstrap, 'diff')
+for x in range(3):
+    bax.errorbar(x, avg[x], sem[x], fmt='.', c=['m','c','g'][x])
+    
+bax.axhline(0, ls='--', lw=1.8, c='k', alpha=.5)
+#bax.set_yticks(np.arange(10,-31,-10))
+bax.set_ylim((-17.5,12.5))
+bax.set_ylabel(r'observed $-$ expected')
+bax.set_xticks(())
+bax.set_xlabel('')
+sns.despine(bottom=True, ax=bax)
+
+plt.suptitle('distance to nearest\naction-related neighbor',
+             y=1.2, fontsize=24)
+fig.savefig('figures/nn_distance.svg',
+            bbox_inches='tight', pad_inches=0)
 
 
 #%%

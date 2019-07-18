@@ -9,6 +9,7 @@ Created on Mon Jul 15 11:24:45 2019
 import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
+from scipy.spatial.distance import pdist, squareform
 from utils import readSessions
 
 
@@ -137,4 +138,49 @@ def getTSNEProjection(tuningData, perplexity=30):
                             on=['genotype','animal','date','neuron'])
     
     return tsne_df
+
+
+#%% similarly tuned neurons closer than chance?
+def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
+    dist_df = pd.DataFrame()
+    for s in readSessions.findSessions(dataFilePath, task='2choice'):
+        # load ROI centers
+        roics = get_centers(s.readROIs().values)
+        # generate shuffled ROIs
+        roics_shuffle = [np.random.permutation(roics) for _ in range(no_shuffles)]
+        
+        # calc pairwise distances
+        # inscopix says 1440 px -> 900 um; 4x downsampled 900/360 = 2.5
+        dist = squareform(pdist(roics)) * 2.5
+        dist[np.diag_indices_from(dist)] = np.nan
+    
+        # load tuning data for session
+        tunings = tuningData.query('animal == @s.meta.animal & date == @s.meta.date').copy()
+        if len(tunings) == 0: continue
+        tunings = tunings.set_index(['action','neuron']).sort_index()
+        
+        min_dists = []
+        min_dists_shuffle = []
+        for action, ts in tunings.groupby('action'):
+            if ts.signp.sum() >= 2: # at least 2 tuned neurons in this group?
+                # find the minimum distance to the closest neuron tuned to action
+                min_dists += np.nanmin(dist[ts.signp][:,ts.signp], axis=0).tolist()
+                
+                # calculate min distance for shuffled ROIs
+                for roicss in roics_shuffle:
+                    dist_shuffle = squareform(pdist(roicss)) * 2.5
+                    dist_shuffle[np.diag_indices_from(dist_shuffle)] = np.nan
+                    min_dists_shuffle += np.nanmin(dist_shuffle[ts.signp][:,ts.signp], axis=0).tolist()
+        
+        # calculate mean minimum distance, real & expected by chance, for session
+        mean_dist = np.mean(min_dists)
+        mean_dist_shuffle = np.mean(min_dists_shuffle)
+    
+        series = pd.Series({'genotype': s.meta.genotype,
+                            'animal': s.meta.animal, 'date': s.meta.date,
+                            'dist': mean_dist, 'dist_shuffle': mean_dist_shuffle,
+                            'noNeurons': len(ts)})
+        dist_df = dist_df.append(series, ignore_index=True)
+        
+    return dist_df
 

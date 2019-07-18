@@ -1473,8 +1473,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="380.83633"
-     inkscape:cy="686.63262"
+     inkscape:cx="360.3595"
+     inkscape:cy="686.18111"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -1485,12 +1485,12 @@
      inkscape:snap-bbox-midpoints="true"
      inkscape:snap-global="true"
      inkscape:snap-page="true"
-     inkscape:window-height="1043"
+     inkscape:window-height="1016"
      inkscape:window-maximized="1"
      inkscape:window-width="1920"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:zoom="4.0000001"
+     inkscape:window-x="0"
+     inkscape:window-y="27"
+     inkscape:zoom="2.0000001"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -1817,7 +1817,7 @@
        style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.6887967;stroke:none;stroke-width:0.17162469;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        width="29.032198"
        x="167.81779"
-       y="91.526901">
+       y="128.26778">
       <figurefirst:axis
          figurefirst:name="tuning_fov" />
     </rect>
@@ -2391,12 +2391,12 @@
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
        x="89.698624"
-       y="107.20533"
+       y="107.7345"
        id="text1267"><tspan
          sodipodi:role="line"
          id="tspan1265"
          x="89.698624"
-         y="107.20533"
+         y="107.7345"
          style="stroke-width:0.26458332">all neurons</tspan></text>
   </g>
 </svg>
