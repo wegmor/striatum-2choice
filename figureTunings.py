@@ -60,13 +60,15 @@ traces = s.readDeconvolvedTraces(zScore=True)
 lfa = s.labelFrameActions(reward='sidePorts').set_index(traces.index)
 actions = ['pC2L-','mC2R-','pL2Cr']
 tunings = tuningData.query("genotype == @ex_session[0] & animal == @ex_session[1] & "+
-                           "date == @ex_session[2] & action in @actions").copy()
+                           "date == @ex_session[2]").copy()
 
 sel_traces = {}
-for p,(a,t) in enumerate(tunings.groupby('action')):
+sel_neurons = []
+for p,(a,t) in enumerate(tunings.query('action in @actions').groupby('action')):
     max_neuron = t.loc[t.tuning.idxmax(),'neuron']
     trace = traces[max_neuron]
     sel_traces[a] = trace
+    sel_neurons.append(int(max_neuron))
     
     axfv = layout.axes['f8_{}'.format(p+1)]['axis']
     fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
@@ -134,6 +136,36 @@ patches = [mpatches.Patch(color=style.getColor(l), label=t, alpha=.15)
                for l,t in [('pL','left port'),('pC','center port'),('pR','right Port')]]
 axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02),
            loc='lower center')
+
+
+#%% map
+ax = layout.axes['tuning_fov']['axis']
+
+df = tunings.loc[tunings.groupby('neuron').tuning.idxmax()].copy()
+df['color'] = df.action
+df.loc[~df.signp, 'color'] = 'none'
+df['color'] = df.color.str.slice(0,4).apply(lambda c: np.array(style.getColor(c)))
+
+rois = s.readROIs().values
+sel_cnts = analysisTunings.get_centers(rois)[sel_neurons]
+
+rs = []
+for roi, color in zip(rois, df.color.values):
+    roi /= roi.max()
+    roi = roi**1.5
+    roi = np.clip(roi-.1, 0, .85)
+    roi /= roi.max()
+    r = np.array([(roi > 0).astype('int')]*3) * color[:, np.newaxis, np.newaxis]
+    r = np.concatenate([r, roi[np.newaxis]], axis=0)
+    rs.append(r.transpose((1,2,0)))    
+rs = np.array(rs)
+
+for img in rs:
+    ax.imshow(img)
+ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k', facecolor='none', 
+           s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
+
+ax.axis('off')
 
 
 #%%
@@ -208,7 +240,7 @@ for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
     ax.bar(avg.index, avg, yerr=sem, color=style.getColor(g),
            lw=0, alpha=.3, zorder=1)
     
-    ax.set_title(g)
+    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
     ax.set_ylim((0,.5))
     ax.set_yticks((0,.25,.5))
     ax.set_yticklabels(())
@@ -239,7 +271,7 @@ for g,gdata in tuningTsne.groupby('genotype'):
     
     ax.scatter(gdata[0], gdata[1],
                c=gdata.action.str.slice(0,4).apply(style.getColor),
-               marker='.', alpha=.75, s=1.25, lw=0)
+               marker='.', alpha=.75, s=1.35, lw=0, clip_on=False)
 
     ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
     ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
@@ -251,7 +283,7 @@ ax = layout.axes['tsne_tuning']['axis']
 
 ax.scatter(tuningTsne[0], tuningTsne[1],
            c=tuningTsne.action.str.slice(0,4).apply(style.getColor),
-           marker='.', alpha=.75, s=3, lw=0)
+           marker='.', alpha=.75, s=3, lw=0, clip_on=False)
 
 ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
 ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
@@ -269,14 +301,24 @@ else:
     pdists.to_pickle(cachedDataPath)
     
 #%%
-#dist['diff'] = dist.dist - dist.dist_shuffle
-
 ax = layout.axes['dist_scatter']['axis']
 
 for g, gdata in pdists.groupby('genotype'):
     ax.scatter(gdata.dist_shuffle, gdata.dist, s=gdata.noNeurons/25,
-               edgecolor=style.getColor(g), facecolor='none',
-               alpha=1)
+               edgecolor=style.getColor(g), facecolor=style.getColor(g),
+               alpha=.4, lw=mpl.rcParams['axes.linewidth'])
+    
+avg = pdists.groupby('genotype').apply(analysisTunings.wAvg, 'dist', 'noNeurons')
+avg_s = pdists.groupby('genotype').apply(analysisTunings.wAvg, 'dist_shuffle', 'noNeurons')
+sem = pdists.groupby('genotype').apply(analysisTunings.bootstrap, 'dist', 'noNeurons')
+sem_s = pdists.groupby('genotype').apply(analysisTunings.bootstrap, 'dist_shuffle', 'noNeurons')
+
+for g in ['d1','a2a','oprm1']:
+    ax.errorbar(avg_s[g], avg[g], xerr=sem_s[g], yerr=sem[g],
+                color=style.getColor(g), fmt='s', markersize=3,
+                markeredgewidth=mpl.rcParams['axes.linewidth'],
+                markeredgecolor='k', ecolor='k',
+                label={'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
 
 ax.plot([25,75],[25,75], ls=':', color='k', alpha=.5, zorder=-1)    
 
@@ -287,37 +329,11 @@ ax.set_yticks(np.arange(25,76,25))
 ax.set_aspect('equal')
 ax.set_xlabel('expected')
 ax.set_ylabel('observed')
-ax.set_title('μm to nearest\ntuned neighbor')
+ax.text(50, 75, 'μm to nearest\ntuned neighbor', ha='center', va='center',
+        fontdict={'fontsize':7})
+ax.legend(loc='lower right', bbox_to_anchor=(1.1, .05))
+ax.set_aspect('equal')
 sns.despine(ax=ax)
-#%%
-#sns.boxplot('genotype','diff', data=dist.reset_index(), order=['d1','a2a','oprm1'],
-#            palette={'d1':'m','a2a':'c','oprm1':'g'},
-#            saturation=.85, linewidth=2, showcaps=False,  showfliers=False,
-#            boxprops={'alpha':0.6, 'lw':0, 'zorder':-99}, width=.6,
-#            whiskerprops={'c':'k','zorder':99, 'clip_on':False},
-#            medianprops={'c':'k','zorder':99},
-#            ax=bax)
-dist['x'] = dist.genotype.replace({'d1':0,'a2a':1,'oprm1':2})
-bax.scatter(jitter(dist.x, .13), dist['diff'],
-            edgecolor=dist.genotype.replace({'d1':'m','a2a':'c','oprm1':'g'}),
-            s=dist.noNeurons/5, facecolor='none', lw=1, alpha=.45)
-avg = dist.groupby('x').apply(wAvg, 'diff')
-sem = dist.groupby('x').apply(bootstrap, 'diff')
-for x in range(3):
-    bax.errorbar(x, avg[x], sem[x], fmt='.', c=['m','c','g'][x])
-    
-bax.axhline(0, ls='--', lw=1.8, c='k', alpha=.5)
-#bax.set_yticks(np.arange(10,-31,-10))
-bax.set_ylim((-17.5,12.5))
-bax.set_ylabel(r'observed $-$ expected')
-bax.set_xticks(())
-bax.set_xlabel('')
-sns.despine(bottom=True, ax=bax)
-
-plt.suptitle('distance to nearest\naction-related neighbor',
-             y=1.2, fontsize=24)
-fig.savefig('figures/nn_distance.svg',
-            bbox_inches='tight', pad_inches=0)
 
 
 #%%
@@ -325,7 +341,7 @@ layout.insert_figures('plots')
 layout.write_svg(outputFolder / "tunings.svg")
 
 
-#%% tuning charts
+#%% tuning charts #############################################################
 #df = tuningData.copy()
 #
 #df['signp'] = df['pct'] > .99
