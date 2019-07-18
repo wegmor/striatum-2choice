@@ -51,7 +51,8 @@ class SchematicIntensityPlot(IntensityPlot):
         self.splitReturns = splitReturns
         self.mask = slice(None, None) #No mask, use all values
         self.clearBuffer()
-        self.setSession(session)
+        if session is not None:
+            self.setSession(session)
     
     def clearBuffer(self):
         self.valueCanvas = np.zeros((251,501), np.float64)

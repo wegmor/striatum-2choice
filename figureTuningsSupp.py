@@ -3,11 +3,12 @@ import pandas as pd
 import seaborn as sns
 import scipy.stats
 import matplotlib.pyplot as plt
-import matplotlib
+import matplotlib as mpl
 import h5py
 import pathlib
 import figurefirst
 import cmocean
+import tqdm
 
 #import sys
 #thisFolder = pathlib.Path(__file__).resolve().parent
@@ -52,9 +53,26 @@ for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes["correlationMatrix_{}".format(genotype)]["axis"]
     sns.heatmap(corr, ax=ax, vmin=0, vmax=1, annot=True, fmt=".2f", cmap=cmocean.cm.balance,
                 cbar=False, xticklabels=False, yticklabels=False, annot_kws={'fontsize': 4.0},
-                linewidths=matplotlib.rcParams["axes.linewidth"])
+                linewidths=mpl.rcParams["axes.linewidth"])
     ax.set_xlabel(None)
     ax.set_ylabel(None)
+
+## Panel C
+meanPlots = {g: fancyViz.SchematicIntensityPlot(splitReturns=False,
+                                                linewidth=mpl.rcParams['axes.linewidth'],
+                                                smoothing=7) for g in ("oprm1", "d1", "a2a")}
+for sess in readSessions.findSessions("endoData_2019.hdf", task="2choice"):
+    signal = sess.readDeconvolvedTraces(zScore=True)
+    if len(signal) != len(sess.readSensorValues()):
+        continue
+    genotype = sess.meta.genotype
+    meanPlots[genotype].setSession(sess)
+    for neuron in tqdm.tqdm(signal.columns, desc=str(sess)):
+        meanPlots[genotype].addTraceToBuffer(signal[neuron])
+        
+for genotype, meanPlot in meanPlots.items():
+    ax = layout.axes["genotypeAvg_{}".format(genotype)]["axis"]
+    meanPlot.drawBuffer(ax=ax)
     
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "tuningsSupp.svg")

@@ -24,18 +24,18 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.99999999"
-     inkscape:cx="178.46279"
-     inkscape:cy="676.80864"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="-24.067369"
+     inkscape:cy="669.43457"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      showgrid="true"
      units="in"
      inkscape:showpageshadow="false"
-     inkscape:window-width="1853"
-     inkscape:window-height="1016"
-     inkscape:window-x="1987"
-     inkscape:window-y="27"
+     inkscape:window-width="1920"
+     inkscape:window-height="1043"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
      inkscape:window-maximized="1">
     <inkscape:grid
        type="xygrid"
@@ -121,7 +121,7 @@
        id="rect20122"
        width="48"
        height="48"
-       x="44"
+       x="38"
        y="105">
       <figurefirst:axis
          figurefirst:name="correlationMatrix_oprm1" />
@@ -131,7 +131,7 @@
        id="rect20122-9"
        width="48"
        height="48"
-       x="96"
+       x="90"
        y="105">
       <figurefirst:axis
          figurefirst:name="correlationMatrix_d1" />
@@ -141,10 +141,43 @@
        id="rect20122-6"
        width="48"
        height="48"
-       x="148"
+       x="142"
        y="105">
       <figurefirst:axis
          figurefirst:name="correlationMatrix_a2a" />
+    </rect>
+    <rect
+       transform="translate(0,17.6)"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598;stroke-linecap:butt;stroke-linejoin:round"
+       id="rect47943"
+       width="22"
+       height="10.999999"
+       x="20"
+       y="163.39999">
+      <figurefirst:axis
+         figurefirst:name="genotypeAvg_oprm1" />
+    </rect>
+    <rect
+       transform="translate(0,17.6)"
+       y="175.39998"
+       x="20"
+       height="10.999999"
+       width="22"
+       id="rect47945"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="genotypeAvg_d1" />
+    </rect>
+    <rect
+       transform="translate(0,17.6)"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598;stroke-linecap:butt;stroke-linejoin:round"
+       id="rect47947"
+       width="22"
+       height="10.999997"
+       x="20"
+       y="187.39998">
+      <figurefirst:axis
+         figurefirst:name="genotypeAvg_a2a" />
     </rect>
   </g>
   <g
@@ -155,7 +188,7 @@
     <g
        id="g1242"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
-       transform="translate(26.941666,34.458336)">
+       transform="translate(20.941666,34.458336)">
       <path
          inkscape:connector-curvature="0"
          id="path1110"
@@ -599,7 +632,7 @@
            sodipodi:role="line">To right</tspan></text>
     </g>
     <g
-       transform="translate(75.999999,34.458336)"
+       transform="translate(69.999999,34.458336)"
        id="g1242-7"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
       <path
@@ -828,7 +861,7 @@
            y="54.56847">To right</tspan></text>
     </g>
     <g
-       transform="translate(128,34.458336)"
+       transform="translate(122,34.458336)"
        id="g1242-1"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
       <path
@@ -1059,35 +1092,35 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="64.212959"
+       x="58.212959"
        y="85.513374"
        id="text5393"><tspan
          sodipodi:role="line"
          id="tspan5391"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-         x="64.212959"
+         x="58.212959"
          y="85.513374">oprm1</tspan></text>
     <text
        id="text5397"
        y="85.480301"
-       x="118.65707"
+       x="112.65707"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          y="85.480301"
-         x="118.65707"
+         x="112.65707"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
          id="tspan5395"
          sodipodi:role="line">d1</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="169.66211"
+       x="163.66211"
        y="85.433533"
        id="text5401"><tspan
          sodipodi:role="line"
          id="tspan5399"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-         x="169.66211"
+         x="163.66211"
          y="85.433533">a2a</tspan></text>
     <text
        xml:space="preserve"
@@ -1100,5 +1133,16 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
          x="19.128756"
          y="86.152992">B</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="18.846111"
+       y="160.71989"
+       id="text5372"><tspan
+         sodipodi:role="line"
+         id="tspan5370"
+         x="18.846111"
+         y="160.71989"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round">C</tspan></text>
   </g>
 </svg>
