@@ -39,7 +39,7 @@ def wAvg(group, var, weights):
 def bootstrap(group, var, weights, iterations=1000):
     avgs = []
     for _ in range(iterations):
-        idx = np.random.choice(np.arange(len(group[var])), size=len(group[var]),
+        idx = np.random.choice(len(group[var]), size=len(group[var]),
                                replace=True)
         avgs.append(np.average(group[var].iloc[idx], weights=group[weights].iloc[idx]))
     return(np.std(avgs))
