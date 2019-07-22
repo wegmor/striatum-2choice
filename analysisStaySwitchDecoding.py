@@ -73,9 +73,9 @@ def _decodeStaySwitchSession(sess, selectedPhase):
             preds.append(pd.DataFrame(svm.predict(testX), index=testX.index,
                                       columns=['prediction']))
             P.append(pd.DataFrame(svm.predict_proba(testX), index=testX.index,
-                                  columns=svm.classes_))
+                                  columns=[c[-2:] for c in svm.classes_]))
             Post.append(pd.DataFrame(svm.predict_proba(Xost), index=Xost.index,
-                                     columns=svm.classes_))
+                                     columns=[c[-2:] for c in svm.classes_]))
             C.append(pd.Series(svm.coef_[0]))
         
         # compute confusion matrix    
