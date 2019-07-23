@@ -12,6 +12,10 @@ import tqdm
 import sklearn.model_selection
 import sklearn.svm
 import sklearn.metrics
+import multiprocessing
+import functools
+import h5py
+import datetime
 from utils import readSessions
 
 
@@ -160,4 +164,80 @@ def decodeStaySwitch(dataFile, selectedPhase):
 
     return (rMs, rPs, rCs), (sMs, sPs, sCs)
 
+#%%
+def _testSameAndNextDay(i, realX, realY, shuffledX, shuffledY, nextX, nextY):
+    np.random.seed(np.random.randint(1000000)+i)
+    trainX, testX, trainY, testY = sklearn.model_selection.train_test_split(realX, realY,
+                                                                            test_size=0.2, stratify=realY)
+    svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
+    fromAcc = np.mean(svm.predict(testX) == testY)
+    toAcc = np.mean(svm.predict(nextX) == nextY)
+
+    trainX, testX, trainY, testY = sklearn.model_selection.train_test_split(shuffledX, shuffledY,
+                                                                            test_size=0.2, stratify=shuffledY)
+    svm = sklearn.svm.SVC(kernel="linear").fit(trainX, trainY)
+    shuffledFromAcc = np.mean(svm.predict(testX) == testY)
+    shuffledToAcc   = np.mean(svm.predict(nextX) == nextY)
+
+    return (i, fromAcc, toAcc, shuffledFromAcc, shuffledToAcc)
+    
+def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
+    def _prepareTrials(deconv, lfa, selectedLabels):
+        avgSig = deconv.groupby(lfa.actionNo).mean()
+        labels = lfa.groupby("actionNo").label.first()
+        validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
+        X = avgSig[validTrials]
+        Y = labels[validTrials]
+        return X, Y
+   
+    def _dateDiff(fromDate, toDate):
+        fromDate = datetime.datetime.strptime(fromDate, "%y%m%d")
+        toDate = datetime.datetime.strptime(toDate, "%y%m%d")
+        return (toDate-fromDate).days
+    
+    alignmentStore = h5py.File(alignmentFile, "r")
+    with multiprocessing.Pool(5) as pool:
+        acrossDaysResult = []
+        for genotype in alignmentStore["data"]:
+            for animal in alignmentStore["data/{}".format(genotype)]:
+                for fromDate in alignmentStore["data/{}/{}".format(genotype, animal)]:
+                    fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
+                    fromTask = fromSess.meta.task
+                    if fromTask != "2choice": continue
+                    fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                    fromLfa = fromSess.labelFrameActions(reward="fullTrial", switch=True)
+                    if len(fromDeconv) != len(fromLfa): continue
+                    suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
+
+                    for baseLabel in ("mC2L", "mC2R", "mL2C", "mR2C"):
+                        selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
+                        fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
+                        shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa, selectedLabels)
+                        for toDate in alignmentStore["data/{}/{}/{}".format(genotype, animal, fromDate)]:
+                            if toDate <= fromDate: continue
+                            match = alignmentStore["data/{}/{}/{}/{}/match".format(genotype, animal, fromDate, toDate)][()]
+
+                            toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
+                            toTask = toSess.meta.task
+                            if toTask != "2choice": continue
+                            toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                            toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
+                            if len(toDeconv) != len(toLfa): continue
+
+                            if _dateDiff(fromDate, toDate) <= 0: continue
+                            toX, toY = _prepareTrials(toDeconv, toLfa, selectedLabels)
+
+                            fcn = functools.partial(_testSameAndNextDay, realX=fromX[match[:,0]], realY=fromY,
+                                                    shuffledX=shuffledX[match[:,0]], shuffledY=shuffledY,
+                                                    nextX=toX[match[:,1]], nextY=toY)
+                            desc = "{} to {} ({})".format(fromSess, toDate, baseLabel)
+                            print(desc)
+                            for scores in pool.imap(fcn, range(5)):
+                                acrossDaysResult.append((genotype, animal, fromDate, toDate,
+                                                         fromTask, toTask, baseLabel, match.shape[0],
+                                                         fromX.shape[0], toX.shape[0])+scores)
+    columns=["genotype", "animal", "fromDate", "toDate", "fromTask",
+             "toTask", "label" ,"nNeurons", "nTrialsFrom", "nTrialsTo", "i",
+             "sameDayScore",  "nextDayScore", "sameDayShuffled", "nextDayShuffled"]
+    return pd.DataFrame(acrossDaysResult, columns=columns)
         

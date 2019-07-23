@@ -25,6 +25,7 @@ plt.ioff()
 style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path("data") / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
@@ -34,9 +35,11 @@ if not outputFolder.is_dir():
 if not cacheFolder.is_dir():
     cacheFolder.mkdir()
 
+
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecoding.svg")
 layout.make_mplfigures()
+
 
 #%%
 cachedDataPaths = [cacheFolder / name for name in ['stsw_m.pkl','stsw_p.pkl',
@@ -68,7 +71,16 @@ else:
     M.to_pickle(cacheFolder / 'stsw_m.pkl')
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
     C.to_pickle(cacheFolder / 'stsw_c.pkl')
+   
     
+#%%
+cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
+if cachedDataPath.is_file():
+    decodingAcrossDays = pd.read_pickle(cachedDataPath)
+else:
+    decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
+    decodingAcrossDays.to_pickle(cachedDataPath)
+
 
 #%%
 acc = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
@@ -88,7 +100,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
     wAvgs = (gdata.groupby(['decoder','shuffled'])
                   .apply(analysisStaySwitchDecoding.wAvg, 'accuracy', 'noNeurons'))
     wSems = (gdata.groupby(['decoder','shuffled'])
-                  .apply(analysisStaySwitchDecoding.bootstrap, 'accuracy', 'noNeurons', 10))
+                  .apply(analysisStaySwitchDecoding.bootstrap, 'accuracy', 'noNeurons'))
     
     decs = [('activity',True), ('activity',False), ('speed',False)]
     for x, (dec,shuffle) in enumerate(decs):
@@ -147,12 +159,8 @@ legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural 
                   ]
 ax.legend(handles=legend_elements, title='decoder', loc='center')
 ax.axis('off')
-    
-
-#%%
-layout.insert_figures('plots')
-layout.write_svg(outputFolder / "staySwitchDecoding.svg")
-
+   
+ 
 #%%
 plot_action = 'mC2L'
 acc_df = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
