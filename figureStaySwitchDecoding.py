@@ -11,6 +11,7 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator
 import pathlib
 import figurefirst
@@ -70,33 +71,88 @@ else:
     
 
 #%%
-wAvg = (M.groupby(['shuffled','action','genotype','true','predicted'])
-         .apply(analysisStaySwitchDecoding.wAvg, 'percent', 'noNeurons'))
-wSem = (M.groupby(['shuffled','action','genotype','true','predicted'])
-         .apply(analysisStaySwitchDecoding.bootstrap, 'percent', 'noNeurons'))
-
-cm_df = pd.concat([wAvg, wSem], axis=1, keys=['mean','sem']).loc[False]
+acc = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
+acc_groupby = acc.groupby(['genotype','animal','date','noNeurons','action', 'shuffled'])
+acc_activity = acc_groupby.apply(lambda sess: np.mean(sess.prediction == sess.label))
+acc_activity.name = 'accuracy'
+acc_speed = acc_groupby.apply(lambda sess: np.mean(sess.duration_prediction == sess.label))
+acc_speed.name = 'accuracy'
+acc = pd.concat([acc_activity, acc_speed], keys=['activity','speed'], names=['decoder'])
+acc = acc.reset_index('noNeurons')
+acc = acc.reorder_levels((0,5,1,2,3,4))
+   
+#%%
+for (gt, a), gdata in acc.groupby(['genotype','action']):
+    ax = layout.axes['{}_{}'.format(gt, a)]['axis']
+    
+    wAvgs = (gdata.groupby(['decoder','shuffled'])
+                  .apply(analysisStaySwitchDecoding.wAvg, 'accuracy', 'noNeurons'))
+    wSems = (gdata.groupby(['decoder','shuffled'])
+                  .apply(analysisStaySwitchDecoding.bootstrap, 'accuracy', 'noNeurons', 10))
+    
+    decs = [('activity',True), ('activity',False), ('speed',False)]
+    for x, (dec,shuffle) in enumerate(decs):
+#        ax.bar(x, wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
+#               color=style.getColor(a), alpha=.3 if x==1 else .1, lw=0)
+#        hatch = {0:'\\'*9, 2:'/'*9, 1:''}[x]
+#        mpl.rcParams['hatch.color'] = style.getColor(a)
+#        ax.bar(x, wAvgs[dec,shuffle], facecolor='none', alpha=.3, lw=0,
+#               hatch=hatch)
+        #marker = {0:'x', 1:'o', 2:'+'}[x]
+        ax.errorbar(x, wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
+                    color=style.getColor(a), clip_on=False,
+                    marker={0:'o',1:'v',2:'s'}[x],
+                    markersize={0:3.2,1:3.6,2:2.8}[x],
+                    markerfacecolor='w',
+                    markeredgewidth=.8)
+   
+    ax.plot([0,1,2], [wAvgs.loc[dec,shuffle] for dec,shuffle in decs],
+            color=style.getColor(a), clip_on=False)
+    
+    for s, sdata in gdata.groupby(['animal','date']):
+        ax.plot([0,1,2], [sdata.loc[dec,shuffle].accuracy for dec,shuffle in decs],
+                color=style.getColor(a), alpha=.2,zorder=-99,
+                lw=.5, clip_on=False)
+                #lw=sdata.noNeurons[0]/500)
+    
+    ax.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5, ls=':', clip_on=False)
+    
+    ax.set_ylim((.5,1))
+    ax.set_xlim((-.35,2.35))
+    #ax.yaxis.set_minor_locator(MultipleLocator(.25))
+    ax.set_xticks(())
+    ax.set_yticklabels(())
+    ax.axis('off')
+    if a == 'mL2C':
+        ax.axis('on')
+        ax.set_yticks((.5,.75,1))
+        if gt == 'a2a':
+            ax.set_yticklabels((50,75,100))
+            ax.set_ylabel('decoder accuracy (%)')
+    else:
+        ax.set_yticklabels(())
+    
+    sns.despine(ax=ax, bottom=True, offset=.5)
+    
+ax = layout.axes['dec_legend']['axis']
+legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural activity\n(labels shuffled)',
+                                 markerfacecolor='w', markersize=3.2,
+                                 markeredgewidth=.8),
+                   mlines.Line2D([0], [0], marker='v', color='k', label='neural activity',
+                                 markerfacecolor='w', markersize=3.6,
+                                 markeredgewidth=.8),
+                   mlines.Line2D([0], [0], marker='s', color='k', label='movement speed',
+                                 markerfacecolor='w', markersize=2.8,
+                                 markeredgewidth=.8)
+                  ]
+ax.legend(handles=legend_elements, title='decoder', loc='center')
+ax.axis('off')
+    
 
 #%%
-for (g,a), df in cm_df.groupby(['genotype','action']):
-    ax = layout.axes['cm_{}_{}'.format(g,a)]['axis']
-    cmap = sns.light_palette(style.getColor(a), as_cmap=True, reverse=False)
-    
-    cm_mean = df.unstack('predicted')['mean']
-    cm_sem = df.unstack('predicted')['sem']
-    cm_annot = np.apply_along_axis(lambda p: '{:.0%}\n±{:.0%}'.format(*p),
-                                   2, np.stack([cm_mean, cm_sem],
-                                               axis=2))
-    
-    sns.heatmap(cm_mean, annot=cm_annot, fmt='', cmap=cmap, square=True,
-                xticklabels='', yticklabels='', cbar=False, vmin=0, vmax=1, 
-                annot_kws={'fontsize':6, 'ha':'center', 'va':'center'}, ax=ax)
-    
-    ax.set_xlabel('')
-    ax.set_ylabel('')
-    ax.axis('off')
-   
-    
+layout.insert_figures('plots')
+layout.write_svg(outputFolder / "staySwitchDecoding.svg")
+
 #%%
 plot_action = 'mC2L'
 acc_df = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
