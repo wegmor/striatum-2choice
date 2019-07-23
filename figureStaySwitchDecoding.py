@@ -23,10 +23,11 @@ plt.ioff()
 #%%
 style.set_context()
 
-endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
+endoDataPath = pathlib.Path(".") / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path(".") / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 cacheFolder =  pathlib.Path("cache")
-templateFolder = pathlib.Path("templates")
+templateFolder = pathlib.Path(__file__).parent / "templates"
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
@@ -95,76 +96,133 @@ for (g,a), df in cm_df.groupby(['genotype','action']):
     ax.set_xlabel('')
     ax.set_ylabel('')
     ax.axis('off')
-   
-    
-#%%
-plot_action = 'mC2L'
-acc_df = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
-acc_df = acc_df.query('action == @plot_action & shuffled == False')
 
-acc_groupby = acc_df.groupby(['action','duration','genotype',
-                              'animal','date','noNeurons'])
-n_accuracy = acc_groupby.apply(lambda s: np.mean(s.prediction == s.label))
-d_accuracy = acc_groupby.apply(lambda s: np.mean(s.duration_prediction == s.label))
-
-accuracy = pd.concat([n_accuracy, d_accuracy], keys=['activity','speed'],
-                     axis=1).reset_index(['noNeurons','duration'])
-
-#%%
-ax = layout.axes['acc_v_speed']['axis']
-axbp = layout.axes['acc_v_speed_bp']['axis']
-ax.get_shared_x_axes().join(ax, axbp)
-
-for gt, gdata in accuracy.groupby('genotype'):   
-    means = gdata.groupby('duration')[['activity','speed']].agg(['mean','sem'])
-    
-    ax.fill_between(means.index, means.activity['mean']-means.activity['sem'],
-                                 means.activity['mean']+means.activity['sem'],
-                    lw=0, alpha=.25, color=style.getColor(gt))
-    ax.plot(means.index, means.activity['mean'], 'o-', markersize=3.2,
-            color=style.getColor(gt), zorder=99, alpha=.8,
-            markerfacecolor='w', markeredgewidth=mpl.rcParams['lines.linewidth'])
-    
-    ax.fill_between(means.index, means.speed['mean']-means.speed['sem'],
-                                 means.speed['mean']+means.speed['sem'],
-                    lw=0, alpha=.25, color=style.getColor(gt))
-    ax.plot(means.index, means.speed['mean'], 's-', markersize=2.8,
-            color=sns.desaturate(style.getColor(gt),.5), zorder=99, alpha=.8,
-            markerfacecolor='w', markeredgewidth=mpl.rcParams['lines.linewidth'])
-    
-    ax.axhline(.5, ls=':', alpha=.5, color='k', lw=mpl.rcParams['axes.linewidth'])
-    
-ax.set_ylim((-.05,1.05))
-ax.yaxis.set_minor_locator(MultipleLocator(.25))
-ax.set_yticks((0,.5,1))
-ax.set_yticklabels((0,50,100))
-ax.set_xlim((.27,.53))
-ax.xaxis.set_minor_locator(MultipleLocator(.05))
-ax.set_xticks((.3,.4,.5))
-ax.set_ylabel('decoding\naccuracy (%)')
-ax.set_xlabel('movement duration (s)')
-sns.despine(ax=ax)
-
-frac_wst = (acc_df.groupby(['genotype','animal','date','duration','label'])
-                  .size().unstack('label').fillna(0))
-frac_wst['frac'] = frac_wst[plot_action+'r.'] / \
-                   (frac_wst[plot_action+'r.'] + frac_wst[plot_action+'o!'])
-frac_wst = frac_wst.groupby('duration').frac.agg(['mean','sem'])
-
-ax.errorbar(frac_wst.index, frac_wst['mean'], frac_wst['sem'],
-            color='k', zorder=1000, alpha=.8, ls='--')
-
-sns.boxplot('duration', 'label', data=acc_df,
-            saturation=.85, showcaps=True,  showfliers=False,
-            palette={l:style.getColor(l[-2:]) for l in acc_df.label.unique()},
-            boxprops={'alpha':0.8, 'lw':0, 'zorder':-99}, width=.65, 
-            whiskerprops={'c':'k','zorder':99,'clip_on':False},
-            capprops={'clip_on':False}, medianprops={'c':'k','zorder':99},
-            ax=axbp)
-axbp.axis('off')
-
+cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
+if cachedDataPath.is_file():
+    decodingAcrossDays = pd.read_pickle(cachedDataPath)
+else:
+    decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
+    decodingAcrossDays.to_pickle(cachedDataPath)
 
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 
+
+#%%
+#acc_df = P.loc[~P.label.str.endswith('o.')].copy() # only use win-stay, lose-switch trials
+##incl_actions = ['mC2R','mL2C','mC2L','mR2C'] # which action to plot duration vs accuracy plots for?
+#incl_actions = ['mC2R','mL2C','mC2L','mR2C']
+#acc_df = acc_df.query('action in @incl_actions')
+#
+#acc_df['type'] = acc_df.label.str.slice(-2) # win-stay (r.) or lose-switch (o!)
+#acc_groupby = acc_df.groupby(['type','shuffled','genotype','duration',
+#                              'animal','date','noNeurons'])
+#accuracy = acc_groupby.apply(lambda s: np.mean(s.prediction == s.label))
+#confidence = acc_groupby.apply(lambda s: np.mean(s['r.'] / (s['r.'] + s['o!'])))
+#confidence.loc['o!'] = 1 - confidence.loc[['o!']]
+#observations = acc_groupby.size()
+#acc_df = pd.concat([accuracy, observations], keys=['accuracy','observations'],
+#                   axis=1).reset_index('noNeurons')
+#%%
+
+
+
+#%%
+### compute summary data
+##wAvg = (acc_df.groupby(['type','shuffled','genotype','duration'])
+##              .apply(analysisStaySwitchDecoding.wAvg, 'accuracy', 'noNeurons'))
+##wSem = (acc_df.groupby(['type','shuffled','genotype','duration'])
+##              .apply(analysisStaySwitchDecoding.bootstrap, 'accuracy', 'noNeurons'))
+##
+##acc_sum_df = pd.concat([wAvg, wSem], axis=1, keys=['mean','sem'])
+#
+##%%
+##data = (acc_df.query('duration >= .29 & duration <= .51')
+##              .set_index(['noNeurons','observations'], append=True)
+##              .unstack('shuffled')
+##              .reset_index(['noNeurons','observations']))
+##data['acc_diff'] = data['accuracy',False] - data['accuracy',True]
+##
+###%%
+##fig,axs = plt.subplots(1,3, figsize=(10,5))
+##for (g,d), df in data[['acc_diff','noNeurons']].groupby(['genotype','duration']):
+##    ax = axs[{'d1':0,'a2a':1,'oprm1':2}[g]]
+##
+##    adata = df.dropna().unstack('type').dropna()
+##    for r in adata.values:
+##        ax.plot([d-.015, d+.015], [r[0],r[1]], lw=r[2]/400,
+##                 c=style.getColor(g), alpha=.5)
+##            
+##    wAvg = df.groupby('type').apply(analysisStaySwitchDecoding.wAvg, 'acc_diff', 'noNeurons')
+##    wSem = df.groupby('type').apply(analysisStaySwitchDecoding.bootstrap, 'acc_diff', 'noNeurons')
+##    
+##    ax.errorbar([d-.015,d+.015], wAvg.values, 3*wSem.values, lw=1.5,
+##                color=style.getColor(g))
+##    
+##    ax.set_ylim((-1,1))
+##        
+##plt.show()
+##
+##%%
+#data = (acc_df.query('duration >= .34 & duration <= .51')
+#              .set_index('noNeurons', append=True))
+#
+#fig,axs = plt.subplots(1,3, figsize=(10,5))
+#for (g,d,s), df in data.groupby(['genotype','duration','shuffled']):
+#    ax = axs[{'d1':0,'a2a':1,'oprm1':2}[g]]
+#    if not s:
+#        adata = df.unstack('type').dropna().reset_index('noNeurons')
+#        for r in adata.values:
+#            ax.plot([d-.015, d+.015], [r[1],r[2]], lw=r[0]/200,
+#                     c=style.getColor(g), alpha=.35)
+#
+##    if s:
+##        adata = df.unstack('type').dropna()
+##        for r in adata.values:
+##            ax.plot([d-.015, d+.015], [r[0],r[1]], lw=r[2]/200,
+##                     c=style.getColor('shuffled'), alpha=.25)
+#    
+#    df = df.reset_index('noNeurons')        
+#    wAvg = df.groupby('type').apply(analysisStaySwitchDecoding.wAvg, 'accuracy', 'noNeurons')
+#    wSem = df.groupby('type').apply(analysisStaySwitchDecoding.bootstrap, 'accuracy', 'noNeurons')
+#    
+#    ax.errorbar([d-.015,d+.015], wAvg.values, wSem.values, lw=1.5,
+#                color=style.getColor(g) if not s else style.getColor('shuffled'))
+#    
+#    ax.axhline(.5, lw=mpl.rcParams['axes.linewidth'], ls=':', color='k', alpha=.5)
+#    ax.set_ylim((0,1))
+#        
+#plt.show()
+#
+##%%
+#axs = {}
+#for gt in ['d1','a2a','oprm1']:
+#    ax = layout.axes['acc_{}'.format(gt)]['axis']
+#    axs[gt] = ax
+#    data = adata.loc[gt]
+#    summary = sdata.loc[gt]
+#    
+#    ax.scatter(analysisStaySwitchDecoding.jitter(data.duration, .0075), data[False,'accuracy'],
+#               s=data[False,'noNeurons']/30, edgecolor=style.getColor(gt),
+#               facecolor='none', alpha=.35, zorder=0, clip_on=False,
+#               lw=mpl.rcParams['axes.linewidth'])
+#    ax.errorbar(summary.duration, summary[False,'mean'], summary[False,'sem'],
+#                color=style.getColor(gt))
+#    ax.errorbar(summary.duration, summary[True,'mean'], summary[True,'sem'],
+#                color=style.getColor('shuffled'))
+#    ax.axhline(.5, ls=':', alpha=.5, color='k', lw=mpl.rcParams['axes.linewidth'])
+#    
+#    ax.set_ylim((0,1))
+#    ax.yaxis.set_minor_locator(MultipleLocator(.25))
+#    ax.set_yticks((0,.5,1))
+#    ax.set_yticklabels(())
+#    ax.set_xlim((.275,.525))
+#    ax.xaxis.set_minor_locator(MultipleLocator(.05))
+#    ax.set_xticks((.3,.4,.5))
+#    sns.despine(ax=ax)
+#
+#axs['d1'].set_yticklabels((0,50,100))
+#axs['d1'].set_ylabel('decoding accuracy (%)')
+#axs['a2a'].set_xlabel('action duration (s)')
+    
