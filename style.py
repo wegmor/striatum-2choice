@@ -77,7 +77,9 @@ def getColor(key):
     cdict['correct'] = cdict['oprm1']
     cdict['error'] = sns.color_palette()[7]
     cdict['stay'] = cdict['d1']
+    cdict['r.'] = cdict['stay']
     cdict['switch'] = cdict['a2a']
+    cdict['o!'] = cdict['switch']
 
     cdict['shuffled'] = (0,0,0)
     cdict['none'] = (0,0,0)

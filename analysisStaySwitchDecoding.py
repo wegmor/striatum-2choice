@@ -32,39 +32,39 @@ def jitter(x, std):
     
     
 #%%
-def _prepareTrials(deconv, lfa, selectedPhase):
-    avgSig = deconv.groupby(lfa.actionNo).mean()
-    labels = lfa.groupby("actionNo").label.first()
-    durations = lfa.groupby("actionNo").actionDuration.first() * (1/20)
+def decodeStaySwitchSession(sess, selectedPhase):
+    def _prepareTrials(deconv, lfa, selectedPhase):
+        avgSig = deconv.groupby(lfa.actionNo).mean()
+        labels = lfa.groupby("actionNo").label.first()
+        durations = lfa.groupby("actionNo").actionDuration.first() * (1/20)
+        
+        # append trial type indicators to phase label
+        selectedLabels = [selectedPhase+trialType for trialType in ('r.','o!','o.')]
+        
+        # select valid trials
+        validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
+        durations = durations[validTrials]
+        
+        # select reward-stay & omission-switch trials (-> SVC data)
+        validSVCTrials = np.logical_and(validTrials, labels.str.contains('r.$|o!$'))
+        X = avgSig[validSVCTrials]
+        Y = labels[validSVCTrials]
+        # select valid omission-stay trials (-> to be predicted)
+        validOStTrials = np.logical_and(validTrials, labels.str.endswith('o.'))
+        Xost = avgSig[validOStTrials]
+        Yost = labels[validOStTrials]
+        
+        return X, Y, Xost, Yost, durations
     
-    # append trial type indicators to phase label
-    selectedLabels = [selectedPhase+trialType for trialType in ('r.','o!','o.')]
-    
-    # select valid trials
-    validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
-    durations = durations[validTrials]
-    
-    # select reward-stay & omission-switch trials (-> SVC data)
-    validSVCTrials = np.logical_and(validTrials, labels.str.contains('r.$|o!$'))
-    X = avgSig[validSVCTrials]
-    Y = labels[validSVCTrials]
-    # select valid omission-stay trials (-> to be predicted)
-    validOStTrials = np.logical_and(validTrials, labels.str.endswith('o.'))
-    Xost = avgSig[validOStTrials]
-    Yost = labels[validOStTrials]
-    
-    return X, Y, Xost, Yost, durations
-
-
-#%%
-def _decodeStaySwitchSession(sess, selectedPhase):
-    def decode(X, Y, Xost, Yost, D):
+    def _decode(X, Y, Xost, Yost, D):
         splitter = sklearn.model_selection.StratifiedKFold(5, shuffle=True)
-        preds = []  # SVC label predictions for reward-stay, omission-switch trials
-        P = []      # probabilities for reward-stay, omission-switch trials
-        Post = []   # probabilities for omission-stay trials
-        C = []      # coefficients
+        preds = []       # SVC label predictions for reward-stay, omission-switch trials
+        dur_preds = []   # SVC predictions based on acction duration not neuronal activity
+        P = []           # probabilities for reward-stay, omission-switch trials
+        Post = []        # probabilities for omission-stay trials
+        C = []           # coefficients
         for i, (train_idx, test_idx) in enumerate(splitter.split(X, Y)):
+            # neuronal activity svm
             trainX, trainY = X.iloc[train_idx,:], Y.iloc[train_idx]
             testX = X.iloc[test_idx,:]
             svm = sklearn.svm.SVC(kernel="linear", probability=True,
@@ -77,7 +77,18 @@ def _decodeStaySwitchSession(sess, selectedPhase):
             Post.append(pd.DataFrame(svm.predict_proba(Xost), index=Xost.index,
                                      columns=[c[-2:] for c in svm.classes_]))
             C.append(pd.Series(svm.coef_[0]))
-        
+            
+            # speed svm
+            XD = D.loc[X.index].copy() # both use actionNo as index -> get wst-lsw trial durations
+            trainD = XD.iloc[train_idx]
+            testD = XD.iloc[test_idx]
+            dur_svm = (sklearn.svm.SVC(kernel='linear', class_weight='balanced')
+                                  .fit(trainD.values.reshape(-1,1), trainY))
+            
+            dur_preds.append(pd.DataFrame(dur_svm.predict(testD.values.reshape(-1,1)),
+                                          index=testD.index,
+                                          columns=['prediction']))
+
         # compute confusion matrix    
         preds = pd.concat(preds).sort_index()
         preds['true'] = Y
@@ -98,6 +109,8 @@ def _decodeStaySwitchSession(sess, selectedPhase):
         P['label'] = pd.concat([Y,Yost])
         P['duration'] = D
         P['prediction'] = preds.prediction # include label predictions for wst-lsw
+        dur_preds = pd.concat(dur_preds).sort_index()
+        P['duration_prediction'] = dur_preds.prediction # label prediction based on speed
         P = P.reset_index()
         P['noNeurons'] = X.shape[1]
         
@@ -124,8 +137,8 @@ def _decodeStaySwitchSession(sess, selectedPhase):
     rX, rY, rXost, rYost, rD = _prepareTrials(deconv, lfa, selectedPhase)
     sX, sY, sXost, sYost, sD  = _prepareTrials(deconv, slfa, selectedPhase)
     
-    rM, rP, rC = decode(rX, rY, rXost, rYost, rD)
-    sM, sP, sC = decode(sX, sY, sXost, sYost, sD)
+    rM, rP, rC = _decode(rX, rY, rXost, rYost, rD)
+    sM, sP, sC = _decode(sX, sY, sXost, sYost, sD)
     
     return (rM, rP, rC), (sM, sP, sC)
 
@@ -138,7 +151,7 @@ def decodeStaySwitch(dataFile, selectedPhase):
     
     for sess in readSessions.findSessions(dataFile, task="2choice"):
         try:
-            (rM, rP, rC), (sM, sP, sC) = _decodeStaySwitchSession(sess, selectedPhase)
+            (rM, rP, rC), (sM, sP, sC) = decodeStaySwitchSession(sess, selectedPhase)
             rMs, sMs = rMs.append(rM, ignore_index=True), sMs.append(sM, ignore_index=True)
             rPs, sPs = rPs.append(rP, ignore_index=True), sPs.append(sP, ignore_index=True)
             rCs, sCs = rCs.append(rC, ignore_index=True), sCs.append(sC, ignore_index=True)
@@ -147,3 +160,4 @@ def decodeStaySwitch(dataFile, selectedPhase):
 
     return (rMs, rPs, rCs), (sMs, sPs, sCs)
 
+        

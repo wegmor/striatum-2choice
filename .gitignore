@@ -1,6 +1,7 @@
 cache/
 svg/
 data/
+scratch/
 *.bak
 __pycache__/
 .ipynb_checkpoints/
