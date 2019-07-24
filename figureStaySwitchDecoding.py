@@ -73,7 +73,6 @@ else:
     C.to_pickle(cacheFolder / 'stsw_c.pkl')
    
     
-#%%
 cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAcrossDays = pd.read_pickle(cachedDataPath)
@@ -159,73 +158,64 @@ legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural 
                   ]
 ax.legend(handles=legend_elements, title='decoder', loc='center')
 ax.axis('off')
-   
- 
+
+
+#%% coefficient corr matrix
+order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+coefficients = (C.query('shuffled == False')
+                 .set_index(["genotype","animal","date","neuron","action"])
+                 .coefficient)
 #%%
-plot_action = 'mC2L'
-acc_df = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
-acc_df = acc_df.query('action == @plot_action & shuffled == False')
+for genotype in ("oprm1", "d1", "a2a"):
+    ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
+    
+    #corr = coefficients.loc[genotype].unstack()[order].corr().values
+    coef_grouped = (coefficients.loc[genotype].unstack()[order]
+                                .groupby(['animal','date']))
+    corr = coef_grouped.corr().unstack()
+    weights = coef_grouped.size()
+    corr = np.average(corr, axis=0, weights=weights).reshape(6,6)
+    
+    corr[np.triu_indices_from(corr)] = np.nan
+    corr = np.ma.masked_where(np.isnan(corr), corr)
 
-acc_groupby = acc_df.groupby(['action','duration','genotype',
-                              'animal','date','noNeurons'])
-n_accuracy = acc_groupby.apply(lambda s: np.mean(s.prediction == s.label))
-d_accuracy = acc_groupby.apply(lambda s: np.mean(s.duration_prediction == s.label))
+#    cm = sns.heatmap(corr, cbar=False, cmap=cmocean.cm.balance, vmin=-1, vmax=1,
+#                     annot=corr, fmt='.2f', annot_kws={'fontsize':5}, ax=ax)
+    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=-1, vmax=1,
+                       edgecolors='none', lw=0)
+    ax.set_xlim((0,5))
+    ax.set_ylim((1,6))
+    ax.axis('off')
 
-accuracy = pd.concat([n_accuracy, d_accuracy], keys=['activity','speed'],
-                     axis=1).reset_index(['noNeurons','duration'])
+      
+    pal = [style.getColor(a) for a in order]
+    n = len(pal)
+    for orient in ('v','h'):
+        ax = layout.axes['{}_{}cbar'.format(genotype, orient)]['axis']
+        ax.pcolormesh(np.arange(n).reshape(1,n) if orient=='h' 
+                          else np.arange(n).reshape(n,1),
+                      cmap=mpl.colors.ListedColormap(list(pal)),
+                      alpha=.8, edgecolors='none', lw=0)
+        if orient=='h':
+            ax.set_xlim((0,5))
+        else:
+            ax.set_ylim((1,6))
+        ax.axis('off')
+
+cax = layout.axes['corr_colorbar']['axis']
+cb = plt.colorbar(cm, cax=cax, orientation='horizontal',
+                  ticks=(-1,1))
+cax.tick_params(axis='x', which='both',length=0)
+cb.outline.set_visible(False)
+
 
 #%%
-ax = layout.axes['acc_v_speed']['axis']
-axbp = layout.axes['acc_v_speed_bp']['axis']
-ax.get_shared_x_axes().join(ax, axbp)
-
-for gt, gdata in accuracy.groupby('genotype'):   
-    means = gdata.groupby('duration')[['activity','speed']].agg(['mean','sem'])
-    
-    ax.fill_between(means.index, means.activity['mean']-means.activity['sem'],
-                                 means.activity['mean']+means.activity['sem'],
-                    lw=0, alpha=.25, color=style.getColor(gt))
-    ax.plot(means.index, means.activity['mean'], 'o-', markersize=3.2,
-            color=style.getColor(gt), zorder=99, alpha=.8,
-            markerfacecolor='w', markeredgewidth=mpl.rcParams['lines.linewidth'])
-    
-    ax.fill_between(means.index, means.speed['mean']-means.speed['sem'],
-                                 means.speed['mean']+means.speed['sem'],
-                    lw=0, alpha=.25, color=style.getColor(gt))
-    ax.plot(means.index, means.speed['mean'], 's-', markersize=2.8,
-            color=sns.desaturate(style.getColor(gt),.5), zorder=99, alpha=.8,
-            markerfacecolor='w', markeredgewidth=mpl.rcParams['lines.linewidth'])
-    
-    ax.axhline(.5, ls=':', alpha=.5, color='k', lw=mpl.rcParams['axes.linewidth'])
-    
-ax.set_ylim((-.05,1.05))
-ax.yaxis.set_minor_locator(MultipleLocator(.25))
-ax.set_yticks((0,.5,1))
-ax.set_yticklabels((0,50,100))
-ax.set_xlim((.27,.53))
-ax.xaxis.set_minor_locator(MultipleLocator(.05))
-ax.set_xticks((.3,.4,.5))
-ax.set_ylabel('decoding\naccuracy (%)')
-ax.set_xlabel('movement duration (s)')
-sns.despine(ax=ax)
-
-frac_wst = (acc_df.groupby(['genotype','animal','date','duration','label'])
-                  .size().unstack('label').fillna(0))
-frac_wst['frac'] = frac_wst[plot_action+'r.'] / \
-                   (frac_wst[plot_action+'r.'] + frac_wst[plot_action+'o!'])
-frac_wst = frac_wst.groupby('duration').frac.agg(['mean','sem'])
-
-ax.errorbar(frac_wst.index, frac_wst['mean'], frac_wst['sem'],
-            color='k', zorder=1000, alpha=.8, ls='--')
-
-sns.boxplot('duration', 'label', data=acc_df,
-            saturation=.85, showcaps=True,  showfliers=False,
-            palette={l:style.getColor(l[-2:]) for l in acc_df.label.unique()},
-            boxprops={'alpha':0.8, 'lw':0, 'zorder':-99}, width=.65, 
-            whiskerprops={'c':'k','zorder':99,'clip_on':False},
-            capprops={'clip_on':False}, medianprops={'c':'k','zorder':99},
-            ax=axbp)
-axbp.axis('off')
+#
+#    axfv = layout.axes['f8_{}'.format(p+1)]['axis']
+#    fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+#                                         linewidth=mpl.rcParams['axes.linewidth'],
+#                                         smoothing=7)
+#    img = fv.draw(trace, ax=axfv)
 
 
 #%%
