@@ -16,7 +16,13 @@ import multiprocessing
 import functools
 import h5py
 import datetime
-from utils import readSessions
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+from utils import readSessions, fancyViz
+import style
+
+style.set_context()
+plt.ioff()
 
 
 #%%
@@ -164,6 +170,7 @@ def decodeStaySwitch(dataFile, selectedPhase):
 
     return (rMs, rPs, rCs), (sMs, sPs, sCs)
 
+
 #%%
 def _testSameAndNextDay(i, realX, realY, shuffledX, shuffledY, nextX, nextY):
     np.random.seed(np.random.randint(1000000)+i)
@@ -240,4 +247,92 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
              "toTask", "label" ,"nNeurons", "nTrialsFrom", "nTrialsTo", "i",
              "sameDayScore",  "nextDayScore", "sameDayShuffled", "nextDayShuffled"]
     return pd.DataFrame(acrossDaysResult, columns=columns)
+      
+
+#%%
+def crossDecodeStaySwitch(dataFile):
+    def _prepareTrials(deconv, lfa, selectedLabels): # TODO: exact copy of above
+        avgSig = deconv.groupby(lfa.actionNo).mean()
+        labels = lfa.groupby("actionNo").label.first()
+        validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
+        X = avgSig[validTrials]
+        Y = labels[validTrials]
+        return X, Y
+    
+    crossDecode_df = pd.DataFrame(columns=['genotype','animal','date','noNeurons',
+                                           'trainAction','testAction','accuracy'])
+    for sess in readSessions.findSessions(dataFile, task='2choice'):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+        if len(deconv) != len(lfa): continue
+        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+                                                  'pC2R','mC2R','mR2C']
+                                     for trial in ['r.','o!']]
+    
+        Xs, Ys = _prepareTrials(deconv, lfa, selectedLabels)
         
+        for trainAction, trainY in Ys.groupby(Ys.str.slice(0,4)):
+            trainX = Xs.loc[trainY.index] # index by actionNo
+            svm = (sklearn.svm.SVC(kernel="linear", class_weight='balanced')
+                              .fit(trainX, trainY))
+            
+            testYs = Ys[Ys.str.slice(0,4) != trainAction]
+            for testAction, testY in testYs.groupby(testYs.str.slice(0,4)):
+                testX = Xs.loc[testY.index]
+                pred = pd.Series(svm.predict(testX), index=testX.index)
+                accuracy = np.mean(pred.str.slice(-2) == testY.str.slice(-2))
+                crossDecode_df = crossDecode_df.append({'genotype': sess.meta.genotype,
+                                                        'animal': sess.meta.animal,
+                                                        'date': sess.meta.date,
+                                                        'noNeurons': deconv.shape[1],
+                                                        'trainAction': trainAction,
+                                                        'testAction': testAction,
+                                                        'accuracy': accuracy},
+                                                       ignore_index=True)
+    return crossDecode_df
+
+
+#%% TODO: omg this is some horrible code :D
+def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
+                                   shuffled=False):
+    C = (C.query('shuffled == @shuffled and genotype == @genotype and action == @action')
+          .set_index(['genotype','animal','date','action','neuron'])
+          .coefficient
+          .sort_index()
+          .copy())
+
+    # can't create a intensity plot without session data
+    s = next(readSessions.findSessions(dataFile, task='2choice'))
+    fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+    fvSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+    
+    for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
+        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
+        if len(deconv) != len(lfa): continue
+        
+        coefs = C.loc[(s.meta.genotype,s.meta.animal,s.meta.date,action)]
+    
+        trans = (deconv * coefs).sum(axis=1) # svm normalizes each session in some way
+#        trans -= trans.mean()
+        trans /= trans.std()
+        #print(trans.max())
+    
+        fvSt.setSession(s)
+        fvSt.setMask(lfa.label.str.endswith('r.'))
+        fvSt.addTraceToBuffer(trans)
+        fvSw.setSession(s)
+        fvSw.setMask(lfa.label.str.endswith('o!'))
+        fvSw.addTraceToBuffer(trans)
+    
+    stax, swax = axes[0], axes[1]
+    
+    fvSt.drawBuffer(ax=stax, cmap='RdYlGn') # drawing flushes buffer
+    img = fvSw.drawBuffer(ax=swax, cmap='RdYlGn')
+    
+    if cax:
+        cb = plt.colorbar(img, cax=cax)
+        cax.tick_params(axis='y', which='both',length=0)
+        cb.outline.set_visible(False) 
