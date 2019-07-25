@@ -259,18 +259,8 @@ def crossDecodeStaySwitch(dataFile):
         Y = labels[validTrials]
         return X, Y
     
-    crossDecode_df = pd.DataFrame(columns=['genotype','animal','date','noNeurons',
-                                           'trainAction','testAction','accuracy'])
-    for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-        if len(deconv) != len(lfa): continue
-        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-                                                  'pC2R','mC2R','mR2C']
-                                     for trial in ['r.','o!']]
-    
-        Xs, Ys = _prepareTrials(deconv, lfa, selectedLabels)
-        
+    def _decodeSession(Xs, Ys):
+        results = pd.DataFrame()
         for trainAction, trainY in Ys.groupby(Ys.str.slice(0,4)):
             trainX = Xs.loc[trainY.index] # index by actionNo
             svm = (sklearn.svm.SVC(kernel="linear", class_weight='balanced')
@@ -281,15 +271,35 @@ def crossDecodeStaySwitch(dataFile):
                 testX = Xs.loc[testY.index]
                 pred = pd.Series(svm.predict(testX), index=testX.index)
                 accuracy = np.mean(pred.str.slice(-2) == testY.str.slice(-2))
-                crossDecode_df = crossDecode_df.append({'genotype': sess.meta.genotype,
-                                                        'animal': sess.meta.animal,
-                                                        'date': sess.meta.date,
-                                                        'noNeurons': deconv.shape[1],
-                                                        'trainAction': trainAction,
-                                                        'testAction': testAction,
-                                                        'accuracy': accuracy},
-                                                       ignore_index=True)
-    return crossDecode_df
+                results = results.append({'genotype': sess.meta.genotype,
+                                          'animal': sess.meta.animal,
+                                          'date': sess.meta.date,
+                                          'noNeurons': deconv.shape[1],
+                                          'trainAction': trainAction,
+                                          'testAction': testAction,
+                                          'accuracy': accuracy},
+                                         ignore_index=True)
+        return results    
+        
+    shuffledCrossDecode = pd.DataFrame()
+    realCrossDecode = pd.DataFrame()
+    for sess in readSessions.findSessions(dataFile, task='2choice'):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+        if len(deconv) != len(lfa): continue
+        slfa =  sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
+        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+                                                  'pC2R','mC2R','mR2C']
+                                     for trial in ['r.','o!']]
+    
+        rXs, rYs = _prepareTrials(deconv, lfa, selectedLabels)
+        sXs, sYs = _prepareTrials(deconv, slfa, selectedLabels)
+        
+        realCrossDecode = realCrossDecode.append(_decodeSession(rXs, rYs),
+                                                 ignore_index=True)
+        shuffledCrossDecode = shuffledCrossDecode.append(_decodeSession(sXs, sYs),
+                                                         ignore_index=True)
+    return realCrossDecode, shuffledCrossDecode
 
 
 #%% TODO: omg this is some horrible code :D
