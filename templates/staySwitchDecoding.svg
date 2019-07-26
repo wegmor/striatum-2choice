@@ -12,7 +12,7 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    height="11in"
    id="svg2141"
-   inkscape:version="0.92.4 (unknown)"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
    sodipodi:docname="staySwitchDecoding.svg"
    version="1.1"
    viewBox="0 0 215.9 279.4"
@@ -1227,8 +1227,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer1"
-     inkscape:cx="392.70281"
-     inkscape:cy="926.21006"
+     inkscape:cx="237.30361"
+     inkscape:cy="472.45429"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -1242,12 +1242,12 @@
      inkscape:snap-object-midpoints="true"
      inkscape:snap-page="true"
      inkscape:snap-text-baseline="true"
-     inkscape:window-height="1016"
+     inkscape:window-height="2035"
      inkscape:window-maximized="1"
-     inkscape:window-width="1920"
-     inkscape:window-x="0"
-     inkscape:window-y="27"
-     inkscape:zoom="5.6"
+     inkscape:window-width="3240"
+     inkscape:window-x="-13"
+     inkscape:window-y="-13"
+     inkscape:zoom="2.8"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -1762,6 +1762,126 @@
        width="5.5547099"
        x="114.23129"
        y="40.500778" />
+    <rect
+       y="175.05609"
+       x="29.483982"
+       height="19.99999"
+       width="15"
+       id="rect4924"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2L_1" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect4926"
+       width="15"
+       height="19.99999"
+       x="49.483978"
+       y="175.05609">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2L_2" />
+    </rect>
+    <rect
+       y="175.05611"
+       x="69.483978"
+       height="19.99999"
+       width="15"
+       id="rect4928"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2L_3" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect6108"
+       width="15"
+       height="19.99999"
+       x="98.573158"
+       y="175.05609">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2R_1" />
+    </rect>
+    <rect
+       y="175.05609"
+       x="118.57315"
+       height="19.99999"
+       width="15"
+       id="rect6110"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2R_2" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect6112"
+       width="15"
+       height="19.99999"
+       x="138.57315"
+       y="175.05611">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mC2R_3" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect6114"
+       width="15"
+       height="19.99999"
+       x="29.483982"
+       y="205.79208">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mL2C_1" />
+    </rect>
+    <rect
+       y="205.79208"
+       x="49.483978"
+       height="19.99999"
+       width="15"
+       id="rect6116"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mL2C_2" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect6118"
+       width="15"
+       height="19.99999"
+       x="69.483978"
+       y="205.7921">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mL2C_3" />
+    </rect>
+    <rect
+       y="205.79208"
+       x="98.573158"
+       height="19.99999"
+       width="15"
+       id="rect6120"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mR2C_1" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       id="rect6122"
+       width="15"
+       height="19.99999"
+       x="118.57315"
+       y="205.79208">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mR2C_2" />
+    </rect>
+    <rect
+       y="205.7921"
+       x="138.57315"
+       height="19.99999"
+       width="15"
+       id="rect6124"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_mR2C_3" />
+    </rect>
   </g>
   <g
      id="layer2"
@@ -2261,5 +2381,43 @@
        sodipodi:nodetypes="cc"
        style="display:inline;fill:none;fill-opacity:0;stroke:#000000;stroke-width:0.34999999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Mstart-0-4-9);marker-end:url(#marker3843-2-9-6)"
        transform="matrix(0,-0.35277777,0.35277777,0,83.221709,184.71387)" />
+    <text
+       id="text5513-3"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="36.615677"
+       xml:space="preserve"
+       y="156.39777"><tspan
+         sodipodi:role="line"
+         id="tspan6147"
+         x="36.615677"
+         y="156.39777">Center-to-left</tspan></text>
+    <text
+       y="187.37289"
+       xml:space="preserve"
+       x="36.615677"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       id="text6151"><tspan
+         sodipodi:role="line"
+         id="tspan6153"
+         x="36.615677"
+         y="187.37289">Left-to-center</tspan></text>
+    <text
+       y="156.39777"
+       xml:space="preserve"
+       x="105.93658"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       id="text6157"><tspan
+         y="156.39777"
+         x="105.93658"
+         id="tspan6155"
+         sodipodi:role="line">Center-to-right</tspan></text>
+    <text
+       id="text6161"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944444px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round;"
+       x="105.93658"
+       xml:space="preserve"
+       y="187.37289"><tspan
+         sodipodi:role="line"
+         id="tspan6163">Right-to-center</tspan></text>
   </g>
 </svg>

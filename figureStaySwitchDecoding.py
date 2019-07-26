@@ -70,9 +70,8 @@ else:
     
     M.to_pickle(cacheFolder / 'stsw_m.pkl')
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
-    C.to_pickle(cacheFolder / 'stsw_c.pkl')
-   
-    
+    C.to_pickle(cacheFolder / 'stsw_c.pkl')   
+
 cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAcrossDays = pd.read_pickle(cachedDataPath)
@@ -80,6 +79,61 @@ else:
     decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
     decodingAcrossDays.to_pickle(cachedDataPath)
 
+def bootstrapSEM(values, weights, iterations=1000):
+    avgs = []
+    for _ in range(iterations):
+        idx = np.random.choice(len(values), len(values), replace=True)
+        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
+    return np.std(avgs)
+    
+#accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
+fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
+toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
+td = (toDate - fromDate).dt.days
+decodingAcrossDays["dayDifference"] = td
+
+for label in ("mC2L", "mC2R", "mL2C", "mR2C"):
+    selection = decodingAcrossDays[decodingAcrossDays.label == label]
+    for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
+        g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
+
+        perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
+        perAnimal["genotype"] = g.genotype.first()
+
+
+        scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * perAnimal.nNeurons[:,np.newaxis]
+        perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
+        perGenotype /= perAnimal.groupby("genotype").nNeurons.sum()[:, np.newaxis]
+
+        shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * perAnimal.nNeurons[:,np.newaxis]
+        shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
+
+        plt.sca(layout.axes["decodingAccrossDays_{}_{}".format(label, i+1)]["axis"])
+
+        for r in perAnimal.itertuples():
+            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
+                     c=style.getColor(r.genotype), alpha=0.2)
+        for r in perGenotype.itertuples():
+            gt = r.Index
+            animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
+            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+            nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
+            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                         lw=style.lw(), c=style.getColor(gt))
+
+        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+                 lw=style.lw(), c=style.getColor("shuffled"))
+
+        plt.ylim(0.45,1)
+        plt.xlim(-0.25, 1.25)
+        xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
+        plt.xticks((0,1), ("Same\nday", xlab[i]))
+        if i==0:
+            plt.yticks(np.linspace(0.5,1,6), np.linspace(50,100,6,dtype=np.int64))
+            plt.ylabel("Decoding accuracy (%)")
+        else:
+            plt.yticks(np.linspace(0.5,1,6), [""]*5)
+        sns.despine(ax=plt.gca())
 
 #%%
 acc = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
