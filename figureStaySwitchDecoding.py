@@ -81,6 +81,14 @@ else:
     decodingAcrossDays.to_pickle(cachedDataPath)
 
 
+cachedDataPath = cacheFolder / "actionValues.pkl"
+if cachedDataPath.is_file():
+    actionValues = pd.read_pickle(cachedDataPath)
+else:
+    actionValues = analysisStaySwitchDecoding.getActionValues(endoDataPath)
+    actionValues.to_pickle(cachedDataPath)
+
+
 #%%
 acc = P.loc[P.label.str.contains('r.$|o!$')].copy() # only use win-stay, lose-switch trials
 acc_groupby = acc.groupby(['genotype','animal','date','noNeurons','action', 'shuffled'])
@@ -210,15 +218,90 @@ cb.outline.set_visible(False)
 
 
 #%%
-#
-#    axfv = layout.axes['f8_{}'.format(p+1)]['axis']
-#    fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
-#                                         linewidth=mpl.rcParams['axes.linewidth'],
-#                                         smoothing=7)
-#    img = fv.draw(trace, ax=axfv)
+prob_value_df = (P.set_index(['shuffled','genotype','animal','date','label','actionNo'])
+                  .loc[False, ['action','o!','r.','noNeurons']])
+prob_value_df['value'] = (actionValues.set_index(['genotype','animal','date','label','actionNo'])
+                                      .value)
+prob_value_df = prob_value_df.reset_index()
+
+    
+#%%
+data = prob_value_df.query('label in ["pC2Lo.","pC2Ro."]').copy()
+
+for (gt,label), gdata in data.groupby(['genotype','label']):
+    ax = layout.axes['{}_value_ost'.format(gt)]['axis']
+    
+    gdata = gdata.copy()
+    gdata['bin'] = pd.qcut(gdata.value, 7).cat.codes
+    gdata = gdata.groupby(['animal','date','bin'])[['noNeurons','value','o!']].mean()
+    
+    ax.scatter(gdata['value'], gdata['o!'],
+               s=gdata.noNeurons/35, edgecolor=style.getColor('m'+label[1:4]),
+               facecolor='none', alpha=.2, zorder=0, clip_on=False,
+               lw=mpl.rcParams['axes.linewidth'])
+    
+    stsw_wAvg = (gdata.groupby('bin')
+                      .apply(analysisStaySwitchDecoding.wAvg,'o!','noNeurons'))
+    stsw_wSem = (gdata.groupby('bin')
+                      .apply(analysisStaySwitchDecoding.bootstrap,'o!','noNeurons'))
+    value_wAvg = (gdata.groupby('bin')
+                       .apply(analysisStaySwitchDecoding.wAvg,'value','noNeurons'))
+    value_wSem = (gdata.groupby('bin')
+                       .apply(analysisStaySwitchDecoding.bootstrap,'value','noNeurons'))
+    
+    ax.errorbar(value_wAvg, stsw_wAvg, xerr=value_wSem, yerr=stsw_wSem,
+                color=style.getColor('m'+label[1:4]))
+    
+    ax.axhline(.5, ls=':', c='k', alpha=.5, zorder=-1)
+    ax.set_ylim((0,1))
+    ax.set_xlim((-3.5,3.5))
+    ax.invert_xaxis()
+    if gt == 'a2a':
+        ax.set_xlabel('action value')
+    ax.set_yticks((0,.5,1))
+    if gt == 'd1':
+        ax.set_yticklabels((0,50,100))
+        ax.set_ylabel('P(switch)')
+    else:
+        ax.set_yticklabels(())
+    ax.yaxis.set_minor_locator(MultipleLocator(.25))
+    sns.despine(ax=ax)
+    ax.set_title(gt)
 
 
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 
+#%%###############################################################################
+#fig, axs = plt.subplots(2,1)
+#analysisStaySwitchDecoding.drawCoefficientWeightedAverage(endoDataPath, C, 'oprm1', 'pC2L',
+#                                                          axs)
+#plt.show()
+#
+##%%
+#real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)
+##%%
+#cross_df = shuffle.copy()
+##%%
+#cross_df = cross_df.set_index(['genotype','animal','date','trainAction','testAction'])
+#cross_df = (cross_df.groupby(['genotype','trainAction','testAction'])
+#                    .apply(analysisStaySwitchDecoding.wAvg, 'accuracy','noNeurons'))
+##%%
+#order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+#for gt, df in cross_df.groupby('genotype'):
+#    df = df.unstack().loc[gt].reindex(order)[order]
+#
+#    plt.figure(figsize=(2.25,2))
+##    plt.pcolormesh(df, vmin=0, vmax=1, cmap=cmocean.cm.balance,
+##                   edgecolors='none')
+#    sns.heatmap(df, vmin=0, vmax=1, cmap=cmocean.cm.balance, square=True, 
+#                cbar=True, annot=df, fmt='.02f')
+#    plt.xlim((0,6))
+#    plt.ylim((0,6))
+#    plt.yticks(np.arange(.5, 5.6), order)
+#    plt.xticks(np.arange(.5, 5.6), order)
+#    #plt.colorbar()
+#    #plt.gca().set_aspect('equal')
+#    plt.suptitle(gt, y=.95)
+#    plt.show()

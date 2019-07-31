@@ -1227,8 +1227,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer1"
-     inkscape:cx="392.70281"
-     inkscape:cy="926.21006"
+     inkscape:cx="223.51736"
+     inkscape:cy="759.15971"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -1247,7 +1247,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="0"
      inkscape:window-y="27"
-     inkscape:zoom="5.6"
+     inkscape:zoom="1.979899"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -1762,6 +1762,36 @@
        width="5.5547099"
        x="114.23129"
        y="40.500778" />
+    <rect
+       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1443"
+       width="19.452509"
+       height="28.063301"
+       x="25.79151"
+       y="88.262497">
+      <figurefirst:axis
+         figurefirst:name="d1_value_ost" />
+    </rect>
+    <rect
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1443-0"
+       width="19.452511"
+       height="28.063301"
+       x="46.718315"
+       y="88.262497">
+      <figurefirst:axis
+         figurefirst:name="a2a_value_ost" />
+    </rect>
+    <rect
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect1443-8"
+       width="19.452511"
+       height="28.063301"
+       x="67.645126"
+       y="88.262497">
+      <figurefirst:axis
+         figurefirst:name="oprm1_value_ost" />
+    </rect>
   </g>
   <g
      id="layer2"

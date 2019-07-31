@@ -19,6 +19,7 @@ import datetime
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from utils import readSessions, fancyViz
+import statsmodels.api as sm
 import style
 
 style.set_context()
@@ -300,6 +301,110 @@ def crossDecodeStaySwitch(dataFile):
         shuffledCrossDecode = shuffledCrossDecode.append(_decodeSession(sXs, sYs),
                                                          ignore_index=True)
     return realCrossDecode, shuffledCrossDecode
+
+
+#%%
+def getRegressionVars(sensorValues, trials_back=7):
+    sv = sensorValues.copy()
+    
+    # left exit -> beamL decrements from 1 to 0, etc.
+    sv['leftEx'] = sv.beamL.diff() == -1
+    sv['rightEx'] = sv.beamR.diff() == -1
+    sv['leftIn'] = sv.beamL.diff() == 1
+    sv['rightIn'] = sv.beamR.diff() == 1
+    
+    # no of choice port exits
+    sv['sideExNo'] = np.cumsum(sv.leftEx | sv.rightEx)
+    
+    # reduce df to choice port exits
+    df = sv.loc[sv.leftEx | sv.rightEx,
+                ['leftEx','rightEx','sideExNo','rewardNo']].copy()
+    
+    # define reward -- it is delivered when the beam is still broken,
+    # after 350 ms delay, before port exit
+    df['reward'] = (df.rewardNo.diff() >= 1).astype('bool')
+    
+    # convert to int
+    df = df.dropna()
+    df['leftEx'] = df.leftEx.astype('int')
+    df['rightEx'] = df.rightEx.astype('int')
+    
+    # get Y & N (Y=1 if left and rewarded, -1 if right and rewarded)
+    df['Y0'] = df.reward * (df.leftEx - df.rightEx)
+    df['N0'] = ~df.reward * (df.leftEx - df.rightEx) # ~ requires bool!
+
+
+    df['intercept'] = 1.0
+    reg_vars = ['intercept']
+    # get shifts
+    for j in range(1,trials_back+1):
+        df['Y{}'.format(j)] = df.Y0.shift(j)
+        df['N{}'.format(j)] = df.N0.shift(j)
+        reg_vars += ['Y{}'.format(j), 'N{}'.format(j)]
+    
+    # Y1 should be outcome of last trial, i.e. before leaving side-port last;
+    # without v, Y0 is that outcome
+    df['sideExNo'] -= 1
+    sv = sv.merge(df[['sideExNo', *reg_vars]], how='left', on='sideExNo')
+    return sv[['leftIn','rightIn',*reg_vars]].copy(), reg_vars
+    
+
+def getAVCoefficients(dataFile):
+    regression_df = pd.DataFrame()
+    for sess in readSessions.findSessions(dataFile, task='2choice',
+                                          onlyRecordedTrials=False):
+        sv = sess.readSensorValues(onlyRecording=False) 
+        df, reg_vars = getRegressionVars(sv)
+        df = df.loc[df.leftIn | df.rightIn].copy()
+        df['genotype'] = sess.meta.genotype
+        df['animal'] = sess.meta.animal
+        regression_df = regression_df.append(df.dropna())
+    
+    coefficients =  pd.DataFrame() # stores coefficient for each animal
+    regression_df = regression_df.set_index(['genotype','animal']).sort_index()
+    # loop through animals and run regressions
+    for (genotype, animal), df in regression_df.groupby(['genotype','animal']):
+        df = df.copy()
+        df['intercept'] = 1.0         
+        logit = sm.Logit(df.leftIn, df[reg_vars])
+        result = logit.fit(use_t=True, disp=False)
+        
+        coef = result.params
+        coef['genotype'] = genotype
+        coef['animal'] = animal
+        coefficients = coefficients.append(coef, ignore_index=True)
+        regression_df.loc[(genotype,animal), 'prediction'] = result.predict(df[reg_vars])
+        
+    coefficients = coefficients.set_index(['genotype','animal']).sort_index()
+    regression_df['value'] = ((regression_df[reg_vars] * coefficients)
+                                  .sum(axis=1, skipna=False).values)
+    regression_df = regression_df[['leftIn','rightIn','prediction','value']]
+
+    return coefficients, regression_df
+
+
+def getActionValues(dataFile):
+    coefficients, _ = getAVCoefficients(dataFile)
+    
+    actionValues = pd.DataFrame()   
+    for sess in readSessions.findSessions(dataFile, task='2choice'):
+        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+        sv = sess.readSensorValues()
+        dummy_df, reg_vars = getRegressionVars(sv)
+        lfa['value'] = (dummy_df[reg_vars] * \
+                        coefficients.loc[sess.meta.genotype, sess.meta.animal]
+                       ).sum(axis=1, skipna=False)
+        lfa = lfa.groupby('actionNo').first().reset_index()
+        
+        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal),
+                    ('genotype',sess.meta.genotype)]:
+            lfa.insert(0,k,v)
+        
+        
+        actionValues = actionValues.append(lfa[['genotype','animal','date',
+                                                'actionNo','label','value']],
+                                           ignore_index=True)
+    return actionValues
 
 
 #%% TODO: omg this is some horrible code :D
