@@ -12,7 +12,7 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    height="11in"
    id="svg2141"
-   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   inkscape:version="0.92.4 (unknown)"
    sodipodi:docname="staySwitchDecoding.svg"
    version="1.1"
    viewBox="0 0 215.9 279.4"
@@ -1219,6 +1219,30 @@
        only_selected="false"
        steps="2"
        weight="33.333333" />
+    <defs
+       id="defs4308">
+      <path
+         d="m 67.521582,-585.94136 v 2.28006 l 1.171837,-0.53405 1.171838,-2.96152 1.171838,-0.82221 1.171838,1.74087 1.171838,-2.76135 1.171838,-0.18969 1.171838,2.31616 1.171837,1.34448 1.171838,1.14715 1.171838,0.36157 1.171838,-0.0915 1.171838,0.0498 1.171838,0.47693 1.171837,-0.0235 1.171838,-0.0185 1.171838,0.16358 4.687351,0.033 1.171838,-0.17832 1.171838,0.19788 1.171838,-0.36649 1.171838,0.076 1.171838,-0.4529 1.171838,-0.60734 1.171837,-1.08117 1.171837,0.34626 1.17184,-1.01874 1.17184,-3.80398 1.17184,1.56866 1.17183,1.59167 1.17184,2.49846 1.17184,1.0295 1.17184,0.0374 1.17183,0.13186 1.17184,0.17879 v 0 0 l -1.17184,-0.46645 -1.17183,-0.45227 -1.17184,0.0402 -1.17184,-1.25177 -1.17184,-3.74683 -1.17183,-2.23014 -1.17184,-0.39753 -1.17184,3.43684 -1.17184,1.90426 -1.171837,-0.66131 -1.171837,1.34843 -1.171838,1.16356 -1.171838,0.64175 -1.171838,-0.43827 -1.171838,0.86289 -1.171838,-0.4233 -1.171838,0.44034 -4.687351,-0.1952 -1.171838,-0.12913 -1.171838,-0.37166 -1.171837,0.40309 -1.171838,-0.87562 -1.171838,0.0476 -1.171838,0.18954 -1.171838,-0.46223 -1.171838,-1.65033 -1.171837,-1.57431 -1.171838,-3.78323 -1.171838,-1.10722 -1.171838,4.13858 -1.171838,-2.48513 -1.171838,2.12488 -1.171838,3.84628 z"
+         id="m5d9fc4e557"
+         inkscape:connector-curvature="0"
+         style="stroke-linecap:butt;stroke-linejoin:round" />
+    </defs>
+    <defs
+       id="defs4300">
+      <path
+         d="m 72.208933,-585.12364 v 1.73087 l 1.171838,-0.38385 1.171838,-0.0772 1.171838,-3.38223 1.171837,-0.74994 1.171838,-5.56474 1.171838,-4.63916 1.171838,5.42867 1.171838,-0.27242 1.171838,3.33367 1.171837,1.53422 1.171838,0.71749 1.171838,1.49829 1.171838,0.59971 1.171838,-1.59748 1.171838,0.60449 1.171837,0.59533 1.171838,-2.22992 1.171838,-1.4297 1.171838,0.16281 1.171838,-3.49907 1.171838,-3.51394 1.171838,1.73549 1.171837,-1.7416 1.171837,5.44187 1.17184,5.74563 1.17184,0.35071 1.17184,1.15998 1.17183,0.34268 1.17184,-0.0598 v 0 0 l -1.17184,-0.27179 -1.17183,-3.09625 -1.17184,0.59284 -1.17184,-0.0586 -1.17184,-9.29479 -1.171837,-13.25804 -1.171837,11.02858 -1.171838,-1.03622 -1.171838,1.29322 -1.171838,5.26685 -1.171838,-0.79829 -1.171838,2.88085 -1.171838,1.58545 -1.171837,1.03512 -1.171838,-1.30603 -1.171838,2.28461 -1.171838,-0.35655 -1.171838,-1.73701 -1.171838,-1.64453 -1.171837,-1.35407 -1.171838,-4.95874 -1.171838,0.72183 -1.171838,-11.91756 -1.171838,9.46594 -1.171838,6.74535 -1.171837,2.24359 -1.171838,4.15225 -1.171838,-0.23176 z"
+         id="m4cffb99966"
+         inkscape:connector-curvature="0"
+         style="stroke-linecap:butt;stroke-linejoin:round" />
+    </defs>
+    <defs
+       id="defs4292">
+      <path
+         d="m 73.380771,-583.28231 v 0 l 1.171838,-0.0332 1.171838,-0.17939 1.171837,0.14647 1.171838,-0.21601 1.171838,-1.02223 1.171838,-0.74732 1.171838,-0.96245 1.171838,-0.32288 1.171837,0.52305 1.171838,-1.80369 1.171838,0.88589 1.171838,-0.66679 1.171838,-2.19616 1.171838,2.50402 1.171837,-0.0232 1.171838,0.32223 1.171838,0.82761 1.171838,0.14895 1.171838,-0.37951 1.171838,0.84262 1.171838,0.80212 1.171837,0.0242 1.171837,0.95318 1.17184,0.47255 1.17184,0.10221 v -0.36407 0 l -1.17184,0.19832 -1.17184,-1.00204 -1.171837,-2.41024 -1.171837,1.43974 -1.171838,-1.05786 -1.171838,-1.50343 -1.171838,0.0286 -1.171838,0.46569 -1.171838,-1.14752 -1.171838,-0.93854 -1.171837,-0.28945 -1.171838,-2.22024 -1.171838,2.41372 -1.171838,1.02677 -1.171838,-0.55364 -1.171838,1.81396 -1.171837,-0.4554 -1.171838,0.26335 -1.171838,1.09525 -1.171838,-0.10607 -1.171838,2.63697 -1.171838,0.22494 -1.171837,-0.40952 -1.171838,0.81531 z"
+         id="m95571bda7d"
+         inkscape:connector-curvature="0"
+         style="stroke-linecap:butt;stroke-linejoin:round" />
+    </defs>
   </defs>
   <sodipodi:namedview
      bordercolor="#666666"
@@ -1227,8 +1251,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer1"
-     inkscape:cx="223.51736"
-     inkscape:cy="759.15971"
+     inkscape:cx="287.55503"
+     inkscape:cy="736.30979"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -1242,7 +1266,7 @@
      inkscape:snap-object-midpoints="true"
      inkscape:snap-page="true"
      inkscape:snap-text-baseline="true"
-     inkscape:window-height="2035"
+     inkscape:window-height="1016"
      inkscape:window-maximized="1"
      inkscape:window-width="1920"
      inkscape:window-x="0"
@@ -1251,7 +1275,23 @@
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
-     units="in" />
+     units="in">
+    <sodipodi:guide
+       position="121.60411,212.19248"
+       orientation="0,1"
+       id="guide1527"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="121.60411,176.47089"
+       orientation="0,1"
+       id="guide1529"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="130.94875,186.14331"
+       orientation="1,0"
+       id="guide1531"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
   <metadata
      id="metadata2138">
     <rdf:RDF>
@@ -1270,6 +1310,27 @@
      inkscape:label="Layer 1"
      style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
      transform="translate(0,-17.6)">
+    <rect
+       style="display:inline;opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.24783742;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect10446-7"
+       width="21.280308"
+       height="21.49754"
+       x="19.050016"
+       y="84.04409" />
+    <rect
+       style="display:inline;opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.65826565;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect10446-9"
+       width="74.130302"
+       height="43.535095"
+       x="48.595169"
+       y="82.541809" />
+    <rect
+       style="display:inline;opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.23195626;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect10446"
+       width="22.312237"
+       height="17.95982"
+       x="19.050016"
+       y="108.11708" />
     <g
        id="g29731"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round;filter:url(#filter3286)"
@@ -1763,155 +1824,400 @@
        x="114.23129"
        y="40.500778" />
     <rect
-       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       height="22.698521"
        id="rect1443"
-       width="19.452509"
-       height="28.063301"
-       x="25.79151"
-       y="88.262497">
+       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.10492595;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.058876"
+       x="58.855839"
+       y="97.830589">
       <figurefirst:axis
          figurefirst:name="d1_value_ost" />
     </rect>
     <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="rect1443-0"
-       width="19.452511"
-       height="28.063301"
-       x="46.718315"
-       y="88.262497">
-      <figurefirst:axis
-         figurefirst:name="a2a_value_ost" />
-    </rect>
-    <rect
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12108655;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       id="rect1443-8"
-       width="19.452511"
-       height="28.063301"
-       x="67.645126"
-       y="88.262497">
-      <figurefirst:axis
-         figurefirst:name="oprm1_value_ost" />
-    </rect>
-    <rect
-       y="175.05609"
-       x="29.483982"
        height="19.99999"
-       width="15"
        id="rect4924"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="29.483982"
+       y="175.05609">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2L_1" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect4926"
-       width="15"
        height="19.99999"
+       id="rect4926"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="49.483978"
        y="175.05609">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2L_2" />
     </rect>
     <rect
-       y="175.05611"
-       x="69.483978"
        height="19.99999"
-       width="15"
        id="rect4928"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="69.483978"
+       y="175.05611">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2L_3" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect6108"
-       width="15"
        height="19.99999"
+       id="rect6108"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="98.573158"
        y="175.05609">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2R_1" />
     </rect>
     <rect
-       y="175.05609"
-       x="118.57315"
        height="19.99999"
-       width="15"
        id="rect6110"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="118.57315"
+       y="175.05609">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2R_2" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect6112"
-       width="15"
        height="19.99999"
+       id="rect6112"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="138.57315"
        y="175.05611">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mC2R_3" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect6114"
-       width="15"
        height="19.99999"
+       id="rect6114"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="29.483982"
        y="205.79208">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mL2C_1" />
     </rect>
     <rect
-       y="205.79208"
-       x="49.483978"
        height="19.99999"
-       width="15"
        id="rect6116"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="49.483978"
+       y="205.79208">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mL2C_2" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect6118"
-       width="15"
        height="19.99999"
+       id="rect6118"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="69.483978"
        y="205.7921">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mL2C_3" />
     </rect>
     <rect
-       y="205.79208"
-       x="98.573158"
        height="19.99999"
-       width="15"
        id="rect6120"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="98.573158"
+       y="205.79208">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mR2C_1" />
     </rect>
     <rect
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       id="rect6122"
-       width="15"
        height="19.99999"
+       id="rect6122"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
        x="118.57315"
        y="205.79208">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mR2C_2" />
     </rect>
     <rect
-       y="205.7921"
-       x="138.57315"
        height="19.99999"
-       width="15"
        id="rect6124"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534">
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
+       width="15"
+       x="138.57315"
+       y="205.7921">
       <figurefirst:axis
          figurefirst:name="decodingAccrossDays_mR2C_3" />
     </rect>
+    <rect
+       height="19.99999"
+       id="rect4924-9"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="26.961901"
+       y="236.84505">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2L_1" />
+    </rect>
+    <rect
+       height="19.99999"
+       id="rect4926-1"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="46.961895"
+       y="236.84505">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2L_2" />
+    </rect>
+    <rect
+       height="19.99999"
+       id="rect4928-2"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="66.961899"
+       y="236.84506">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2L_3" />
+    </rect>
+    <rect
+       height="19.99999"
+       id="rect6108-7"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="96.051079"
+       y="236.84505">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2R_1" />
+    </rect>
+    <rect
+       height="19.99999"
+       id="rect6110-0"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="116.05106"
+       y="236.84505">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2R_2" />
+    </rect>
+    <rect
+       height="19.99999"
+       id="rect6112-9"
+       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
+       width="15"
+       x="136.05106"
+       y="236.84506">
+      <figurefirst:axis
+         figurefirst:name="decodingAccrossDays_pC2R_3" />
+    </rect>
+    <text
+       id="text5513-3-3"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="34.093597"
+       xml:space="preserve"
+       y="235.78673"><tspan
+         id="tspan6147-6"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332"
+         x="34.093597"
+         y="235.78673">Center-to-left</tspan></text>
+    <text
+       id="text6157-0"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="103.41449"
+       xml:space="preserve"
+       y="235.78673"><tspan
+         id="tspan6155-6"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332"
+         x="103.41449"
+         y="235.78673">Center-to-right</tspan></text>
+    <rect
+       height="2.7110846"
+       id="rect1466-8"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.1426789;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       transform="scale(1,-1)"
+       width="62.748226"
+       x="58.855839"
+       y="-96.058701">
+      <figurefirst:axis
+         figurefirst:name="value_ost_legend" />
+    </rect>
+    <rect
+       height="6.7681975"
+       id="rect2089"
+       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.1031882;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.058872"
+       x="58.855843"
+       y="84.807518">
+      <figurefirst:axis
+         figurefirst:name="d1_value_kde" />
+    </rect>
+    <rect
+       height="22.698521"
+       id="rect1443-0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.10492595;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.05888"
+       x="81.200508"
+       y="97.830589">
+      <figurefirst:axis
+         figurefirst:name="a2a_value_ost" />
+    </rect>
+    <rect
+       height="6.7681975"
+       id="rect2089-2"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.1031882;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.058876"
+       x="81.200508"
+       y="84.807518">
+      <figurefirst:axis
+         figurefirst:name="a2a_value_kde" />
+    </rect>
+    <rect
+       height="22.698521"
+       id="rect1443-8"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.10492595;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.05888"
+       x="103.54523"
+       y="97.830589">
+      <figurefirst:axis
+         figurefirst:name="oprm1_value_ost" />
+    </rect>
+    <rect
+       height="6.7681975"
+       id="rect2089-20"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.10318823;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="18.05888"
+       x="103.54523"
+       y="84.807518">
+      <figurefirst:axis
+         figurefirst:name="oprm1_value_kde" />
+    </rect>
+    <rect
+       height="11.489082"
+       id="rect1443-1"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.06501112;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="13.696594"
+       x="26.63373"
+       y="109.09165">
+      <figurefirst:axis
+         figurefirst:name="log_reg_reg" />
+    </rect>
+    <rect
+       height="15.266882"
+       id="rect1520"
+       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.12484855;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="13.607143"
+       x="26.723175"
+       y="84.807518">
+      <figurefirst:axis
+         figurefirst:name="log_reg_coef" />
+    </rect>
+    <g
+       id="g1536"
+       transform="matrix(1,0,0,0.89823106,10.054171,8.6307527)">
+      <rect
+         y="84.807518"
+         x="130.94875"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="d1_r._corr" />
+      </rect>
+      <rect
+         y="84.807518"
+         x="137.14465"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-9"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="d1_o._corr" />
+      </rect>
+      <rect
+         y="84.807518"
+         x="143.34056"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-54"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="d1_o!_corr" />
+      </rect>
+    </g>
+    <g
+       id="g1541"
+       transform="matrix(1,0,0,0.89823106,10.054171,8.3983544)">
+      <rect
+         y="100.00546"
+         x="130.94875"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-5"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="a2a_r._corr" />
+      </rect>
+      <rect
+         y="100.00546"
+         x="137.14465"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-5-3"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="a2a_o._corr" />
+      </rect>
+      <rect
+         y="100.00546"
+         x="143.34056"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-5-7"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="a2a_o!_corr" />
+      </rect>
+    </g>
+    <g
+       id="g1546"
+       transform="matrix(1,0,0,0.89823106,10.054171,12.070313)">
+      <rect
+         y="110.85669"
+         x="130.94875"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-4"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="oprm1_r._corr" />
+      </rect>
+      <rect
+         y="110.85669"
+         x="137.14465"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-4-6"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="oprm1_o._corr" />
+      </rect>
+      <rect
+         y="110.85669"
+         x="143.34056"
+         height="9.8904028"
+         width="6.1959109"
+         id="rect1491-4-4"
+         style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.04836384;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="oprm1_o!_corr" />
+      </rect>
+    </g>
   </g>
   <g
      id="layer2"
@@ -2417,37 +2723,37 @@
        x="36.615677"
        xml:space="preserve"
        y="156.39777"><tspan
-         sodipodi:role="line"
          id="tspan6147"
+         sodipodi:role="line"
          x="36.615677"
          y="156.39777">Center-to-left</tspan></text>
     <text
-       y="187.37289"
-       xml:space="preserve"
-       x="36.615677"
+       id="text6151"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       id="text6151"><tspan
-         sodipodi:role="line"
+       x="36.615677"
+       xml:space="preserve"
+       y="187.37289"><tspan
          id="tspan6153"
+         sodipodi:role="line"
          x="36.615677"
          y="187.37289">Left-to-center</tspan></text>
     <text
-       y="156.39777"
-       xml:space="preserve"
-       x="105.93658"
+       id="text6157"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       id="text6157"><tspan
-         y="156.39777"
-         x="105.93658"
+       x="105.93658"
+       xml:space="preserve"
+       y="156.39777"><tspan
          id="tspan6155"
-         sodipodi:role="line">Center-to-right</tspan></text>
+         sodipodi:role="line"
+         x="105.93658"
+         y="156.39777">Center-to-right</tspan></text>
     <text
        id="text6161"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944444px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round;"
        x="105.93658"
        xml:space="preserve"
        y="187.37289"><tspan
-         sodipodi:role="line"
-         id="tspan6163">Right-to-center</tspan></text>
+         id="tspan6163"
+         sodipodi:role="line">Right-to-center</tspan></text>
   </g>
 </svg>

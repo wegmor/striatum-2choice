@@ -41,7 +41,7 @@ def bootstrap(group, var, weights, iterations=1000):
 def jitter(x, std):
     return(x+np.random.normal(0,std,size=len(x)))
     
-    
+
 #%%
 def decodeStaySwitchSession(sess, selectedPhase):
     def _prepareTrials(deconv, lfa, selectedPhase):
@@ -57,7 +57,7 @@ def decodeStaySwitchSession(sess, selectedPhase):
         durations = durations[validTrials]
         
         # select reward-stay & omission-switch trials (-> SVC data)
-        validSVCTrials = np.logical_and(validTrials, labels.str.contains('r.$|o!$'))
+        validSVCTrials = np.logical_and(validTrials, labels.str.contains('r\.$|o!$'))
         X = avgSig[validSVCTrials]
         Y = labels[validSVCTrials]
         # select valid omission-stay trials (-> to be predicted)
@@ -217,7 +217,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
 
-                    for baseLabel in ("mC2L", "mC2R", "mL2C", "mR2C"):
+                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C"):
                         selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
                         fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
                         shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa, selectedLabels)
@@ -324,6 +324,9 @@ def getRegressionVars(sensorValues, trials_back=7):
     # after 350 ms delay, before port exit
     df['reward'] = (df.rewardNo.diff() >= 1).astype('bool')
     
+    # switch: next exit is from a different port than current
+    df['switch'] = df.leftEx.astype('int').diff().abs()
+    
     # convert to int
     df = df.dropna()
     df['leftEx'] = df.leftEx.astype('int')
@@ -345,8 +348,8 @@ def getRegressionVars(sensorValues, trials_back=7):
     # Y1 should be outcome of last trial, i.e. before leaving side-port last;
     # without v, Y0 is that outcome
     df['sideExNo'] -= 1
-    sv = sv.merge(df[['sideExNo', *reg_vars]], how='left', on='sideExNo')
-    return sv[['leftIn','rightIn',*reg_vars]].copy(), reg_vars
+    sv = sv.merge(df[['sideExNo','switch',*reg_vars]], how='left', on='sideExNo')
+    return sv[['leftIn','rightIn','switch',*reg_vars]].copy(), reg_vars
     
 
 def getAVCoefficients(dataFile):
@@ -378,13 +381,13 @@ def getAVCoefficients(dataFile):
     coefficients = coefficients.set_index(['genotype','animal']).sort_index()
     regression_df['value'] = ((regression_df[reg_vars] * coefficients)
                                   .sum(axis=1, skipna=False).values)
-    regression_df = regression_df[['leftIn','rightIn','prediction','value']]
+    regression_df = regression_df[['leftIn','rightIn','switch','prediction','value']]
 
     return coefficients, regression_df
 
 
 def getActionValues(dataFile):
-    coefficients, _ = getAVCoefficients(dataFile)
+    coefficients, regression_df = getAVCoefficients(dataFile)
     
     actionValues = pd.DataFrame()   
     for sess in readSessions.findSessions(dataFile, task='2choice'):
@@ -404,7 +407,7 @@ def getActionValues(dataFile):
         actionValues = actionValues.append(lfa[['genotype','animal','date',
                                                 'actionNo','label','value']],
                                            ignore_index=True)
-    return actionValues
+    return actionValues, coefficients, regression_df
 
 
 #%% TODO: omg this is some horrible code :D

@@ -81,6 +81,7 @@ def getColor(key):
     cdict['r.'] = cdict['stay']
     cdict['switch'] = cdict['a2a']
     cdict['o!'] = cdict['switch']
+    cdict['o.'] = cdict['oprm1']
 
     cdict['shuffled'] = (0,0,0)
     cdict['none'] = (0,0,0)
