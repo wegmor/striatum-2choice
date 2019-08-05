@@ -489,30 +489,35 @@ trials_back=7
 ax.errorbar(-np.arange(1,trials_back+1),
             coefficients_mean[['Y{}'.format(j) for j in range(1,trials_back+1)]].values, 
             yerr=coefficients_sem[['Y{}'.format(j) for j in range(1,trials_back+1)]].values,
-            marker='.', color=style.getColor('stay'), label='reward')
+            marker='.', markersize=2.5, color=style.getColor('stay'), label='reward',
+            clip_on=False)
 ax.errorbar(-np.arange(1,trials_back+1),
             coefficients_mean[['N{}'.format(j) for j in range(1,trials_back+1)]].values, 
             yerr=coefficients_sem[['N{}'.format(j) for j in range(1,trials_back+1)]].values,
-            marker='.', color=style.getColor('switch'), label='no reward')
-plt.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
-             marker='.', color='k', label='bias')
+            marker='.', markersize=2.5, color=style.getColor('switch'), label='no reward',
+            clip_on=False)
+ax.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
+            marker='.', markersize=2.5, color='k', label='bias', clip_on=False)
 
 for (gt,a), coefficients in logRegCoef.groupby(['genotype','animal']):
     ax.plot(-np.arange(1,trials_back+1),
             coefficients[['Y{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
-            color=style.getColor('stay'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'])
+            color=style.getColor('stay'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
+            clip_on=False)
     ax.plot(-np.arange(1,trials_back+1),
             coefficients[['N{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
-            color=style.getColor('switch'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'])
+            color=style.getColor('switch'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
+            clip_on=False)
     ax.scatter(0, coefficients['intercept'], color='k', marker='.',
                s=8, label='', edgecolors='none', alpha=.2, clip_on=False)
 
 ax.axhline(0, zorder=-99, ls=':', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
 
-ax.set_xticks([0,-7])
 ax.xaxis.set_minor_locator(MultipleLocator(1))
-ax.set_ylim((-.5, 3))
+ax.set_xticks((0,-7))
+ax.set_xlim((-7.35,0))
 ax.set_yticks([0, 1, 2, 3])
+ax.set_ylim((-.5, 3))
 ax.legend(bbox_to_anchor=(.05,1.05), loc='upper left')
 ax.set_xlabel('trials back')
 ax.set_ylabel('coefficient')
@@ -520,8 +525,8 @@ sns.despine(ax=ax)
 
 
 #%%
-def get_logit(df):
-    logit = analysisStaySwitchDecoding.sm.Logit(df.leftIn, df[['value']])
+def get_logit(df, dep='leftIn'):
+    logit = analysisStaySwitchDecoding.sm.Logit(df[dep], df[['value']])
     result = logit.fit(use_t=True, disp=False)
     stats = pd.DataFrame({'t':result.tvalues, 'p':result.pvalues, 'b':result.params})
     
@@ -534,42 +539,76 @@ def get_logit(df):
 
 ax = layout.axes['log_reg_reg']['axis']
 df = logRegDF.copy()
+#df['stay'] = df.switch != 1.0
 
-ax.set_xlim((-5, 5))
+ax.set_xlim((-5, 5.6))
 ax.set_xticks((-5,0,5))
-ax.set_ylim((0, 1))
+ax.set_ylim((-.0475, 1))
 ax.set_yticks((0,.5,1))
 ax.set_yticklabels((0,50,100))
 ax.xaxis.set_minor_locator(MultipleLocator(2.5))
 ax.yaxis.set_minor_locator(MultipleLocator(.25))
 
-# plot lines for individual animals
-for animal, data in df.groupby('animal'):
-    result, stats, prediction = get_logit(data)    
-    ax.plot(prediction.x, prediction.y, c='k', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
-            clip_on=False)
+## plot lines for individual animals
+#for animal, data in df.groupby('animal'):
+#    result, stats, prediction = get_logit(data)    
+#    ax.plot(prediction.x, prediction.y, c='k', alpha=.2, clip_on=False,
+#            zorder=0, lw=mpl.rcParams['axes.linewidth'])
+    
+#    for side in ['leftIn']:#,'rightIn']:
+#        result, stats, prediction = get_logit(data.loc[data[side]], 'stay')    
+#        ax.plot(prediction.x, prediction.y,
+#                c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
+#                alpha=.2, lw=mpl.rcParams['axes.linewidth'], clip_on=False,
+#                zorder=1)
 
 # plot lines for pooled data
 result, stats, prediction = get_logit(df)
-ax.plot(prediction.x, prediction.y, c='k', alpha=1, clip_on=False)
+pp = ax.plot(prediction.x, prediction.y, c='darkgray',
+             alpha=1, zorder=1, clip_on=False)
 
-# plot binned scatter data
-bins = pd.cut(df.value, bins=10)
-scatter_means = df.groupby(bins)[['value','leftIn']].mean()
-scatter_sems = df.groupby(bins)[['value','leftIn']].sem()
-ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
-            yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
-            fmt='.', c='k', zorder=99, marker='.', clip_on=False)
+#for side in ['leftIn']:#,'rightIn']:
+#    result, stats, prediction = get_logit(df.loc[df[side]], 'stay')
+#    ax.plot(prediction.x, prediction.y, 
+#            c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
+#            alpha=.85, zorder=-1, clip_on=False)
 
+## plot binned scatter data
+bins = np.arange(-5.5,5.6)
+df['bins'] = pd.cut(df.value, bins=bins)
+scatter_means = df.groupby('bins')[['value','leftIn']].mean()
+scatter_sems = df.groupby('bins')[['value','leftIn']].sem()
+eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
+                 yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
+                 fmt='.', c='darkgray', zorder=2, marker='.', 
+                 markersize=2.5, clip_on=False)
+
+#for side in ['leftIn']:#,'rightIn']:
+#    scatter_means = df.loc[df[side]].groupby('bins')[['value','stay']].mean()
+#    scatter_sems = df.loc[df[side]].groupby('bins')[['value','stay']].sem()
+#    ax.errorbar(scatter_means['value'], scatter_means['stay'],
+#                yerr=scatter_sems['stay'], xerr=scatter_sems['value'],
+#                fmt='.', c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
+#                zorder=5, marker='.', markersize=3.5, clip_on=False,
+#                markeredgewidth=.5)
+
+stay_hist = (df.groupby(['animal','bins'])[['value','switch']].mean()
+               .groupby('bins').agg(['mean','sem']))
+hist = ax.bar(bins[:-1]+.5, stay_hist.switch['mean'],
+              yerr=stay_hist.switch['sem'], color=style.getColor('switch'),
+              alpha=.5, lw=0, width=.8, clip_on=False, zorder=99)
+
+ax.legend(handles=(eb, hist), labels=('left\nchoice','switch'),
+          bbox_to_anchor=(.6,1.16), loc='upper left')
 ax.axvline(0, zorder=-99, ls=':', c='k', alpha=.35,
            lw=mpl.rcParams['axes.linewidth'])
 ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
            lw=mpl.rcParams['axes.linewidth'])
-ax.set_ylabel('% left choice')
+ax.set_ylabel('% trials')
 ax.set_xlabel('action value')
 
-sns.despine(ax=ax)
 ax.invert_xaxis()
+sns.despine(ax=ax)
 
 
 #%%
