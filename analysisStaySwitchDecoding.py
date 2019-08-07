@@ -288,7 +288,7 @@ def crossDecodeStaySwitch(dataFile):
         deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
         if len(deconv) != len(lfa): continue
-        slfa =  sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
+        slfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
         selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
                                                   'pC2R','mC2R','mR2C']
                                      for trial in ['r.','o!']]

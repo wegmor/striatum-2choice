@@ -19,6 +19,7 @@ import figurefirst
 import style
 import analysisStaySwitchDecoding
 import cmocean
+from scipy.stats import ttest_1samp
 #import statsmodels.formula.api as smf
 plt.ioff()
 
@@ -93,6 +94,21 @@ else:
     actionValues.to_pickle(cachedDataPaths[0])
     logRegCoef.to_pickle(cachedDataPaths[1])
     logRegDF.to_pickle(cachedDataPaths[2])
+    
+cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
+if cachedDataPath.is_file():
+    crossDecoding = pd.read_pickle(cachedDataPath)
+else:
+    crossDecoding, shuffleCross = (analysisStaySwitchDecoding
+                                       .crossDecodeStaySwitch(endoDataPath))
+    crossDecoding = crossDecoding.set_index(['genotype','animal','date',
+                                             'testAction','trainAction'])
+    shuffleCross = shuffleCross.set_index(['genotype','animal','date',
+                                           'testAction','trainAction'])
+    crossDecoding['accuracy_shuffle'] = shuffleCross.accuracy
+    crossDecoding = (crossDecoding[['noNeurons','accuracy','accuracy_shuffle']]
+                                  .reset_index())
+    crossDecoding.to_pickle(cachedDataPath)
     
 
 #%%
@@ -180,13 +196,6 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
     
     decs = [('activity',True), ('activity',False), ('speed',False)]
     for x, (dec,shuffle) in enumerate(decs):
-#        ax.bar(x, wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
-#               color=style.getColor(a), alpha=.3 if x==1 else .1, lw=0)
-#        hatch = {0:'\\'*9, 2:'/'*9, 1:''}[x]
-#        mpl.rcParams['hatch.color'] = style.getColor(a)
-#        ax.bar(x, wAvgs[dec,shuffle], facecolor='none', alpha=.3, lw=0,
-#               hatch=hatch)
-        #marker = {0:'x', 1:'o', 2:'+'}[x]
         ax.errorbar(x, wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
                     color=style.getColor(a), clip_on=False,
                     marker={0:'o',1:'v',2:'s'}[x],
@@ -201,13 +210,11 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
         ax.plot([0,1,2], [sdata.loc[dec,shuffle].accuracy for dec,shuffle in decs],
                 color=style.getColor(a), alpha=.2,zorder=-99,
                 lw=.5, clip_on=False)
-                #lw=sdata.noNeurons[0]/500)
     
     ax.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5, ls=':', clip_on=False)
     
     ax.set_ylim((.5,1))
     ax.set_xlim((-.35,2.35))
-    #ax.yaxis.set_minor_locator(MultipleLocator(.25))
     ax.set_xticks(())
     ax.set_yticklabels(())
     ax.axis('off')
@@ -229,7 +236,7 @@ legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural 
                    mlines.Line2D([0], [0], marker='v', color='k', label='neural activity',
                                  markerfacecolor='w', markersize=3.6,
                                  markeredgewidth=.8),
-                   mlines.Line2D([0], [0], marker='s', color='k', label='movement speed',
+                   mlines.Line2D([0], [0], marker='s', color='k', label='action duration',
                                  markerfacecolor='w', markersize=2.8,
                                  markeredgewidth=.8)
                   ]
@@ -242,28 +249,40 @@ order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
 coefficients = (C.query('shuffled == False')
                  .set_index(["genotype","animal","date","neuron","action"])
                  .coefficient)
+coefficients_shuffle = (C.query('shuffled == True')
+                         .set_index(["genotype","animal","date","neuron","action"])
+                         .coefficient)
+
 #%%
 for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
     
-    #corr = coefficients.loc[genotype].unstack()[order].corr().values
     coef_grouped = (coefficients.loc[genotype].unstack()[order]
                                 .groupby(['animal','date']))
-    corr = coef_grouped.corr().unstack()
+    corr = coef_grouped.corr().unstack()   
+    corr_shuffle = (coefficients_shuffle.loc[genotype].unstack()[order]
+                                        .groupby(['animal','date'])
+                                        .corr().unstack())
+    
+    pvalues = ttest_1samp(corr - corr_shuffle, 0).pvalue.reshape(6,6)
+    sign_matrix = np.array(([''] * 36)).reshape(6,6)
+    sign_matrix[pvalues < 0.01] = '*'
+    
     weights = coef_grouped.size()
     corr = np.average(corr, axis=0, weights=weights).reshape(6,6)
-    
+
     corr[np.triu_indices_from(corr)] = np.nan
     corr = np.ma.masked_where(np.isnan(corr), corr)
+    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
 
-#    cm = sns.heatmap(corr, cbar=False, cmap=cmocean.cm.balance, vmin=-1, vmax=1,
-#                     annot=corr, fmt='.2f', annot_kws={'fontsize':5}, ax=ax)
-    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=-.8, vmax=.8,
+    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=-.5, vmax=.5,
                        edgecolors='none', lw=0)
+    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
+        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
+                color='k', fontsize=7)
     ax.set_xlim((0,5))
     ax.set_ylim((1,6))
     ax.axis('off')
-
       
     pal = [style.getColor(a) for a in order]
     n = len(pal)
@@ -281,7 +300,7 @@ for genotype in ("oprm1", "d1", "a2a"):
 
 cax = layout.axes['corr_colorbar']['axis']
 cb = plt.colorbar(cm, cax=cax, orientation='horizontal',
-                  ticks=(-.8,.8))
+                  ticks=(-.5,.5))
 cax.tick_params(axis='x', which='both',length=0)
 cb.outline.set_visible(False)
 
@@ -307,10 +326,6 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
         ttdata['bin'] = pd.qcut(ttdata.value, 4).cat.codes
         ttdata = ttdata.groupby(['animal','date','bin'])[['noNeurons','value','r.']].mean()
         
-#        for (a,d), adata in ttdata.groupby(['animal','date']):
-#            ax.plot(adata['value'], adata['r.'], c=style.getColor(tt),
-#                    lw=adata['noNeurons'][0]/350, alpha=.2, zorder=-99)
-        
         stsw_wAvg = (ttdata.groupby('bin')
                            .apply(analysisStaySwitchDecoding.wAvg,'r.','noNeurons'))
         stsw_wSem = (ttdata.groupby('bin')
@@ -319,10 +334,6 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
                             .apply(analysisStaySwitchDecoding.wAvg,'value','noNeurons'))
         value_wSem = (ttdata.groupby('bin')
                             .apply(analysisStaySwitchDecoding.bootstrap,'value','noNeurons'))
-
-#        avg_sem = ttdata.groupby('bin')[['r.','value']].agg(['mean','sem'])
-#        value_wAvg, value_wSem = avg_sem['value','mean'], avg_sem['value','sem']
-#        stsw_wAvg, stsw_wSem = avg_sem['r.','mean'], avg_sem['r.','sem']
         
         ax.errorbar(value_wAvg, stsw_wAvg, xerr=value_wSem, yerr=stsw_wSem,
                     color=style.getColor(tt),
@@ -331,15 +342,6 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
                     alpha=1, markeredgewidth=0, elinewidth=.5)
         ax.fill_between(value_wAvg, stsw_wAvg-stsw_wSem, stsw_wAvg+stsw_wSem,
                         lw=0, alpha=.35, zorder=-1, color=style.getColor(tt))
-        
-#        ttdata = gdata.loc[gdata.label.str.endswith(tt)].copy()
-#        ttdata = ttdata.rename(columns={'r.':'rstay'})
-#        model = smf.mixedlm('rstay ~ value', ttdata,
-#                            groups=ttdata.animal+ttdata.date)
-#        result = model.fit()
-#        predx = np.percentile(ttdata.value, [5,95])
-#        ax.plot(predx, result.predict(pd.Series(predx, name='value')).values,
-#                color=style.getColor(tt))
     
     ax.axhline(.5, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
     ax.axvline(0, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
@@ -376,12 +378,6 @@ for gt, gdata in data.groupby('genotype'):
     gdist['pct'] /= gdata.groupby(['animal','date']).size()
     gdist['noNeurons'] = gdata.groupby(['animal','date']).noNeurons.first()
     
-#    gdist_wAvg = gdist.groupby(['tt','bin']).apply(analysisStaySwitchDecoding.wAvg,
-#                                                   'pct', 'noNeurons')
-#    gdist_wSem = gdist.groupby(['tt','bin']).apply(analysisStaySwitchDecoding.bootstrap,
-#                                                   'pct', 'noNeurons')
-#    gdist_stats = pd.concat([gdist_wAvg, gdist_wSem], keys=['avg','sem'],
-#                            axis=1).reset_index('bin')
     gdist_stats = gdist.groupby(['tt','bin']).pct.agg(['mean','sem']).reset_index('bin')
         
     for tt, ttdata in gdist_stats.groupby('tt'):
@@ -416,8 +412,6 @@ legend_elements = [mlines.Line2D([0], [0], marker='<', color='k', markersize=2.8
                                   label='lose-stay'),
                    mpatches.Patch(color=style.getColor('o!'), alpha=1,
                                   label='lose-switch'),
-#                   mlines.Line2D([0], [0], marker='>', color='k', markersize=2.8,
-#                                 markeredgewidth=0, label='right choice', lw=0)
                   ]
 axt.legend(handles=legend_elements, ncol=len(legend_elements), loc='center',
            mode='expand')
@@ -449,7 +443,8 @@ for tt, ttdata in data.groupby(data.label.str.slice(-2)):
     valueProbCorrs = valueProbCorrs.append(corr)
 
 
-for (gt,tt), cs in valueProbCorrs.groupby(['genotype','trialType']):
+for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
+                                  .groupby(['genotype','trialType'])):
     ax = layout.axes['{}_{}_corr'.format(gt,tt)]['axis']
     
     wAvg = analysisStaySwitchDecoding.wAvg(cs, 'correlation', 'noNeurons')
@@ -457,23 +452,33 @@ for (gt,tt), cs in valueProbCorrs.groupby(['genotype','trialType']):
     r_wAvg = analysisStaySwitchDecoding.wAvg(cs, 'rand_correlation', 'noNeurons')
     r_wSem = analysisStaySwitchDecoding.bootstrap(cs, 'rand_correlation', 'noNeurons')
     
-    ax.bar([0,1], [wAvg, r_wAvg], yerr=[wSem, r_wSem],
-           color=[style.getColor(tt), style.getColor('shuffled')],
-           lw=0, alpha=.5, zorder=1, width=.5)
+#    ax.bar([0,1], [wAvg, r_wAvg], yerr=[wSem, r_wSem],
+#           color=[style.getColor(tt), style.getColor('shuffled')],
+#           lw=0, alpha=.5, zorder=1, width=.5)
+    ax.errorbar(0, wAvg, yerr=wSem, color=style.getColor(tt), clip_on=False,
+                marker='v', markersize=3.6, markerfacecolor='w',
+                markeredgewidth=.8)
+    ax.errorbar(1, r_wAvg, yerr=r_wSem, color=style.getColor(tt), clip_on=False,
+                marker='o', markersize=3.2, markerfacecolor='w',
+                markeredgewidth=.8)
+    ax.plot([0,1], [wAvg, r_wAvg], color=style.getColor(tt), clip_on=False)
     
     for c in cs[['correlation','rand_correlation','noNeurons']].values:
-        ax.plot([0,1], c[:2], lw=c[2]/400, color='k', alpha=.25, clip_on=False,
-                zorder=-99)
+        ax.plot([0,1], c[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
+                clip_on=False, zorder=-99, color=style.getColor(tt))
     
     ax.axhline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
 
     ax.set_ylim((0,.5))    
+    ax.set_xlim((-.35,1.35))
     if tt == 'r.':
         ax.set_xticks(())
         ax.set_yticks((0,.5))
+        ax.set_yticklabels(())
         ax.set_yticks((.25,), minor=True)
         if gt == 'a2a':
             ax.set_ylabel('|action value| X P(win-stay)\ncorrelation')
+            ax.set_yticklabels((.0,.5))
         sns.despine(ax=ax, bottom=True, trim=True)
     else:
         ax.set_axis_off()
@@ -539,7 +544,6 @@ def get_logit(df, dep='leftIn'):
 
 ax = layout.axes['log_reg_reg']['axis']
 df = logRegDF.copy()
-#df['stay'] = df.switch != 1.0
 
 ax.set_xlim((-5, 5.6))
 ax.set_xticks((-5,0,5))
@@ -549,29 +553,10 @@ ax.set_yticklabels((0,50,100))
 ax.xaxis.set_minor_locator(MultipleLocator(2.5))
 ax.yaxis.set_minor_locator(MultipleLocator(.25))
 
-## plot lines for individual animals
-#for animal, data in df.groupby('animal'):
-#    result, stats, prediction = get_logit(data)    
-#    ax.plot(prediction.x, prediction.y, c='k', alpha=.2, clip_on=False,
-#            zorder=0, lw=mpl.rcParams['axes.linewidth'])
-    
-#    for side in ['leftIn']:#,'rightIn']:
-#        result, stats, prediction = get_logit(data.loc[data[side]], 'stay')    
-#        ax.plot(prediction.x, prediction.y,
-#                c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
-#                alpha=.2, lw=mpl.rcParams['axes.linewidth'], clip_on=False,
-#                zorder=1)
-
 # plot lines for pooled data
 result, stats, prediction = get_logit(df)
 pp = ax.plot(prediction.x, prediction.y, c='darkgray',
              alpha=1, zorder=1, clip_on=False)
-
-#for side in ['leftIn']:#,'rightIn']:
-#    result, stats, prediction = get_logit(df.loc[df[side]], 'stay')
-#    ax.plot(prediction.x, prediction.y, 
-#            c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
-#            alpha=.85, zorder=-1, clip_on=False)
 
 ## plot binned scatter data
 bins = np.arange(-5.5,5.6)
@@ -582,15 +567,6 @@ eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
                  yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
                  fmt='.', c='darkgray', zorder=2, marker='.', 
                  markersize=2.5, clip_on=False)
-
-#for side in ['leftIn']:#,'rightIn']:
-#    scatter_means = df.loc[df[side]].groupby('bins')[['value','stay']].mean()
-#    scatter_sems = df.loc[df[side]].groupby('bins')[['value','stay']].sem()
-#    ax.errorbar(scatter_means['value'], scatter_means['stay'],
-#                yerr=scatter_sems['stay'], xerr=scatter_sems['value'],
-#                fmt='.', c=style.getColor({'leftIn':'pL', 'rightIn':'pR'}[side]),
-#                zorder=5, marker='.', markersize=3.5, clip_on=False,
-#                markeredgewidth=.5)
 
 stay_hist = (df.groupby(['animal','bins'])[['value','switch']].mean()
                .groupby('bins').agg(['mean','sem']))
@@ -623,7 +599,46 @@ layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 #plt.show()
 #
 #%%
+for (gt,ta), gdata in (crossDecoding.query('(trainAction == "pC2L" & testAction == "mC2L") | '+
+                                           '(trainAction == "pC2R" & testAction == "mC2R")')
+                                    .groupby(['genotype','testAction'])):
+    ax = layout.axes['{}_{}_cross'.format(gt,ta)]['axis']
+    
+    wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy', 'noNeurons')
+    wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy', 'noNeurons')
+    s_wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy_shuffle', 'noNeurons')
+    s_wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy_shuffle', 'noNeurons')
+    
+    ax.errorbar(0, wAvg, yerr=wSem, color=style.getColor(ta), clip_on=False,
+                marker='v', markersize=3.6, markerfacecolor='w',
+                markeredgewidth=.8)
+    ax.errorbar(1, s_wAvg, yerr=s_wSem, color=style.getColor(ta), clip_on=False,
+                marker='o', markersize=3.2, markerfacecolor='w',
+                markeredgewidth=.8)
+    ax.plot([0,1], [wAvg, s_wAvg], color=style.getColor(ta), clip_on=False)
+    
+    for acc in gdata[['accuracy','accuracy_shuffle','noNeurons']].values:
+        ax.plot([0,1], acc[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
+                clip_on=False, zorder=-99, color=style.getColor(ta))
+    
+    ax.axhline(.5, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+
+    ax.set_ylim((.5,1))    
+    ax.set_xlim((-.35,1.35))
+    if ta == 'mC2L':
+        ax.set_xticks(())
+        ax.set_yticks((.5,.75,1.))
+        ax.set_yticklabels(())
+        if gt == 'a2a':
+            ax.set_ylabel('decoding accuracy (%)')
+            ax.set_yticklabels((50,75,100))
+        sns.despine(ax=ax, bottom=True, trim=True)
+    else:
+        ax.set_axis_off()
+
+#%%
 real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)
+
 #%%
 cross_df = real.copy()
 #%%
