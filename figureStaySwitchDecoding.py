@@ -110,6 +110,13 @@ else:
                                   .reset_index())
     crossDecoding.to_pickle(cachedDataPath)
     
+cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
+if cachedDataPath.is_file():
+    staySwitchAUC = pd.read_pickle(cachedDataPath)
+else:
+    staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
+    staySwitchAUC.to_pickle(cachedDataPath)
+    
 
 #%%
 def bootstrapSEM(values, weights, iterations=1000):
@@ -245,15 +252,21 @@ ax.axis('off')
 
 
 #%% coefficient corr matrix
-order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
 coefficients = (C.query('shuffled == False')
                  .set_index(["genotype","animal","date","neuron","action"])
                  .coefficient)
-coefficients_shuffle = (C.query('shuffled == True')
-                         .set_index(["genotype","animal","date","neuron","action"])
-                         .coefficient)
 
-#%%
+#coefficients_shuffle = (C.query('shuffled == True')
+#                         .set_index(["genotype","animal","date","neuron","action"])
+#                         .coefficient)
+
+# v shuffle every sessions' coefficients -> correlation if same action coefficients
+# were randomly assigned to neurons
+coefficients_shuffle = (coefficients.groupby(['genotype','animal','date','action']).apply(
+                            lambda g: pd.Series(np.random.permutation(g), index=g.index)))
+##%%
+order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+
 for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
     
@@ -277,9 +290,9 @@ for genotype in ("oprm1", "d1", "a2a"):
 
     cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=-.5, vmax=.5,
                        edgecolors='none', lw=0)
-    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
-        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
-                color='k', fontsize=7)
+#    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
+#        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
+#                color='k', fontsize=7)
     ax.set_xlim((0,5))
     ax.set_ylim((1,6))
     ax.axis('off')
@@ -561,8 +574,9 @@ pp = ax.plot(prediction.x, prediction.y, c='darkgray',
 ## plot binned scatter data
 bins = np.arange(-5.5,5.6)
 df['bins'] = pd.cut(df.value, bins=bins)
-scatter_means = df.groupby('bins')[['value','leftIn']].mean()
-scatter_sems = df.groupby('bins')[['value','leftIn']].sem()
+# take bin mean per animal -> mean and sem per bin
+scatter_means = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').mean()
+scatter_sems = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').sem()
 eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
                  yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
                  fmt='.', c='darkgray', zorder=2, marker='.', 
@@ -587,6 +601,51 @@ ax.invert_xaxis()
 sns.despine(ax=ax)
 
 
+#%% plot stay vs switch ROC AUC tuning distributions
+staySwitch = staySwitchAUC.loc[staySwitchAUC.action.isin(['pC2L','pC2R'])].copy()
+palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
+
+# plot histograms
+for a, adata in staySwitch.groupby('action'):
+    ax = layout.axes['{}_auc_kde'.format(a)]['axis']
+    
+    for gt, agdata in adata.groupby('genotype'):
+#        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
+#                color=style.getColor(gt), label=gt, density=True,
+#                lw=2, alpha=.8)
+        sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
+                     ax=ax, color=style.getColor(gt), hist=False,
+                     kde_kws={'clip_on':False, 'alpha':.75})
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_ylim((0,2.1))
+    ax.set_yticks((0,1,2))
+    ax.set_ylabel('density')
+    ax.set_xlim((-1,1))
+    ax.set_xticks(())
+    ax.set_xlabel('')
+    sns.despine(bottom=True, trim=True, ax=ax)
+    
+    ax = layout.axes['{}_auc_bp'.format(a)]['axis']
+
+    sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
+                palette=palette, saturation=.85, showcaps=False, showfliers=False,
+                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+                medianprops={'c':'k','zorder':99, 'clip_on':False})
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_xlim((-1,1))
+    ax.set_xticks((-1,0,1))
+    ax.set_xticks((-.5,.5), minor=True)
+    ax.set_xlabel('')
+    if a == 'pC2R':
+        ax.set_xlabel('tuning score')
+    ax.set_yticks(())
+    ax.set_ylabel('')
+    sns.despine(left=True, trim=True, ax=ax, offset=.75)
+    
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
@@ -599,8 +658,8 @@ layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 #plt.show()
 #
 #%%
-for (gt,ta), gdata in (crossDecoding.query('(trainAction == "pC2L" & testAction == "mC2L") | '+
-                                           '(trainAction == "pC2R" & testAction == "mC2R")')
+for (gt,ta), gdata in (crossDecoding.query('(trainAction == "mL2C" & testAction == "mC2L") | '+
+                                           '(trainAction == "mR2C" & testAction == "mC2R")')
                                     .groupby(['genotype','testAction'])):
     ax = layout.axes['{}_{}_cross'.format(gt,ta)]['axis']
     
@@ -635,6 +694,7 @@ for (gt,ta), gdata in (crossDecoding.query('(trainAction == "pC2L" & testAction 
         sns.despine(ax=ax, bottom=True, trim=True)
     else:
         ax.set_axis_off()
+
 
 #%%
 real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)

@@ -16,11 +16,13 @@ import multiprocessing
 import functools
 import h5py
 import datetime
+from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from utils import readSessions, fancyViz
 import statsmodels.api as sm
 import style
+from sklearn.metrics import roc_curve, auc
 
 style.set_context()
 plt.ioff()
@@ -410,6 +412,50 @@ def getActionValues(dataFile):
     return actionValues, coefficients, regression_df
 
 
+#%%
+def getWStayLSwitchAUC(dataFile, n_shuffles=1000):
+    def _getAUC(labels, avgs):
+        fpr, tpr, _ = roc_curve(labels, avgs, pos_label='r.')
+        roc_auc = 2*(auc(fpr, tpr)-.5)
+        return roc_auc
+        
+    auc_df = pd.DataFrame()
+    for sess in readSessions.findSessions(dataFile, task='2choice'):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+        if len(deconv) != len(lfa): continue
+        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
+        labels = lfa.groupby("actionNo").label.first()
+        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+                                                  'pC2R','mC2R','mR2C']
+                                     for trial in ['r.','o!']]
+        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
+        labels = pd.DataFrame(labels.loc[validTrials])
+        trialAvgs = trialAvgs.loc[validTrials]
+        
+        labels['action'], labels['trialType'] = (labels.label.str.slice(0,4),
+                                                 labels.label.str.slice(4))
+        
+        df = pd.DataFrame()
+        for action, ls in labels.groupby('action'):
+            lsAvgs = trialAvgs.loc[ls.index].copy()
+            for n in lsAvgs:
+                roc_auc = _getAUC(ls.trialType.values, lsAvgs[n].values)
+                shuffle_dist = [_getAUC(np.random.permutation(ls.trialType.values),
+                                        lsAvgs[n].values) for _ in range(n_shuffles)]
+                shuffle_dist = np.array(shuffle_dist)
+                pct = np.searchsorted(np.sort(shuffle_dist), roc_auc) / len(shuffle_dist)
+                df = df.append(pd.Series({'neuron':n, 'auc':roc_auc, 'pct':pct,
+                                          'action':action}),
+                               ignore_index=True)
+        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
+                    ('genotype',sess.meta.genotype)]:
+            df.insert(0,k,v)
+        
+        auc_df = auc_df.append(df, ignore_index=True)
+    return auc_df
+
+
 #%% TODO: omg this is some horrible code :D
 def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
                                    shuffled=False):
@@ -453,4 +499,128 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
     if cax:
         cb = plt.colorbar(img, cax=cax)
         cax.tick_params(axis='y', which='both',length=0)
-        cb.outline.set_visible(False) 
+        cb.outline.set_visible(False)
+        
+
+#%%
+#def getWStayLSwitchResp(dataFile):
+#    def _getAverages(deconv, lfa, selectedLabels):
+#        avgSig = deconv.groupby(lfa.actionNo).mean() # trial-average
+#        labels = lfa.groupby("actionNo").label.first()
+#        avgSig = avgSig.groupby(labels).mean() # label-average
+#        avgSig =  avgSig.loc[selectedLabels].stack().reset_index('label')
+#        avgSig.index.name = 'neuron'
+#        avgSig.columns = ['label','avg']
+#        return avgSig
+#        
+#    avgSigs = pd.DataFrame()
+#    for sess in readSessions.findSessions(dataFile, task='2choice'):
+#        deconv = sess.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
+#        deconv -= deconv.min(axis=0)
+#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+#        if len(deconv) != len(lfa): continue
+#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+#                                                  'pC2R','mC2R','mR2C']
+#                                     for trial in ['r.','o.','o!']]
+#        avgSig = _getAverages(deconv, lfa, selectedLabels)
+#        avgSig['action'] = avgSig.label.str.slice(0,4)
+#        avgSig['trialType'] = avgSig.label.str.slice(4)
+#        avgSig = avgSig.set_index(['action','trialType'], append=True)['avg']
+#        avgSig = avgSig.unstack('trialType').reset_index()
+#        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
+#                    ('genotype',sess.meta.genotype)]:
+#            avgSig.insert(0, k, v)
+#        avgSigs = avgSigs.append(avgSig)
+#    
+#    return avgSigs
+#
+#
+##%%
+#def getWStayLSwitchT(dataFile):
+#    def _ttest(adata):
+#        statistics = ttest_ind(adata.query('trialType == "r."'),
+#                               adata.query('trialType == "o!"'), axis=0).statistic
+#        statistics = pd.Series(statistics, index=adata.columns)
+#        return statistics
+#        
+#    stats_df = pd.DataFrame()
+#    for sess in readSessions.findSessions(dataFile, task='2choice'):
+#        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+#        if len(deconv) != len(lfa): continue
+#        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
+#        labels = lfa.groupby("actionNo").label.first()
+#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+#                                                  'pC2R','mC2R','mR2C']
+#                                     for trial in ['r.','o!']]
+#        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
+#        labels = labels.loc[validTrials]
+#        trialAvgs = trialAvgs.loc[validTrials]
+#        
+#        trialAvgs.set_index([pd.Series(labels.str.slice(0,4), name='action'),
+#                             pd.Series(labels.str.slice(4), name='trialType')],
+#                            inplace=True)
+#        stats = trialAvgs.groupby('action').apply(_ttest)
+#       
+#        stats = pd.DataFrame(stats.stack(), columns=['tvalue'])
+#        stats.index.names = ['action','neuron']
+#        stats = stats.reset_index()
+#        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
+#                    ('genotype',sess.meta.genotype)]:
+#            stats.insert(0, k, v)
+#        
+#        stats_df = stats_df.append(stats, ignore_index=True)
+#    return stats_df
+#
+#
+##%%
+#def getStaySwitchTuning(dataFile, n_shuffles=1000):
+#    def _shuffleLabels(labels):
+#        # shuffles within action, i.e. mC2Lo! will be replaced by another mC2L trial.
+#        labels = labels.groupby(labels.str.slice(0,4)).apply(
+#                                     lambda ls: pd.Series(np.random.permutation(ls),
+#                                                          index=ls.index))
+#        return labels
+#    
+#    df = pd.DataFrame()
+#    for sess in readSessions.findSessions(dataFile, task='2choice'):
+#        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+#        if len(deconv) != len(lfa): continue
+#        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
+#        labels = lfa.groupby("actionNo").label.first()
+#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
+#                                                  'pC2R','mC2R','mR2C']
+#                                     for trial in ['r.','o!']]
+#        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
+#        labels = labels.loc[validTrials]
+#        trialAvgs = trialAvgs.loc[validTrials]
+#        
+#        avgs = trialAvgs.groupby(labels).mean().stack()
+#        avgs.index.names = ['label', 'neuron']
+#        
+#        avgs_dist = [trialAvgs.groupby(_shuffleLabels(labels)).mean() for _ in range(n_shuffles)]
+#        avgs_dist = (pd.concat(avgs_dist, keys=np.arange(n_shuffles), names=['shuffle_no'])
+#                       .reorder_levels(['label','shuffle_no']).sort_index())
+#            
+#        for label, ldata in avgs_dist.groupby('label'):
+#            for neuron in ldata:
+#                ndict = {}
+#                dist = ldata[neuron].values # shuffled "label" means distribution
+#                value = avgs.loc[label, neuron] # actual mean
+#                
+#                ndict['genotype'] = sess.meta.genotype
+#                ndict['animal'] = sess.meta.animal
+#                ndict['date'] = sess.meta.date
+#                ndict['neuron'] = neuron
+#                ndict['label'] = label
+#                ndict['mean'] = value
+#                ndict['s_mean'] = dist.mean()
+#                ndict['s_std'] = dist.std()
+#                ndict['tuning'] = (ndict['mean'] - ndict['s_mean']) / ndict['s_std']
+#                # v percentile of the actual mean in the shuffled distribution
+#                ndict['pct'] = np.searchsorted(np.sort(dist), value) / len(dist)
+#                
+#                df = df.append(pd.Series(ndict), ignore_index=True)
+#        
+#    return df
