@@ -21,6 +21,7 @@ import analysisStaySwitchDecoding
 import cmocean
 from scipy.stats import ttest_1samp
 #import statsmodels.formula.api as smf
+from utils import readSessions, fancyViz
 plt.ioff()
 
 
@@ -236,25 +237,26 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
     
     sns.despine(ax=ax, bottom=True, offset=.5)
     
-ax = layout.axes['dec_legend']['axis']
-legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural activity\n(labels shuffled)',
-                                 markerfacecolor='w', markersize=3.2,
-                                 markeredgewidth=.8),
-                   mlines.Line2D([0], [0], marker='v', color='k', label='neural activity',
-                                 markerfacecolor='w', markersize=3.6,
-                                 markeredgewidth=.8),
-                   mlines.Line2D([0], [0], marker='s', color='k', label='action duration',
-                                 markerfacecolor='w', markersize=2.8,
-                                 markeredgewidth=.8)
-                  ]
-ax.legend(handles=legend_elements, title='decoder', loc='center')
-ax.axis('off')
+#ax = layout.axes['dec_legend']['axis']
+#legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='neural activity\n(labels shuffled)',
+#                                 markerfacecolor='w', markersize=3.2,
+#                                 markeredgewidth=.8),
+#                   mlines.Line2D([0], [0], marker='v', color='k', label='neural activity',
+#                                 markerfacecolor='w', markersize=3.6,
+#                                 markeredgewidth=.8),
+#                   mlines.Line2D([0], [0], marker='s', color='k', label='action duration',
+#                                 markerfacecolor='w', markersize=2.8,
+#                                 markeredgewidth=.8)
+#                  ]
+#ax.legend(handles=legend_elements, title='decoder', loc='center')
+#ax.axis('off')
 
 
 #%% coefficient corr matrix
-coefficients = (C.query('shuffled == False')
-                 .set_index(["genotype","animal","date","neuron","action"])
-                 .coefficient)
+#coefficients = (C.query('shuffled == False')
+#                 .set_index(["genotype","animal","date","neuron","action"])
+#                 .coefficient)
+coefficients = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
 
 #coefficients_shuffle = (C.query('shuffled == True')
 #                         .set_index(["genotype","animal","date","neuron","action"])
@@ -266,6 +268,7 @@ coefficients_shuffle = (coefficients.groupby(['genotype','animal','date','action
                             lambda g: pd.Series(np.random.permutation(g), index=g.index)))
 ##%%
 order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+vmin, vmax = -1, 1
 
 for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
@@ -277,18 +280,18 @@ for genotype in ("oprm1", "d1", "a2a"):
                                         .groupby(['animal','date'])
                                         .corr().unstack())
     
-    pvalues = ttest_1samp(corr - corr_shuffle, 0).pvalue.reshape(6,6)
-    sign_matrix = np.array(([''] * 36)).reshape(6,6)
-    sign_matrix[pvalues < 0.01] = '*'
+#    pvalues = ttest_1samp(corr - corr_shuffle, 0).pvalue.reshape(6,6)
+#    sign_matrix = np.array(([''] * 36)).reshape(6,6)
+#    sign_matrix[pvalues < 0.01] = '*'
     
     weights = coef_grouped.size()
     corr = np.average(corr, axis=0, weights=weights).reshape(6,6)
 
     corr[np.triu_indices_from(corr)] = np.nan
     corr = np.ma.masked_where(np.isnan(corr), corr)
-    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
+#    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
 
-    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=-.5, vmax=.5,
+    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=vmin, vmax=vmax,
                        edgecolors='none', lw=0)
 #    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
 #        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
@@ -313,7 +316,7 @@ for genotype in ("oprm1", "d1", "a2a"):
 
 cax = layout.axes['corr_colorbar']['axis']
 cb = plt.colorbar(cm, cax=cax, orientation='horizontal',
-                  ticks=(-.5,.5))
+                  ticks=(vmin,vmax))
 cax.tick_params(axis='x', which='both',length=0)
 cb.outline.set_visible(False)
 
@@ -607,7 +610,7 @@ palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
 
 # plot histograms
 for a, adata in staySwitch.groupby('action'):
-    ax = layout.axes['{}_auc_kde'.format(a)]['axis']
+    ax = layout.axes['{}_auc_kde'.format('pL' if 'L' in a else 'pR')]['axis']
     
     for gt, agdata in adata.groupby('genotype'):
 #        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
@@ -618,15 +621,19 @@ for a, adata in staySwitch.groupby('action'):
                      kde_kws={'clip_on':False, 'alpha':.75})
     
     ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_ylim((0,2.1))
+    ax.set_ylim((0,2))
     ax.set_yticks((0,1,2))
-    ax.set_ylabel('density')
+    ax.set_yticklabels(())
+    ax.set_ylabel('')
+    if a == 'pC2L':
+        ax.set_ylabel('density')
+        ax.set_yticklabels(ax.get_yticks())
     ax.set_xlim((-1,1))
     ax.set_xticks(())
     ax.set_xlabel('')
     sns.despine(bottom=True, trim=True, ax=ax)
     
-    ax = layout.axes['{}_auc_bp'.format(a)]['axis']
+    ax = layout.axes['{}_auc_bp'.format('pL' if 'L' in a else 'pR')]['axis']
 
     sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
                 palette=palette, saturation=.85, showcaps=False, showfliers=False,
@@ -636,15 +643,64 @@ for a, adata in staySwitch.groupby('action'):
     
     ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
     ax.set_xlim((-1,1))
+    ax.set_ylim((-.75,2.75))
     ax.set_xticks((-1,0,1))
+    ax.set_xticklabels((-1,'',1))
     ax.set_xticks((-.5,.5), minor=True)
     ax.set_xlabel('')
-    if a == 'pC2R':
-        ax.set_xlabel('tuning score')
     ax.set_yticks(())
     ax.set_ylabel('')
-    sns.despine(left=True, trim=True, ax=ax, offset=.75)
+    sns.despine(left=True, trim=True, ax=ax)
     
+axt = layout.axes['auc_legend']['axis']
+legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
+                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1'}[gt])
+                   for gt in ['d1','a2a','oprm1']
+                  ]
+axt.legend(handles=legend_elements, ncol=3, loc='center',
+           mode='expand')
+axt.axis('off')
+
+
+#%%
+examples = [("5308", "190131", 292, "oprm1"),
+            ("5643", "190114", 178, "d1")]
+
+for p, (a, d, n, gt) in enumerate(examples):
+    s = next(readSessions.findSessions(endoDataPath, genotype=gt,
+                                       animal=a, date=d, task='2choice'))
+    traces = s.readDeconvolvedTraces(zScore=True)
+    
+    lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
+    d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
+                 lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
+                .reset_index().set_index(lfa.index))
+    lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+    
+    #action = 'pC2R'
+    #coefs = C.query('genotype == @gt & animal == @a & date == @d & action == @action & ' +
+    #                'shuffled == False')
+    #aucs = staySwitchAUC.query('genotype == @gt & animal == @a & date == @d & action == @action')
+    #wstay_trace = traces[aucs.loc[aucs.auc.idxmax(), 'neuron']]
+    #lswitch_trace = traces[aucs.loc[aucs.auc.idxmin(), 'neuron']]
+    trace = traces[n]
+    
+    for trialType in ['r.','o.','o!']:
+        axfv = layout.axes['f8_ex{}_{}'.format(p+1, trialType)]['axis']
+        fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+                                             linewidth=mpl.rcParams['axes.linewidth'],
+                                             smoothing=7.5, saturation=1.5)
+        fv.setMask(lfa.label.str.endswith(trialType).values)
+        img = fv.draw(trace, ax=axfv)
+
+cax = layout.axes['colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-1.55, -.3, '-1.5', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.55, -.3, '1.5', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+
 
 #%%
 layout.insert_figures('plots')

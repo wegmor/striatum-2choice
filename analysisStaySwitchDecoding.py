@@ -446,7 +446,10 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000):
                 shuffle_dist = np.array(shuffle_dist)
                 pct = np.searchsorted(np.sort(shuffle_dist), roc_auc) / len(shuffle_dist)
                 df = df.append(pd.Series({'neuron':n, 'auc':roc_auc, 'pct':pct,
-                                          'action':action}),
+                                          'action':action,
+                                          's_mean':shuffle_dist.mean(),
+                                          's_std':shuffle_dist.std(),
+                                          'tuning':(roc_auc-shuffle_dist.mean())/shuffle_dist.std()}),
                                ignore_index=True)
         for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
                     ('genotype',sess.meta.genotype)]:
