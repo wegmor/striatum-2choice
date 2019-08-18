@@ -416,12 +416,12 @@ def getActionValues(dataFile):
 def getWStayLSwitchAUC(dataFile, n_shuffles=1000):
     def _getAUC(labels, avgs):
         fpr, tpr, _ = roc_curve(labels, avgs, pos_label='r.')
-        roc_auc = 2*(auc(fpr, tpr)-.5)
+        roc_auc = 2*(auc(fpr, tpr)-.5) # Gini coefficient!
         return roc_auc
         
     auc_df = pd.DataFrame()
     for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
         if len(deconv) != len(lfa): continue
         trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
@@ -504,6 +504,108 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
         cax.tick_params(axis='y', which='both',length=0)
         cb.outline.set_visible(False)
         
+
+#%%
+#def drawPopAverageFV(dataFile, popdf, axes, cax=False):
+#    # can't create a intensity plot without session data
+#    s = next(readSessions.findSessions(dataFile, task='2choice'))
+#    fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+#    fvLSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+#    fvLSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+#    
+#    for (genotype,animal,date), pop in popdf.groupby(['genotype','animal','date']):
+#        s = next(readSessions.findSessions(dataFile, task='2choice',
+#                                           genotype=genotype, animal=animal, date=date))
+#        
+#        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+#        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
+#        d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
+#                     lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
+#                    .reset_index().set_index(lfa.index))
+#        lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+#    
+#        fvWSt.setSession(s)
+#        fvWSt.setMask(lfa.label.str.endswith('r.'))
+#        for neuron in pop.neuron:
+#            fvWSt.addTraceToBuffer(deconv[neuron])
+#
+#        fvLSt.setSession(s)
+#        fvLSt.setMask(lfa.label.str.endswith('o.'))
+#        for neuron in pop.neuron:
+#            fvLSt.addTraceToBuffer(deconv[neuron])
+#        
+#        fvLSw.setSession(s)
+#        fvLSw.setMask(lfa.label.str.endswith('o!'))
+#        for neuron in pop.neuron:
+#            fvLSw.addTraceToBuffer(deconv[neuron])
+#    
+#    wstax, lstax, lswax = axes[0], axes[1], axes[2]
+#    
+#    fvWSt.drawBuffer(ax=wstax) # drawing flushes buffer
+#    fvLSt.drawBuffer(ax=lstax)
+#    img = fvLSw.drawBuffer(ax=lswax)
+#    
+#    if cax:
+#        cb = plt.colorbar(img, cax=cax)
+#        cax.tick_params(axis='y', which='both',length=0)
+#        cb.outline.set_visible(False)
+
+
+#%%
+def drawPopAverageFV(dataFile, pop_df, av_df, axes, cax=False):
+    # can't create a intensity plot without session data
+    s = next(readSessions.findSessions(dataFile, task='2choice'))
+    fvs = []
+    for _ in range(6):
+        fvs.append(fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+                                                   splitCenter=True,
+                                                   saturation=.25,
+                                                   linewidth=mpl.rcParams['axes.linewidth']))
+    
+    for (genotype,animal,date), pop in pop_df.groupby(['genotype','animal','date']):
+        s = next(readSessions.findSessions(dataFile, task='2choice',
+                                           genotype=genotype, animal=animal, date=date))
+        
+        deconv = s.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
+        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
+        av = av_df.query('genotype == @s.meta.genotype & '+
+                         'animal == @s.meta.animal & '+
+                         'date == @s.meta.date').copy()
+        
+        if lfa.actionNo.iloc[-1] != av.actionNo.iloc[-1]:
+            print('We have a problem, Cap!')
+        lfa = lfa.merge(av[['actionNo','label','value']], on=['actionNo','label'])
+        
+        d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
+                     lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
+                    .reset_index().set_index(lfa.index))
+        lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+        
+        lfa['bin'] = pd.cut(lfa.value, bins=[-10,-2,-1,0,1,2,10])
+    
+        for v, b in enumerate(lfa.bin.cat.categories):
+            fv = fvs[v]
+            fv.setSession(s)
+            frames = lfa.label.str.endswith('o.') & (lfa.bin == b)
+            fv.setMask(frames)
+            for neuron in pop.neuron:
+                trace = deconv[neuron]
+                trace -= trace[frames].mean()
+                trace /= trace[frames].std()
+                fv.addTraceToBuffer(trace)
+    
+    for v, ax in enumerate(axes):
+        fv = fvs[v]
+        img = fv.drawBuffer(ax=ax) # drawing flushes buffer
+    
+    if cax:
+        cb = plt.colorbar(img, cax=cax)
+        cax.tick_params(axis='y', which='both',length=0)
+        cb.outline.set_visible(False)
+
 
 #%%
 #def getWStayLSwitchResp(dataFile):

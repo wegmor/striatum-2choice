@@ -21,6 +21,7 @@ import analysisStaySwitchDecoding
 import cmocean
 from scipy.stats import ttest_1samp
 #import statsmodels.formula.api as smf
+from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, fancyViz
 plt.ioff()
 
@@ -117,69 +118,99 @@ if cachedDataPath.is_file():
 else:
     staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
     staySwitchAUC.to_pickle(cachedDataPath)
-    
+
 
 #%%
-def bootstrapSEM(values, weights, iterations=1000):
-    avgs = []
-    for _ in range(iterations):
-        idx = np.random.choice(len(values), len(values), replace=True)
-        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
-    return np.std(avgs)
+examples = [("5308", "190131", 292, "oprm1"),
+            ("5643", "190114", 178, "d1")]
+
+for p, (a, d, n, gt) in enumerate(examples):
+    s = next(readSessions.findSessions(endoDataPath, genotype=gt,
+                                       animal=a, date=d, task='2choice'))
+    traces = s.readDeconvolvedTraces(zScore=True)
     
-#accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
-fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
-toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
-td = (toDate - fromDate).dt.days
-decodingAcrossDays["dayDifference"] = td
+    lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
+    d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
+                 lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
+                .reset_index().set_index(lfa.index))
+    lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+    
+    trace = traces[n]
+    
+    for trialType in ['r.','o.','o!']:
+        axfv = layout.axes['f8_ex{}_{}'.format(p+1, trialType)]['axis']
+        fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+                                             linewidth=mpl.rcParams['axes.linewidth'],
+                                             smoothing=7.5, saturation=1.5)
+        fv.setMask(lfa.label.str.endswith(trialType).values)
+        img = fv.draw(trace, ax=axfv)
 
-for label in ("pC2L", "pC2R", "mC2L", "mC2R", "mL2C", "mR2C"):
-    selection = decodingAcrossDays[decodingAcrossDays.label == label]
-    for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
-        g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
+cax = layout.axes['colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-1.55, -.3, '-1.5', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.55, -.3, '1.5', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
-        perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
-        perAnimal["genotype"] = g.genotype.first()
 
+#%% plot stay vs switch ROC AUC tuning distributions
+#  could be done with "tuning" defined as z-scored by shuffle dist?
+staySwitch = staySwitchAUC.loc[staySwitchAUC.action.isin(['pC2L','pC2R'])].copy()
+palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
 
-        scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * np.stack([perAnimal.nNeurons,
-                                                                              perAnimal.nNeurons],
-                                                                             axis=1)
-        perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
-        totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
-        perGenotype /= np.stack([totalNeurons,totalNeurons], axis=1)
+# plot histograms
+for a, adata in staySwitch.groupby('action'):
+    ax = layout.axes['{}_auc_kde'.format('pL' if 'L' in a else 'pR')]['axis']
+    
+    for gt, agdata in adata.groupby('genotype'):
+#        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
+#                color=style.getColor(gt), label=gt, density=True,
+#                lw=2, alpha=.8)
+        sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
+                     ax=ax, color=style.getColor(gt), hist=False,
+                     kde_kws={'clip_on':False, 'alpha':.75})
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_ylim((0,2))
+    ax.set_yticks((0,1,2))
+    ax.set_yticklabels(())
+    ax.set_ylabel('')
+    if a == 'pC2L':
+        ax.set_ylabel('density')
+        ax.set_yticklabels(ax.get_yticks())
+    ax.set_xlim((-1,1))
+    ax.set_xticks(())
+    ax.set_xlabel('')
+    sns.despine(bottom=True, trim=True, ax=ax)
+    
+    ax = layout.axes['{}_auc_bp'.format('pL' if 'L' in a else 'pR')]['axis']
 
-        shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * np.stack([perAnimal.nNeurons,
-                                                                                     perAnimal.nNeurons],
-                                                                                    axis=1)
-        shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
-
-        plt.sca(layout.axes["decodingAccrossDays_{}_{}".format(label, i+1)]["axis"])
-
-        for r in perAnimal.itertuples():
-            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
-                     c=style.getColor(r.genotype), alpha=0.2)
-        for r in perGenotype.itertuples():
-            gt = r.Index
-            animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
-            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
-            nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
-            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
-                         c=style.getColor(gt))
-
-        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
-                 c=style.getColor("shuffled"))
-
-        plt.ylim(0.45,1)
-        plt.xlim(-0.25, 1.25)
-        xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
-        plt.xticks((0,1), ("Same\nday", xlab[i]))
-        if i==0:
-            plt.yticks(np.linspace(0.5,1,6), np.linspace(50,100,6,dtype=np.int64))
-            plt.ylabel("Decoding accuracy (%)")
-        else:
-            plt.yticks(np.linspace(0.5,1,6), [""]*5)
-        sns.despine(ax=plt.gca())
+    sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
+                palette=palette, saturation=.85, showcaps=False, showfliers=False,
+                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+                medianprops={'c':'k','zorder':99, 'clip_on':False})
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_xlim((-1,1))
+    ax.set_ylim((-.75,2.75))
+    ax.set_xticks((-1,0,1))
+    ax.set_xticklabels((-1,'',1))
+    ax.set_xticks((-.5,.5), minor=True)
+    ax.set_xlabel('')
+    ax.set_yticks(())
+    ax.set_ylabel('')
+    sns.despine(left=True, trim=True, ax=ax)
+    
+axt = layout.axes['auc_legend']['axis']
+legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
+                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1'}[gt])
+                   for gt in ['d1','a2a','oprm1']
+                  ]
+axt.legend(handles=legend_elements, ncol=3, loc='center',
+           mode='expand')
+axt.axis('off')
 
 
 #%%
@@ -193,7 +224,7 @@ acc = pd.concat([acc_activity, acc_speed], keys=['activity','speed'], names=['de
 acc = acc.reset_index('noNeurons')
 acc = acc.reorder_levels((0,5,1,2,3,4))
    
-#%%
+##%%
 for (gt, a), gdata in acc.groupby(['genotype','action']):
     ax = layout.axes['{}_{}'.format(gt, a)]['axis']
     
@@ -252,47 +283,53 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
 #ax.axis('off')
 
 
-#%% coefficient corr matrix
-#coefficients = (C.query('shuffled == False')
-#                 .set_index(["genotype","animal","date","neuron","action"])
-#                 .coefficient)
-coefficients = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
+#%%
+def shuffleTuning(actionTuning):
+    return pd.Series(np.random.permutation(actionTuning),
+                     index=actionTuning.index)
+    
+def getPercentile(value, shuffle_dist):
+    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
 
-#coefficients_shuffle = (C.query('shuffled == True')
-#                         .set_index(["genotype","animal","date","neuron","action"])
-#                         .coefficient)
 
-# v shuffle every sessions' coefficients -> correlation if same action coefficients
-# were randomly assigned to neurons
-coefficients_shuffle = (coefficients.groupby(['genotype','animal','date','action']).apply(
-                            lambda g: pd.Series(np.random.permutation(g), index=g.index)))
-##%%
 order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+tunings = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
+
+similarity = tunings.unstack()[order].groupby('genotype').corr().stack()
+
+similarity_shuffled = []
+for _ in range(1000):
+    tunings_shuffled = (tunings.groupby(['genotype','animal','date','action'])
+                               .apply(shuffleTuning))
+    similarity_shuffled.append((tunings_shuffled.unstack()[order]
+                                                .groupby('genotype')
+                                                .corr().stack()))
+similarity_shuffled = pd.concat(similarity_shuffled, axis=1,
+                                keys=np.arange(len(similarity_shuffled)),
+                                names=['shuffle_no'])
+
+percentile = similarity_shuffled.apply(lambda g: getPercentile(similarity.loc[g.name], g),
+                                       axis=1)   
+
+##%%
 vmin, vmax = -1, 1
+cmap = cmocean.cm.balance #cmocean.cm.thermal #cmocean.cm.amp
 
 for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
     
-    coef_grouped = (coefficients.loc[genotype].unstack()[order]
-                                .groupby(['animal','date']))
-    corr = coef_grouped.corr().unstack()   
-    corr_shuffle = (coefficients_shuffle.loc[genotype].unstack()[order]
-                                        .groupby(['animal','date'])
-                                        .corr().unstack())
+    corr = similarity.loc[genotype].unstack(-1).values
+    pctl = percentile.loc[genotype].unstack(-1).values
     
-#    pvalues = ttest_1samp(corr - corr_shuffle, 0).pvalue.reshape(6,6)
-#    sign_matrix = np.array(([''] * 36)).reshape(6,6)
-#    sign_matrix[pvalues < 0.01] = '*'
+    sign_matrix = np.array(([''] * 36)).reshape(6,6)
+    sign_matrix[(pctl < .005) | (pctl > .995)] = '*'
     
-    weights = coef_grouped.size()
-    corr = np.average(corr, axis=0, weights=weights).reshape(6,6)
-
     corr[np.triu_indices_from(corr)] = np.nan
     corr = np.ma.masked_where(np.isnan(corr), corr)
-#    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
+    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
 
-    cm = ax.pcolormesh(corr, cmap=cmocean.cm.balance, vmin=vmin, vmax=vmax,
-                       edgecolors='none', lw=0)
+    cm = ax.pcolormesh(corr, cmap=cmap, vmin=vmin, vmax=vmax,
+                       edgecolors='w', lw=.35)
 #    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
 #        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
 #                color='k', fontsize=7)
@@ -307,7 +344,7 @@ for genotype in ("oprm1", "d1", "a2a"):
         ax.pcolormesh(np.arange(n).reshape(1,n) if orient=='h' 
                           else np.arange(n).reshape(n,1),
                       cmap=mpl.colors.ListedColormap(list(pal)),
-                      alpha=.8, edgecolors='none', lw=0)
+                      alpha=1, edgecolors='w', lw=.35)
         if orient=='h':
             ax.set_xlim((0,5))
         else:
@@ -316,9 +353,113 @@ for genotype in ("oprm1", "d1", "a2a"):
 
 cax = layout.axes['corr_colorbar']['axis']
 cb = plt.colorbar(cm, cax=cax, orientation='horizontal',
-                  ticks=(vmin,vmax))
+                  ticks=(vmin, (vmin+vmax)/2, vmax))
 cax.tick_params(axis='x', which='both',length=0)
 cb.outline.set_visible(False)
+
+
+#%% plot coefficients for pooled data
+ax = layout.axes['log_reg_coef']['axis']
+
+coefficients_mean = logRegCoef.mean(axis=0)
+coefficients_sem = logRegCoef.sem(axis=0)
+trials_back=7
+
+ax.errorbar(-np.arange(1,trials_back+1),
+            coefficients_mean[['Y{}'.format(j) for j in range(1,trials_back+1)]].values, 
+            yerr=coefficients_sem[['Y{}'.format(j) for j in range(1,trials_back+1)]].values,
+            marker='.', markersize=2.5, color=style.getColor('stay'), label='reward',
+            clip_on=False)
+ax.errorbar(-np.arange(1,trials_back+1),
+            coefficients_mean[['N{}'.format(j) for j in range(1,trials_back+1)]].values, 
+            yerr=coefficients_sem[['N{}'.format(j) for j in range(1,trials_back+1)]].values,
+            marker='.', markersize=2.5, color=style.getColor('switch'), label='no reward',
+            clip_on=False)
+ax.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
+            marker='.', markersize=2.5, color='k', label='bias', clip_on=False)
+
+for (gt,a), coefficients in logRegCoef.groupby(['genotype','animal']):
+    ax.plot(-np.arange(1,trials_back+1),
+            coefficients[['Y{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
+            color=style.getColor('stay'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
+            clip_on=False)
+    ax.plot(-np.arange(1,trials_back+1),
+            coefficients[['N{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
+            color=style.getColor('switch'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
+            clip_on=False)
+    ax.scatter(0, coefficients['intercept'], color='k', marker='.',
+               s=8, label='', edgecolors='none', alpha=.2, clip_on=False)
+
+ax.axhline(0, zorder=-99, ls=':', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+
+ax.xaxis.set_minor_locator(MultipleLocator(1))
+ax.set_xticks((0,-7))
+ax.set_xlim((-7.35,0))
+ax.set_yticks([0, 1, 2, 3])
+ax.set_ylim((-.5, 3))
+ax.legend(bbox_to_anchor=(.05,1.05), loc='upper left')
+ax.set_xlabel('trials back')
+ax.set_ylabel('coefficient')
+sns.despine(ax=ax)
+
+
+#%%
+def get_logit(df, dep='leftIn'):
+    logit = analysisStaySwitchDecoding.sm.Logit(df[dep], df[['value']])
+    result = logit.fit(use_t=True, disp=False)
+    stats = pd.DataFrame({'t':result.tvalues, 'p':result.pvalues, 'b':result.params})
+    
+    x = np.arange(-5, 5, .01)
+    y = result.predict(np.array([x]).T)
+    prediction = pd.DataFrame({'x':x, 'y':y})
+    
+    return(result, stats, prediction)
+    
+
+ax = layout.axes['log_reg_reg']['axis']
+df = logRegDF.copy()
+
+ax.set_xlim((-5, 5.6))
+ax.set_xticks((-5,0,5))
+ax.set_ylim((-.0475, 1))
+ax.set_yticks((0,.5,1))
+ax.set_yticklabels((0,50,100))
+ax.xaxis.set_minor_locator(MultipleLocator(2.5))
+ax.yaxis.set_minor_locator(MultipleLocator(.25))
+
+# plot lines for pooled data
+result, stats, prediction = get_logit(df)
+pp = ax.plot(prediction.x, prediction.y, c='darkgray',
+             alpha=1, zorder=1, clip_on=False)
+
+## plot binned scatter data
+bins = np.arange(-5.5,5.6)
+df['bins'] = pd.cut(df.value, bins=bins)
+# take bin mean per animal -> mean and sem per bin
+scatter_means = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').mean()
+scatter_sems = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').sem()
+eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
+                 yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
+                 fmt='.', c='darkgray', zorder=2, marker='.', 
+                 markersize=2.5, clip_on=False)
+
+stay_hist = (df.groupby(['animal','bins'])[['value','switch']].mean()
+               .groupby('bins').agg(['mean','sem']))
+hist = ax.bar(bins[:-1]+.5, stay_hist.switch['mean'],
+              yerr=stay_hist.switch['sem'], color=style.getColor('switch'),
+              alpha=.5, lw=0, width=.8, clip_on=False, zorder=99)
+
+ax.legend(handles=(eb, hist), labels=('left\nchoice','switch'),
+          bbox_to_anchor=(.6,1.16), loc='upper left')
+ax.axvline(0, zorder=-99, ls=':', c='k', alpha=.35,
+           lw=mpl.rcParams['axes.linewidth'])
+ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
+           lw=mpl.rcParams['axes.linewidth'])
+ax.set_ylabel('% trials')
+ax.set_xlabel('action value')
+
+ax.invert_xaxis()
+sns.despine(ax=ax)
 
 
 #%%
@@ -330,7 +471,7 @@ prob_value_df = prob_value_df.reset_index()
 prob_value_df['stay'] = prob_value_df.label.str.endswith('.').astype('int')
 
     
-#%%
+##%%
 data = prob_value_df.query('action in ["pC2L","pC2R"]').dropna().copy()
 data = data.loc[data.label.str.contains('o!$|o\.$|r\.$')]
 
@@ -500,282 +641,153 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
         ax.set_axis_off()
     
 
-#%% plot coefficients for pooled data
-ax = layout.axes['log_reg_coef']['axis']
-
-coefficients_mean = logRegCoef.mean(axis=0)
-coefficients_sem = logRegCoef.sem(axis=0)
-trials_back=7
-
-ax.errorbar(-np.arange(1,trials_back+1),
-            coefficients_mean[['Y{}'.format(j) for j in range(1,trials_back+1)]].values, 
-            yerr=coefficients_sem[['Y{}'.format(j) for j in range(1,trials_back+1)]].values,
-            marker='.', markersize=2.5, color=style.getColor('stay'), label='reward',
-            clip_on=False)
-ax.errorbar(-np.arange(1,trials_back+1),
-            coefficients_mean[['N{}'.format(j) for j in range(1,trials_back+1)]].values, 
-            yerr=coefficients_sem[['N{}'.format(j) for j in range(1,trials_back+1)]].values,
-            marker='.', markersize=2.5, color=style.getColor('switch'), label='no reward',
-            clip_on=False)
-ax.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
-            marker='.', markersize=2.5, color='k', label='bias', clip_on=False)
-
-for (gt,a), coefficients in logRegCoef.groupby(['genotype','animal']):
-    ax.plot(-np.arange(1,trials_back+1),
-            coefficients[['Y{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
-            color=style.getColor('stay'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
-            clip_on=False)
-    ax.plot(-np.arange(1,trials_back+1),
-            coefficients[['N{}'.format(j) for j in range(1,trials_back+1)]].values.flatten(),
-            color=style.getColor('switch'), label='', alpha=.2, lw=mpl.rcParams['axes.linewidth'],
-            clip_on=False)
-    ax.scatter(0, coefficients['intercept'], color='k', marker='.',
-               s=8, label='', edgecolors='none', alpha=.2, clip_on=False)
-
-ax.axhline(0, zorder=-99, ls=':', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-
-ax.xaxis.set_minor_locator(MultipleLocator(1))
-ax.set_xticks((0,-7))
-ax.set_xlim((-7.35,0))
-ax.set_yticks([0, 1, 2, 3])
-ax.set_ylim((-.5, 3))
-ax.legend(bbox_to_anchor=(.05,1.05), loc='upper left')
-ax.set_xlabel('trials back')
-ax.set_ylabel('coefficient')
-sns.despine(ax=ax)
-
-
-#%%
-def get_logit(df, dep='leftIn'):
-    logit = analysisStaySwitchDecoding.sm.Logit(df[dep], df[['value']])
-    result = logit.fit(use_t=True, disp=False)
-    stats = pd.DataFrame({'t':result.tvalues, 'p':result.pvalues, 'b':result.params})
-    
-    x = np.arange(-5, 5, .01)
-    y = result.predict(np.array([x]).T)
-    prediction = pd.DataFrame({'x':x, 'y':y})
-    
-    return(result, stats, prediction)
-    
-
-ax = layout.axes['log_reg_reg']['axis']
-df = logRegDF.copy()
-
-ax.set_xlim((-5, 5.6))
-ax.set_xticks((-5,0,5))
-ax.set_ylim((-.0475, 1))
-ax.set_yticks((0,.5,1))
-ax.set_yticklabels((0,50,100))
-ax.xaxis.set_minor_locator(MultipleLocator(2.5))
-ax.yaxis.set_minor_locator(MultipleLocator(.25))
-
-# plot lines for pooled data
-result, stats, prediction = get_logit(df)
-pp = ax.plot(prediction.x, prediction.y, c='darkgray',
-             alpha=1, zorder=1, clip_on=False)
-
-## plot binned scatter data
-bins = np.arange(-5.5,5.6)
-df['bins'] = pd.cut(df.value, bins=bins)
-# take bin mean per animal -> mean and sem per bin
-scatter_means = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').mean()
-scatter_sems = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').sem()
-eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
-                 yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
-                 fmt='.', c='darkgray', zorder=2, marker='.', 
-                 markersize=2.5, clip_on=False)
-
-stay_hist = (df.groupby(['animal','bins'])[['value','switch']].mean()
-               .groupby('bins').agg(['mean','sem']))
-hist = ax.bar(bins[:-1]+.5, stay_hist.switch['mean'],
-              yerr=stay_hist.switch['sem'], color=style.getColor('switch'),
-              alpha=.5, lw=0, width=.8, clip_on=False, zorder=99)
-
-ax.legend(handles=(eb, hist), labels=('left\nchoice','switch'),
-          bbox_to_anchor=(.6,1.16), loc='upper left')
-ax.axvline(0, zorder=-99, ls=':', c='k', alpha=.35,
-           lw=mpl.rcParams['axes.linewidth'])
-ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
-           lw=mpl.rcParams['axes.linewidth'])
-ax.set_ylabel('% trials')
-ax.set_xlabel('action value')
-
-ax.invert_xaxis()
-sns.despine(ax=ax)
-
-
-#%% plot stay vs switch ROC AUC tuning distributions
-staySwitch = staySwitchAUC.loc[staySwitchAUC.action.isin(['pC2L','pC2R'])].copy()
-palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
-
-# plot histograms
-for a, adata in staySwitch.groupby('action'):
-    ax = layout.axes['{}_auc_kde'.format('pL' if 'L' in a else 'pR')]['axis']
-    
-    for gt, agdata in adata.groupby('genotype'):
-#        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
-#                color=style.getColor(gt), label=gt, density=True,
-#                lw=2, alpha=.8)
-        sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
-                     ax=ax, color=style.getColor(gt), hist=False,
-                     kde_kws={'clip_on':False, 'alpha':.75})
-    
-    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_ylim((0,2))
-    ax.set_yticks((0,1,2))
-    ax.set_yticklabels(())
-    ax.set_ylabel('')
-    if a == 'pC2L':
-        ax.set_ylabel('density')
-        ax.set_yticklabels(ax.get_yticks())
-    ax.set_xlim((-1,1))
-    ax.set_xticks(())
-    ax.set_xlabel('')
-    sns.despine(bottom=True, trim=True, ax=ax)
-    
-    ax = layout.axes['{}_auc_bp'.format('pL' if 'L' in a else 'pR')]['axis']
-
-    sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
-                palette=palette, saturation=.85, showcaps=False, showfliers=False,
-                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
-                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
-                medianprops={'c':'k','zorder':99, 'clip_on':False})
-    
-    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_xlim((-1,1))
-    ax.set_ylim((-.75,2.75))
-    ax.set_xticks((-1,0,1))
-    ax.set_xticklabels((-1,'',1))
-    ax.set_xticks((-.5,.5), minor=True)
-    ax.set_xlabel('')
-    ax.set_yticks(())
-    ax.set_ylabel('')
-    sns.despine(left=True, trim=True, ax=ax)
-    
-axt = layout.axes['auc_legend']['axis']
-legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
-                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1'}[gt])
-                   for gt in ['d1','a2a','oprm1']
-                  ]
-axt.legend(handles=legend_elements, ncol=3, loc='center',
-           mode='expand')
-axt.axis('off')
-
-
-#%%
-examples = [("5308", "190131", 292, "oprm1"),
-            ("5643", "190114", 178, "d1")]
-
-for p, (a, d, n, gt) in enumerate(examples):
-    s = next(readSessions.findSessions(endoDataPath, genotype=gt,
-                                       animal=a, date=d, task='2choice'))
-    traces = s.readDeconvolvedTraces(zScore=True)
-    
-    lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
-    d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
-                 lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
-                .reset_index().set_index(lfa.index))
-    lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
-    
-    #action = 'pC2R'
-    #coefs = C.query('genotype == @gt & animal == @a & date == @d & action == @action & ' +
-    #                'shuffled == False')
-    #aucs = staySwitchAUC.query('genotype == @gt & animal == @a & date == @d & action == @action')
-    #wstay_trace = traces[aucs.loc[aucs.auc.idxmax(), 'neuron']]
-    #lswitch_trace = traces[aucs.loc[aucs.auc.idxmin(), 'neuron']]
-    trace = traces[n]
-    
-    for trialType in ['r.','o.','o!']:
-        axfv = layout.axes['f8_ex{}_{}'.format(p+1, trialType)]['axis']
-        fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
-                                             linewidth=mpl.rcParams['axes.linewidth'],
-                                             smoothing=7.5, saturation=1.5)
-        fv.setMask(lfa.label.str.endswith(trialType).values)
-        img = fv.draw(trace, ax=axfv)
-
-cax = layout.axes['colorbar']['axis']
-cb = plt.colorbar(img, cax=cax, orientation='horizontal')
-cb.outline.set_visible(False)
-cax.set_axis_off()
-cax.text(-1.55, -.3, '-1.5', ha='right', va='center', fontdict={'fontsize':6})
-cax.text(1.55, -.3, '1.5', ha='left', va='center', fontdict={'fontsize':6})
-cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
-
-
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 
 
 #%%###############################################################################
+#def bootstrapSEM(values, weights, iterations=1000):
+#    avgs = []
+#    for _ in range(iterations):
+#        idx = np.random.choice(len(values), len(values), replace=True)
+#        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
+#    return np.std(avgs)
+#    
+##accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
+#fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
+#toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
+#td = (toDate - fromDate).dt.days
+#decodingAcrossDays["dayDifference"] = td
+#
+#for label in ("pC2L", "pC2R", "mC2L", "mC2R", "mL2C", "mR2C"):
+#    selection = decodingAcrossDays[decodingAcrossDays.label == label]
+#    for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
+#        g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
+#
+#        perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
+#        perAnimal["genotype"] = g.genotype.first()
+#
+#
+#        scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * np.stack([perAnimal.nNeurons,
+#                                                                              perAnimal.nNeurons],
+#                                                                             axis=1)
+#        perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
+#        totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
+#        perGenotype /= np.stack([totalNeurons,totalNeurons], axis=1)
+#
+#        shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * np.stack([perAnimal.nNeurons,
+#                                                                                     perAnimal.nNeurons],
+#                                                                                    axis=1)
+#        shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
+#
+#        plt.sca(layout.axes["decodingAccrossDays_{}_{}".format(label, i+1)]["axis"])
+#
+#        for r in perAnimal.itertuples():
+#            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
+#                     c=style.getColor(r.genotype), alpha=0.2)
+#        for r in perGenotype.itertuples():
+#            gt = r.Index
+#            animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
+#            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+#            nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
+#            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+#                         c=style.getColor(gt))
+#
+#        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+#                 c=style.getColor("shuffled"))
+#
+#        plt.ylim(0.45,1)
+#        plt.xlim(-0.25, 1.25)
+#        xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
+#        plt.xticks((0,1), ("Same\nday", xlab[i]))
+#        if i==0:
+#            plt.yticks(np.linspace(0.5,1,6), np.linspace(50,100,6,dtype=np.int64))
+#            plt.ylabel("Decoding accuracy (%)")
+#        else:
+#            plt.yticks(np.linspace(0.5,1,6), [""]*5)
+#        sns.despine(ax=plt.gca())
+
+
+#%%
 #fig, axs = plt.subplots(2,1)
 #analysisStaySwitchDecoding.drawCoefficientWeightedAverage(endoDataPath, C, 'oprm1', 'pC2L',
 #                                                          axs)
 #plt.show()
+
+
+#%%
+#for (gt,ta), gdata in (crossDecoding.query('(trainAction == "mL2C" & testAction == "mC2L") | '+
+#                                           '(trainAction == "mR2C" & testAction == "mC2R")')
+#                                    .groupby(['genotype','testAction'])):
+#    ax = layout.axes['{}_{}_cross'.format(gt,ta)]['axis']
+#    
+#    wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy', 'noNeurons')
+#    wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy', 'noNeurons')
+#    s_wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy_shuffle', 'noNeurons')
+#    s_wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy_shuffle', 'noNeurons')
+#    
+#    ax.errorbar(0, wAvg, yerr=wSem, color=style.getColor(ta), clip_on=False,
+#                marker='v', markersize=3.6, markerfacecolor='w',
+#                markeredgewidth=.8)
+#    ax.errorbar(1, s_wAvg, yerr=s_wSem, color=style.getColor(ta), clip_on=False,
+#                marker='o', markersize=3.2, markerfacecolor='w',
+#                markeredgewidth=.8)
+#    ax.plot([0,1], [wAvg, s_wAvg], color=style.getColor(ta), clip_on=False)
+#    
+#    for acc in gdata[['accuracy','accuracy_shuffle','noNeurons']].values:
+#        ax.plot([0,1], acc[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
+#                clip_on=False, zorder=-99, color=style.getColor(ta))
+#    
+#    ax.axhline(.5, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
 #
+#    ax.set_ylim((.5,1))    
+#    ax.set_xlim((-.35,1.35))
+#    if ta == 'mC2L':
+#        ax.set_xticks(())
+#        ax.set_yticks((.5,.75,1.))
+#        ax.set_yticklabels(())
+#        if gt == 'a2a':
+#            ax.set_ylabel('decoding accuracy (%)')
+#            ax.set_yticklabels((50,75,100))
+#        sns.despine(ax=ax, bottom=True, trim=True)
+#    else:
+#        ax.set_axis_off()
+
+
 #%%
-for (gt,ta), gdata in (crossDecoding.query('(trainAction == "mL2C" & testAction == "mC2L") | '+
-                                           '(trainAction == "mR2C" & testAction == "mC2R")')
-                                    .groupby(['genotype','testAction'])):
-    ax = layout.axes['{}_{}_cross'.format(gt,ta)]['axis']
+#real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)
+#
+##%%
+#cross_df = real.copy()
+##%%
+#cross_df = cross_df.set_index(['genotype','animal','date','trainAction','testAction'])
+#cross_df = (cross_df.groupby(['genotype','trainAction','testAction'])
+#                    .apply(analysisStaySwitchDecoding.wAvg, 'accuracy','noNeurons'))
+##%%
+#order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+#for gt, df in cross_df.groupby('genotype'):
+#    df = df.unstack().loc[gt].reindex(order)[order]
+#
+#    plt.figure(figsize=(2.25,2))
+##    plt.pcolormesh(df, vmin=0, vmax=1, cmap=cmocean.cm.balance,
+##                   edgecolors='none')
+#    sns.heatmap(df, vmin=0, vmax=1, cmap=cmocean.cm.balance, square=True, 
+#                cbar=True, annot=df, fmt='.02f')
+#    plt.xlim((0,6))
+#    plt.ylim((0,6))
+#    plt.yticks(np.arange(.5, 5.6), order)
+#    plt.xticks(np.arange(.5, 5.6), order)
+#    #plt.colorbar()
+#    #plt.gca().set_aspect('equal')
+#    plt.suptitle(gt, y=.95)
+#    plt.show()
     
-    wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy', 'noNeurons')
-    wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy', 'noNeurons')
-    s_wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy_shuffle', 'noNeurons')
-    s_wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy_shuffle', 'noNeurons')
-    
-    ax.errorbar(0, wAvg, yerr=wSem, color=style.getColor(ta), clip_on=False,
-                marker='v', markersize=3.6, markerfacecolor='w',
-                markeredgewidth=.8)
-    ax.errorbar(1, s_wAvg, yerr=s_wSem, color=style.getColor(ta), clip_on=False,
-                marker='o', markersize=3.2, markerfacecolor='w',
-                markeredgewidth=.8)
-    ax.plot([0,1], [wAvg, s_wAvg], color=style.getColor(ta), clip_on=False)
-    
-    for acc in gdata[['accuracy','accuracy_shuffle','noNeurons']].values:
-        ax.plot([0,1], acc[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
-                clip_on=False, zorder=-99, color=style.getColor(ta))
-    
-    ax.axhline(.5, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-
-    ax.set_ylim((.5,1))    
-    ax.set_xlim((-.35,1.35))
-    if ta == 'mC2L':
-        ax.set_xticks(())
-        ax.set_yticks((.5,.75,1.))
-        ax.set_yticklabels(())
-        if gt == 'a2a':
-            ax.set_ylabel('decoding accuracy (%)')
-            ax.set_yticklabels((50,75,100))
-        sns.despine(ax=ax, bottom=True, trim=True)
-    else:
-        ax.set_axis_off()
-
-
 #%%
-real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)
-
-#%%
-cross_df = real.copy()
-#%%
-cross_df = cross_df.set_index(['genotype','animal','date','trainAction','testAction'])
-cross_df = (cross_df.groupby(['genotype','trainAction','testAction'])
-                    .apply(analysisStaySwitchDecoding.wAvg, 'accuracy','noNeurons'))
-#%%
-order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
-for gt, df in cross_df.groupby('genotype'):
-    df = df.unstack().loc[gt].reindex(order)[order]
-
-    plt.figure(figsize=(2.25,2))
-#    plt.pcolormesh(df, vmin=0, vmax=1, cmap=cmocean.cm.balance,
-#                   edgecolors='none')
-    sns.heatmap(df, vmin=0, vmax=1, cmap=cmocean.cm.balance, square=True, 
-                cbar=True, annot=df, fmt='.02f')
-    plt.xlim((0,6))
-    plt.ylim((0,6))
-    plt.yticks(np.arange(.5, 5.6), order)
-    plt.xticks(np.arange(.5, 5.6), order)
-    #plt.colorbar()
-    #plt.gca().set_aspect('equal')
-    plt.suptitle(gt, y=.95)
-    plt.show()
+#def jaccardSimilarity(tunings):
+#    def _jaccard(data):
+#        return pd.DataFrame((1-squareform(pdist(data.T, 'jaccard')))*100,
+#                            index=data.columns, columns=data.columns)
+#    order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+#    similarity = _jaccard(tunings.unstack()[order])
+#    return similarity
