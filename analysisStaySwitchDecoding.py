@@ -506,226 +506,50 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
         
 
 #%%
-#def drawPopAverageFV(dataFile, popdf, axes, cax=False):
-#    # can't create a intensity plot without session data
-#    s = next(readSessions.findSessions(dataFile, task='2choice'))
-#    fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
-#    fvLSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
-#    fvLSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-#                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
-#    
-#    for (genotype,animal,date), pop in popdf.groupby(['genotype','animal','date']):
-#        s = next(readSessions.findSessions(dataFile, task='2choice',
-#                                           genotype=genotype, animal=animal, date=date))
-#        
-#        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-#        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
-#        d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
-#                     lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
-#                    .reset_index().set_index(lfa.index))
-#        lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
-#    
-#        fvWSt.setSession(s)
-#        fvWSt.setMask(lfa.label.str.endswith('r.'))
-#        for neuron in pop.neuron:
-#            fvWSt.addTraceToBuffer(deconv[neuron])
-#
-#        fvLSt.setSession(s)
-#        fvLSt.setMask(lfa.label.str.endswith('o.'))
-#        for neuron in pop.neuron:
-#            fvLSt.addTraceToBuffer(deconv[neuron])
-#        
-#        fvLSw.setSession(s)
-#        fvLSw.setMask(lfa.label.str.endswith('o!'))
-#        for neuron in pop.neuron:
-#            fvLSw.addTraceToBuffer(deconv[neuron])
-#    
-#    wstax, lstax, lswax = axes[0], axes[1], axes[2]
-#    
-#    fvWSt.drawBuffer(ax=wstax) # drawing flushes buffer
-#    fvLSt.drawBuffer(ax=lstax)
-#    img = fvLSw.drawBuffer(ax=lswax)
-#    
-#    if cax:
-#        cb = plt.colorbar(img, cax=cax)
-#        cax.tick_params(axis='y', which='both',length=0)
-#        cb.outline.set_visible(False)
-
-
-#%%
-def drawPopAverageFV(dataFile, pop_df, av_df, axes, cax=False):
+def drawPopAverageFV(dataFile, popdf, axes, cax=False):
     # can't create a intensity plot without session data
     s = next(readSessions.findSessions(dataFile, task='2choice'))
-    fvs = []
-    for _ in range(6):
-        fvs.append(fancyViz.SchematicIntensityPlot(s, splitReturns=False,
-                                                   splitCenter=True,
-                                                   saturation=.25,
-                                                   linewidth=mpl.rcParams['axes.linewidth']))
+    fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+    fvLSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+    fvLSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
     
-    for (genotype,animal,date), pop in pop_df.groupby(['genotype','animal','date']):
+    for (genotype,animal,date), pop in popdf.groupby(['genotype','animal','date']):
         s = next(readSessions.findSessions(dataFile, task='2choice',
                                            genotype=genotype, animal=animal, date=date))
         
-        deconv = s.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
         lfa = s.labelFrameActions(switch=True, reward='fullTrial')
-        av = av_df.query('genotype == @s.meta.genotype & '+
-                         'animal == @s.meta.animal & '+
-                         'date == @s.meta.date').copy()
-        
-        if lfa.actionNo.iloc[-1] != av.actionNo.iloc[-1]:
-            print('We have a problem, Cap!')
-        lfa = lfa.merge(av[['actionNo','label','value']], on=['actionNo','label'])
-        
         d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
                      lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
                     .reset_index().set_index(lfa.index))
         lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+    
+        fvWSt.setSession(s)
+        fvWSt.setMask(lfa.label.str.endswith('r.'))
+        for neuron in pop.neuron:
+            fvWSt.addTraceToBuffer(deconv[neuron])
+
+        fvLSt.setSession(s)
+        fvLSt.setMask(lfa.label.str.endswith('o.'))
+        for neuron in pop.neuron:
+            fvLSt.addTraceToBuffer(deconv[neuron])
         
-        lfa['bin'] = pd.cut(lfa.value, bins=[-10,-2,-1,0,1,2,10])
+        fvLSw.setSession(s)
+        fvLSw.setMask(lfa.label.str.endswith('o!'))
+        for neuron in pop.neuron:
+            fvLSw.addTraceToBuffer(deconv[neuron])
     
-        for v, b in enumerate(lfa.bin.cat.categories):
-            fv = fvs[v]
-            fv.setSession(s)
-            frames = lfa.label.str.endswith('o.') & (lfa.bin == b)
-            fv.setMask(frames)
-            for neuron in pop.neuron:
-                trace = deconv[neuron]
-                trace -= trace[frames].mean()
-                trace /= trace[frames].std()
-                fv.addTraceToBuffer(trace)
+    wstax, lstax, lswax = axes[0], axes[1], axes[2]
     
-    for v, ax in enumerate(axes):
-        fv = fvs[v]
-        img = fv.drawBuffer(ax=ax) # drawing flushes buffer
+    fvWSt.drawBuffer(ax=wstax) # drawing flushes buffer
+    fvLSt.drawBuffer(ax=lstax)
+    img = fvLSw.drawBuffer(ax=lswax)
     
     if cax:
-        cb = plt.colorbar(img, cax=cax)
-        cax.tick_params(axis='y', which='both',length=0)
+        cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+        cax.tick_params(axis='x', which='both',length=0)
         cb.outline.set_visible(False)
 
-
-#%%
-#def getWStayLSwitchResp(dataFile):
-#    def _getAverages(deconv, lfa, selectedLabels):
-#        avgSig = deconv.groupby(lfa.actionNo).mean() # trial-average
-#        labels = lfa.groupby("actionNo").label.first()
-#        avgSig = avgSig.groupby(labels).mean() # label-average
-#        avgSig =  avgSig.loc[selectedLabels].stack().reset_index('label')
-#        avgSig.index.name = 'neuron'
-#        avgSig.columns = ['label','avg']
-#        return avgSig
-#        
-#    avgSigs = pd.DataFrame()
-#    for sess in readSessions.findSessions(dataFile, task='2choice'):
-#        deconv = sess.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
-#        deconv -= deconv.min(axis=0)
-#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-#        if len(deconv) != len(lfa): continue
-#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-#                                                  'pC2R','mC2R','mR2C']
-#                                     for trial in ['r.','o.','o!']]
-#        avgSig = _getAverages(deconv, lfa, selectedLabels)
-#        avgSig['action'] = avgSig.label.str.slice(0,4)
-#        avgSig['trialType'] = avgSig.label.str.slice(4)
-#        avgSig = avgSig.set_index(['action','trialType'], append=True)['avg']
-#        avgSig = avgSig.unstack('trialType').reset_index()
-#        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
-#                    ('genotype',sess.meta.genotype)]:
-#            avgSig.insert(0, k, v)
-#        avgSigs = avgSigs.append(avgSig)
-#    
-#    return avgSigs
-#
-#
-##%%
-#def getWStayLSwitchT(dataFile):
-#    def _ttest(adata):
-#        statistics = ttest_ind(adata.query('trialType == "r."'),
-#                               adata.query('trialType == "o!"'), axis=0).statistic
-#        statistics = pd.Series(statistics, index=adata.columns)
-#        return statistics
-#        
-#    stats_df = pd.DataFrame()
-#    for sess in readSessions.findSessions(dataFile, task='2choice'):
-#        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-#        if len(deconv) != len(lfa): continue
-#        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
-#        labels = lfa.groupby("actionNo").label.first()
-#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-#                                                  'pC2R','mC2R','mR2C']
-#                                     for trial in ['r.','o!']]
-#        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
-#        labels = labels.loc[validTrials]
-#        trialAvgs = trialAvgs.loc[validTrials]
-#        
-#        trialAvgs.set_index([pd.Series(labels.str.slice(0,4), name='action'),
-#                             pd.Series(labels.str.slice(4), name='trialType')],
-#                            inplace=True)
-#        stats = trialAvgs.groupby('action').apply(_ttest)
-#       
-#        stats = pd.DataFrame(stats.stack(), columns=['tvalue'])
-#        stats.index.names = ['action','neuron']
-#        stats = stats.reset_index()
-#        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
-#                    ('genotype',sess.meta.genotype)]:
-#            stats.insert(0, k, v)
-#        
-#        stats_df = stats_df.append(stats, ignore_index=True)
-#    return stats_df
-#
-#
-##%%
-#def getStaySwitchTuning(dataFile, n_shuffles=1000):
-#    def _shuffleLabels(labels):
-#        # shuffles within action, i.e. mC2Lo! will be replaced by another mC2L trial.
-#        labels = labels.groupby(labels.str.slice(0,4)).apply(
-#                                     lambda ls: pd.Series(np.random.permutation(ls),
-#                                                          index=ls.index))
-#        return labels
-#    
-#    df = pd.DataFrame()
-#    for sess in readSessions.findSessions(dataFile, task='2choice'):
-#        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-#        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-#        if len(deconv) != len(lfa): continue
-#        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
-#        labels = lfa.groupby("actionNo").label.first()
-#        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-#                                                  'pC2R','mC2R','mR2C']
-#                                     for trial in ['r.','o!']]
-#        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
-#        labels = labels.loc[validTrials]
-#        trialAvgs = trialAvgs.loc[validTrials]
-#        
-#        avgs = trialAvgs.groupby(labels).mean().stack()
-#        avgs.index.names = ['label', 'neuron']
-#        
-#        avgs_dist = [trialAvgs.groupby(_shuffleLabels(labels)).mean() for _ in range(n_shuffles)]
-#        avgs_dist = (pd.concat(avgs_dist, keys=np.arange(n_shuffles), names=['shuffle_no'])
-#                       .reorder_levels(['label','shuffle_no']).sort_index())
-#            
-#        for label, ldata in avgs_dist.groupby('label'):
-#            for neuron in ldata:
-#                ndict = {}
-#                dist = ldata[neuron].values # shuffled "label" means distribution
-#                value = avgs.loc[label, neuron] # actual mean
-#                
-#                ndict['genotype'] = sess.meta.genotype
-#                ndict['animal'] = sess.meta.animal
-#                ndict['date'] = sess.meta.date
-#                ndict['neuron'] = neuron
-#                ndict['label'] = label
-#                ndict['mean'] = value
-#                ndict['s_mean'] = dist.mean()
-#                ndict['s_std'] = dist.std()
-#                ndict['tuning'] = (ndict['mean'] - ndict['s_mean']) / ndict['s_std']
-#                # v percentile of the actual mean in the shuffled distribution
-#                ndict['pct'] = np.searchsorted(np.sort(dist), value) / len(dist)
-#                
-#                df = df.append(pd.Series(ndict), ignore_index=True)
-#        
-#    return df
