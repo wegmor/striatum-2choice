@@ -506,21 +506,36 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
         
 
 #%%
-def drawPopAverageFV(dataFile, popdf, axes, cax=False):
+def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False):
     # can't create a intensity plot without session data
     s = next(readSessions.findSessions(dataFile, task='2choice'))
     fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+                                            saturation=.25, smoothing=7,
+                                            linewidth=mpl.rcParams['axes.linewidth'])
     fvLSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+                                            saturation=.25, smoothing=7,
+                                            linewidth=mpl.rcParams['axes.linewidth'])
     fvLSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, linewidth=mpl.rcParams['axes.linewidth'])
+                                            saturation=.25, smoothing=7,
+                                            linewidth=mpl.rcParams['axes.linewidth'])
+    
+    # if weighing by auc, they need to sum to the total number of neurons for
+    # the fancyViz average to make sense; assumes one auc value per neuron in popdf!
+    if auc_weigh:
+        popdf = popdf.copy()
+        # .abs() in case of averaging stay & switch tuned neurons into a single plot
+        # -> weights by absolute value, but maintains sign of tuning
+        popdf['auc'] = (popdf.auc / popdf.auc.abs().sum()) * len(popdf.auc)
     
     for (genotype,animal,date), pop in popdf.groupby(['genotype','animal','date']):
         s = next(readSessions.findSessions(dataFile, task='2choice',
                                            genotype=genotype, animal=animal, date=date))
         
         deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        if auc_weigh:
+            aucs = pop.set_index('neuron').auc
+            deconv *= aucs
+        
         lfa = s.labelFrameActions(switch=True, reward='fullTrial')
         d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
                      lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
@@ -541,6 +556,8 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False):
         fvLSw.setMask(lfa.label.str.endswith('o!'))
         for neuron in pop.neuron:
             fvLSw.addTraceToBuffer(deconv[neuron])
+            
+        s.hdfFile.close()
     
     wstax, lstax, lswax = axes[0], axes[1], axes[2]
     
