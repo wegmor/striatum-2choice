@@ -73,32 +73,17 @@ if cachedDataPath.is_file():
 else:
     staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
     staySwitchAUC.to_pickle(cachedDataPath)
-     
 
-#%%
-staySwitchAUC['sign'] = (staySwitchAUC.pct > .995).astype('int') - (staySwitchAUC.pct < .005).astype('int')
-
-for genotype in ['d1','a2a','oprm1']:
-    layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSuppTuningAvgs.svg")
-    layout.make_mplfigures()
+cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
+if cachedDataPath.is_file():
+    decodingAcrossDays = pd.read_pickle(cachedDataPath)
+else:
+    decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
+    decodingAcrossDays.to_pickle(cachedDataPath)
     
-    df = staySwitchAUC.query('genotype == @genotype & sign in [1,-1]').copy()
-    df['auc'] = df.auc.abs()
-    
-    for (sign,action), pop_df in df.groupby(['sign','action']):
-        axs = [layout.axes['{}{}_{}'.format(action,tt,{1:'stay',-1:'switch'}[sign])]['axis']
-                   for tt in ['r.','o.','o!']]
-        cax = layout.axes['colorbar']['axis']
-        
-        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs, cax,
-                                                    auc_weigh=True)
-        
-    layout.insert_figures('plots')
-    layout.write_svg(outputFolder / "staySwitchDecodingSuppTuningAvgs_{}.svg".format(genotype))
-   
     
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSupp.svg")
+layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSupp1.svg")
 layout.make_mplfigures()
 
 
@@ -156,6 +141,38 @@ legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
 axt.legend(handles=legend_elements, ncol=3, loc='center',
            mode='expand')
 axt.axis('off')
+
+
+#%%
+staySwitchAUC['sign'] = (staySwitchAUC.pct > .995).astype('int') - (staySwitchAUC.pct < .005).astype('int')
+cmap = (mpl.colors.LinearSegmentedColormap
+                  .from_list('cmap', [sns.color_palette('bright')[4],
+                                      (.9,.9,.9),
+                                      sns.color_palette('bright')[2]]))
+
+for genotype in ['d1','a2a','oprm1']:   
+    df = staySwitchAUC.query('genotype == @genotype & sign in [1,-1]').copy()
+    
+    for action, pop_df in df.groupby('action'):
+        axs = [layout.axes['{}_{}_avg'.format(genotype,action+tt)]['axis']
+                   for tt in ['r.','o.','o!']]
+        cax = layout.axes['colorbar']['axis']
+        
+        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs, cax,
+                                                    auc_weigh=True, saturation=.2,
+                                                    smoothing=5.5, cmap=cmap)
+
+#qcax.text(0, 1.01, 'tuning-weighted\nz-score', ha='center', va='bottom', fontdict={'fontsize':6})
+
+
+#%%
+layout.insert_figures('plots')
+layout.write_svg(outputFolder / "staySwitchDecodingSupp1.svg")
+
+
+#%%
+layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSupp2.svg")
+layout.make_mplfigures()
 
 
 #%%
@@ -271,5 +288,91 @@ axbpt.axis('off')
 
 
 #%%
+def bootstrapSEM(values, weights, iterations=1000):
+    avgs = []
+    for _ in range(iterations):
+        idx = np.random.choice(len(values), len(values), replace=True)
+        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
+    return np.std(avgs)
+
+fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
+toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
+td = (toDate - fromDate).dt.days
+decodingAcrossDays["dayDifference"] = td
+
+for label in ('mL2C','pC2L','mC2L','mR2C','pC2R','mC2R'):
+    selection = decodingAcrossDays[decodingAcrossDays.label == label]
+    for i,l,h in ((0,1,6), (1,7,100)):
+        g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
+                      .groupby(["animal", "fromDate", "toDate"]))
+
+        perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore',
+                              'sameDayShuffled', 'nextDayShuffled']]
+        perAnimal["genotype"] = g.genotype.first()
+
+
+        scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * np.stack([perAnimal.nNeurons,
+                                                                              perAnimal.nNeurons],
+                                                                             axis=1)
+        perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
+        totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
+        perGenotype /= np.stack([totalNeurons,totalNeurons], axis=1)
+
+        shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * np.stack([perAnimal.nNeurons,
+                                                                                     perAnimal.nNeurons],
+                                                                                    axis=1)
+        shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
+
+        plt.sca(layout.axes["decodingAcrossDays_{}_{}".format(label, i+1)]["axis"])
+
+        for r in perAnimal.itertuples():
+            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
+                     c=style.getColor(r.genotype), alpha=0.2)
+        for r in perGenotype.itertuples():
+            gt = r.Index
+            animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
+            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+            nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
+            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                         c=style.getColor(gt))
+
+        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+                 c=style.getColor("shuffled"))
+
+        plt.ylim(0.45,1)
+        plt.xlim(-0.25, 1.25)
+        xlab = ("1-6 days\nlater", "7+ days\nlater")
+        plt.xticks((0,1), ("same\nday", xlab[i]))
+        if (i == 0) and (label == 'mL2C'):
+            plt.yticks((.5,.75,1), (50,75,100))
+            plt.ylabel("decoding accuracy (%)")
+        else:
+            plt.yticks(np.linspace(0.5,1,6), [""]*5)
+        sns.despine(ax=plt.gca())
+
+
+#%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "staySwitchDecodingSupp.svg")
+layout.write_svg(outputFolder / "staySwitchDecodingSupp2.svg")
+
+
+#%%
+#staySwitchAUC['sign'] = (staySwitchAUC.pct > .995).astype('int') - (staySwitchAUC.pct < .005).astype('int')
+#
+#for genotype in ['d1','a2a','oprm1']:
+#    layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSuppTuningAvgs.svg")
+#    layout.make_mplfigures()
+#    
+#    df = staySwitchAUC.query('genotype == @genotype & sign in [1,-1]').copy()
+#    df['auc'] = df.auc.abs()
+#    
+#    for (sign,action), pop_df in df.groupby(['sign','action']):
+#        axs = [layout.axes['{}{}_{}'.format(action,tt,{1:'stay',-1:'switch'}[sign])]['axis']
+#                   for tt in ['r.','o.','o!']]
+#        cax = layout.axes['colorbar']['axis']
+#        
+#        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs, cax,
+#                                                    auc_weigh=True)
+#        
+#    layout.insert_figures('plots')
+#    layout.write_svg(outputFolder / "staySwitchDecodingSuppTuningAvgs_{}.svg".format(genotype))

@@ -2345,8 +2345,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="112.96954"
-     inkscape:cy="738.74332"
+     inkscape:cx="688.12337"
+     inkscape:cy="522.31657"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -2365,7 +2365,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="1920"
      inkscape:window-y="0"
-     inkscape:zoom="1.4"
+     inkscape:zoom="0.7"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -2451,44 +2451,6 @@
          x="277.94995"
          y="-196.64999" />
     </g>
-    <rect
-       height="20.821556"
-       id="rect50621-4-4"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74015748;stroke:none;stroke-width:0.04358615;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:0.71653544;filter:url(#filter3286)"
-       width="14.376392"
-       x="31.365488"
-       y="224.62321">
-      <figurefirst:axis
-         figurefirst:name="acc_v_speed" />
-    </rect>
-    <rect
-       height="25.71973"
-       id="rect15812-7"
-       style="display:inline;opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.62493694;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;filter:url(#filter3286)"
-       width="6.4355817"
-       x="24.929949"
-       y="219.72504" />
-    <rect
-       height="4.2968202"
-       id="rect1753"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74015748;stroke:none;stroke-width:0.14967784;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.14967785, 0.29935569;stroke-dashoffset:0;stroke-opacity:1;filter:url(#filter3286)"
-       width="14.373244"
-       x="31.368639"
-       y="219.72504">
-      <figurefirst:axis
-         figurefirst:name="acc_v_speed_bp" />
-    </rect>
-    <text
-       id="text3254"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:1;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="24.697397"
-       xml:space="preserve"
-       y="216.92595"><tspan
-         id="tspan3252"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="24.697397"
-         y="216.92595">B</tspan></text>
     <rect
        height="7.8104677"
        id="rect50621-4-4-1-1"
@@ -2902,208 +2864,6 @@
          figurefirst:name="d1_value_ost" />
     </rect>
     <rect
-       height="19.99999"
-       id="rect4924"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="72.231789"
-       y="195.63187">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2L_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect4926"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="92.231789"
-       y="195.63187">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2L_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect4928"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="112.23177"
-       y="195.63188">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2L_3" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6108"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="141.32085"
-       y="195.63187">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2R_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6110"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="161.32085"
-       y="195.63187">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2R_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6112"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="181.32085"
-       y="195.63188">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mC2R_3" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6114"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="72.231789"
-       y="226.36786">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mL2C_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6116"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="92.231789"
-       y="226.36786">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mL2C_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6118"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="112.23177"
-       y="226.36787">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mL2C_3" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6120"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="141.32085"
-       y="226.36786">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mR2C_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6122"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="161.32085"
-       y="226.36786">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mR2C_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6124"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534"
-       width="15"
-       x="181.32085"
-       y="226.36787">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_mR2C_3" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect4924-9"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="72.231789"
-       y="257.42075">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2L_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect4926-1"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="92.231781"
-       y="257.42075">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2L_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect4928-2"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="112.2318"
-       y="257.42078">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2L_3" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6108-7"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="141.32085"
-       y="257.42075">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2R_1" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6110-0"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="161.32083"
-       y="257.42075">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2R_2" />
-    </rect>
-    <rect
-       height="19.99999"
-       id="rect6112-9"
-       style="display:inline;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.20494534;stroke-linecap:butt;stroke-linejoin:round"
-       width="15"
-       x="181.32083"
-       y="257.42078">
-      <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_pC2R_3" />
-    </rect>
-    <text
-       id="text5513-3-3"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="79.363487"
-       xml:space="preserve"
-       y="256.36249"><tspan
-         id="tspan6147-6"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="79.363487"
-         y="256.36249">Center-to-left</tspan></text>
-    <text
-       id="text6157-0"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="148.68427"
-       xml:space="preserve"
-       y="256.36249"><tspan
-         id="tspan6155-6"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="148.68427"
-         y="256.36249">Center-to-right</tspan></text>
-    <rect
        height="2.7110846"
        id="rect1466-8"
        style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.1426789;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -3243,66 +3003,6 @@
        y="114.82022">
       <figurefirst:axis
          figurefirst:name="oprm1_o._corr" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-92"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="128.6626"
-       y="142.90134">
-      <figurefirst:axis
-         figurefirst:name="d1_mC2L_cross" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-9-5"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="133.728"
-       y="142.90134">
-      <figurefirst:axis
-         figurefirst:name="d1_mC2R_cross" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-5-4"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="128.6626"
-       y="156.32019">
-      <figurefirst:axis
-         figurefirst:name="a2a_mC2L_cross" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-5-3-0"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="133.728"
-       y="156.32019">
-      <figurefirst:axis
-         figurefirst:name="a2a_mC2R_cross" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-4-5"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="128.6626"
-       y="169.73906">
-      <figurefirst:axis
-         figurefirst:name="oprm1_mC2L_cross" />
-    </rect>
-    <rect
-       height="8.8838673"
-       id="rect1491-4-6-9"
-       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.74117647;stroke:none;stroke-width:0.0435557;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
-       width="5.5945544"
-       x="133.728"
-       y="169.73906">
-      <figurefirst:axis
-         figurefirst:name="oprm1_mC2R_cross" />
     </rect>
     <rect
        height="10.124927"
@@ -3957,46 +3657,6 @@
        style="display:inline;fill:none;fill-opacity:0;stroke:#000000;stroke-width:0.34999999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:3.5;stroke-dasharray:none;stroke-opacity:1;marker-start:url(#Arrow2Mstart-0-4-9);marker-end:url(#marker3843-2-9-6)"
        transform="matrix(0,-0.35277777,0.35277777,0,-1.2732346,234.58268)" />
     <text
-       id="text5513-3"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="79.363487"
-       xml:space="preserve"
-       y="176.97354"><tspan
-         id="tspan6147"
-         sodipodi:role="line"
-         x="79.363487"
-         y="176.97354">Center-to-left</tspan></text>
-    <text
-       id="text6151"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="79.363487"
-       xml:space="preserve"
-       y="207.94867"><tspan
-         id="tspan6153"
-         sodipodi:role="line"
-         x="79.363487"
-         y="207.94867">Left-to-center</tspan></text>
-    <text
-       id="text6157"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="148.68427"
-       xml:space="preserve"
-       y="176.97354"><tspan
-         id="tspan6155"
-         sodipodi:role="line"
-         x="148.68427"
-         y="176.97354">Center-to-right</tspan></text>
-    <text
-       id="text6161"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:center;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:middle;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="148.68427"
-       xml:space="preserve"
-       y="207.94867"><tspan
-         id="tspan6163"
-         sodipodi:role="line"
-         x="148.68427"
-         y="207.94867">Right-to-center</tspan></text>
-    <text
        id="text4589-3"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
        transform="rotate(90)"
@@ -4032,42 +3692,6 @@
          style="stroke-width:0.26458332"
          x="98.053253"
          y="-195.05096">Oprm1</tspan></text>
-    <text
-       id="text4589-3-4"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       transform="rotate(90)"
-       x="128.29573"
-       xml:space="preserve"
-       y="-140.19344"><tspan
-         id="tspan4587-9-6"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="128.29573"
-         y="-140.19344">D1</tspan></text>
-    <text
-       id="text4593-0-9"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       transform="rotate(90)"
-       x="140.82652"
-       xml:space="preserve"
-       y="-140.19344"><tspan
-         id="tspan4591-8-2"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="140.82652"
-         y="-140.19344">A2A</tspan></text>
-    <text
-       id="text4597-8-2"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       transform="rotate(90)"
-       x="152.97209"
-       xml:space="preserve"
-       y="-140.16933"><tspan
-         id="tspan4595-50-4"
-         sodipodi:role="line"
-         style="stroke-width:0.26458332"
-         x="152.97209"
-         y="-140.16933">Oprm1</tspan></text>
     <g
        id="g5264-40-1-5-4"
        style="display:inline;opacity:1;stroke-linecap:butt;stroke-linejoin:round"

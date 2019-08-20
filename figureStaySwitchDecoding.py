@@ -77,13 +77,6 @@ else:
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
     C.to_pickle(cacheFolder / 'stsw_c.pkl')   
 
-cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
-if cachedDataPath.is_file():
-    decodingAcrossDays = pd.read_pickle(cachedDataPath)
-else:
-    decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
-    decodingAcrossDays.to_pickle(cachedDataPath)
-
 cachedDataPaths = [cacheFolder / name for name in ['actionValues.pkl',
                                                    'logRegCoefficients.pkl',
                                                    'logRegDF.pkl']]
@@ -557,7 +550,7 @@ for gt, gdata in data.groupby('genotype'):
         axkde.set_ylabel('% trials')
         axkde.set_yticklabels((0,5,10))
     sns.despine(bottom=True, trim=True, ax=axkde)
-    axkde.set_title(gt)
+    axkde.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[gt])
 
 
 axt = layout.axes['value_ost_legend']['axis']
@@ -647,76 +640,6 @@ layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 
 
 #%%###############################################################################
-#def bootstrapSEM(values, weights, iterations=1000):
-#    avgs = []
-#    for _ in range(iterations):
-#        idx = np.random.choice(len(values), len(values), replace=True)
-#        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
-#    return np.std(avgs)
-#    
-##accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
-#fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
-#toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
-#td = (toDate - fromDate).dt.days
-#decodingAcrossDays["dayDifference"] = td
-#
-#for label in ("pC2L", "pC2R", "mC2L", "mC2R", "mL2C", "mR2C"):
-#    selection = decodingAcrossDays[decodingAcrossDays.label == label]
-#    for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
-#        g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
-#
-#        perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
-#        perAnimal["genotype"] = g.genotype.first()
-#
-#
-#        scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * np.stack([perAnimal.nNeurons,
-#                                                                              perAnimal.nNeurons],
-#                                                                             axis=1)
-#        perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
-#        totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
-#        perGenotype /= np.stack([totalNeurons,totalNeurons], axis=1)
-#
-#        shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * np.stack([perAnimal.nNeurons,
-#                                                                                     perAnimal.nNeurons],
-#                                                                                    axis=1)
-#        shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
-#
-#        plt.sca(layout.axes["decodingAccrossDays_{}_{}".format(label, i+1)]["axis"])
-#
-#        for r in perAnimal.itertuples():
-#            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
-#                     c=style.getColor(r.genotype), alpha=0.2)
-#        for r in perGenotype.itertuples():
-#            gt = r.Index
-#            animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
-#            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
-#            nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
-#            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
-#                         c=style.getColor(gt))
-#
-#        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
-#                 c=style.getColor("shuffled"))
-#
-#        plt.ylim(0.45,1)
-#        plt.xlim(-0.25, 1.25)
-#        xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
-#        plt.xticks((0,1), ("Same\nday", xlab[i]))
-#        if i==0:
-#            plt.yticks(np.linspace(0.5,1,6), np.linspace(50,100,6,dtype=np.int64))
-#            plt.ylabel("Decoding accuracy (%)")
-#        else:
-#            plt.yticks(np.linspace(0.5,1,6), [""]*5)
-#        sns.despine(ax=plt.gca())
-
-
-#%%
-#fig, axs = plt.subplots(2,1)
-#analysisStaySwitchDecoding.drawCoefficientWeightedAverage(endoDataPath, C, 'oprm1', 'pC2L',
-#                                                          axs)
-#plt.show()
-
-
-#%%
 #for (gt,ta), gdata in (crossDecoding.query('(trainAction == "mL2C" & testAction == "mC2L") | '+
 #                                           '(trainAction == "mR2C" & testAction == "mC2R")')
 #                                    .groupby(['genotype','testAction'])):
@@ -754,40 +677,3 @@ layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 #    else:
 #        ax.set_axis_off()
 
-
-#%%
-#real, shuffle = analysisStaySwitchDecoding.crossDecodeStaySwitch(endoDataPath)
-#
-##%%
-#cross_df = real.copy()
-##%%
-#cross_df = cross_df.set_index(['genotype','animal','date','trainAction','testAction'])
-#cross_df = (cross_df.groupby(['genotype','trainAction','testAction'])
-#                    .apply(analysisStaySwitchDecoding.wAvg, 'accuracy','noNeurons'))
-##%%
-#order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
-#for gt, df in cross_df.groupby('genotype'):
-#    df = df.unstack().loc[gt].reindex(order)[order]
-#
-#    plt.figure(figsize=(2.25,2))
-##    plt.pcolormesh(df, vmin=0, vmax=1, cmap=cmocean.cm.balance,
-##                   edgecolors='none')
-#    sns.heatmap(df, vmin=0, vmax=1, cmap=cmocean.cm.balance, square=True, 
-#                cbar=True, annot=df, fmt='.02f')
-#    plt.xlim((0,6))
-#    plt.ylim((0,6))
-#    plt.yticks(np.arange(.5, 5.6), order)
-#    plt.xticks(np.arange(.5, 5.6), order)
-#    #plt.colorbar()
-#    #plt.gca().set_aspect('equal')
-#    plt.suptitle(gt, y=.95)
-#    plt.show()
-    
-#%%
-#def jaccardSimilarity(tunings):
-#    def _jaccard(data):
-#        return pd.DataFrame((1-squareform(pdist(data.T, 'jaccard')))*100,
-#                            index=data.columns, columns=data.columns)
-#    order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
-#    similarity = _jaccard(tunings.unstack()[order])
-#    return similarity

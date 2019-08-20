@@ -506,17 +506,18 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
         
 
 #%%
-def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False):
+def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
+                     saturation=.25, smoothing=5, cmap='RdYlBu_r'):
     # can't create a intensity plot without session data
     s = next(readSessions.findSessions(dataFile, task='2choice'))
     fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, smoothing=7,
+                                            saturation=saturation, smoothing=smoothing,
                                             linewidth=mpl.rcParams['axes.linewidth'])
     fvLSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, smoothing=7,
+                                            saturation=saturation, smoothing=smoothing,
                                             linewidth=mpl.rcParams['axes.linewidth'])
     fvLSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                            saturation=.25, smoothing=7,
+                                            saturation=saturation, smoothing=smoothing,
                                             linewidth=mpl.rcParams['axes.linewidth'])
     
     # if weighing by auc, they need to sum to the total number of neurons for
@@ -561,9 +562,9 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False):
     
     wstax, lstax, lswax = axes[0], axes[1], axes[2]
     
-    fvWSt.drawBuffer(ax=wstax) # drawing flushes buffer
-    fvLSt.drawBuffer(ax=lstax)
-    img = fvLSw.drawBuffer(ax=lswax)
+    fvWSt.drawBuffer(ax=wstax, cmap=cmap) # drawing flushes buffer
+    fvLSt.drawBuffer(ax=lstax, cmap=cmap)
+    img = fvLSw.drawBuffer(ax=lswax, cmap=cmap)
     
     if cax:
         cb = plt.colorbar(img, cax=cax, orientation='horizontal')
