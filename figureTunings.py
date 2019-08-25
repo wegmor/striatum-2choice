@@ -48,8 +48,8 @@ else:
     tuningData = analysisTunings.getTuningData(endoDataPath)
     tuningData.to_pickle(cachedDataPath)
 
-tuningData['signp'] = tuningData['pct'] > .99
-tuningData['signn'] = tuningData['pct'] < .01
+tuningData['signp'] = tuningData['pct'] > .995
+tuningData['signn'] = tuningData['pct'] < .005
 
 #%%
 ex_session = ('oprm1','5308','190131')
@@ -340,55 +340,3 @@ sns.despine(ax=ax)
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "tunings.svg")
 
-
-#%% tuning charts #############################################################
-#df = tuningData.copy()
-#
-#df['signp'] = df['pct'] > .99
-#df['signn'] = df['pct'] < .01
-#df['sign'] = df.signp.astype('int') - df.signn.astype('int')
-#
-#sign_count = (df.groupby(['genotype','animal','date','action'])
-#                .agg({'signp':'sum','signn':'sum'}))
-#total_count = (df.groupby(['genotype','animal','date','action'])
-#                 [['signp','signn']].count())
-#sign_pct = sign_count / total_count
-#sign_pct['noNeurons'] = total_count.signp
-#
-##%%
-#actions = ['pC2L-','mC2L-','pL2Cd','pL2Co','pL2Cr','mL2C-',
-#           'pC2R-','mC2R-','pR2Cd','pR2Co','pR2Cr','mR2C-']
-#
-## v x coords for actions
-#a2x = dict(zip(actions, np.arange(12)))
-#sign_pct['x'] = sign_pct.reset_index().action.replace(a2x).values
-## v color for actions
-#sign_pct['color'] = sign_pct.reset_index().action.str.slice(0,4).apply(style.getColor).values
-#
-#fig, axs = plt.subplots(1, 3, figsize=(2, 1), sharey=True, sharex=True,
-#                        gridspec_kw={'wspace': .1, 'hspace': .2})
-#
-#for g, gdata in sign_pct.groupby('genotype'):
-#    ax = axs[{'d1':0, 'oprm1':2, 'a2a': 1}[g]]
-#    ax.scatter(analysisTunings.jitter(gdata.x, .12), gdata.signp, s=gdata.noNeurons/5,
-#               edgecolor=gdata.color, facecolor='none')
-#    
-#    avg = gdata.groupby('x').apply(analysisTunings.wAvg, 'signp', 'noNeurons')
-#    sem = gdata.groupby('x').apply(analysisTunings.bootstrap, 'signp', 'noNeurons')
-#    ax.errorbar(avg.index, avg, sem, fmt='.-', c='k')
-#    
-#    for a, adata in gdata.groupby('animal'):
-#        avg = adata.groupby('x').apply(analysisTunings.wAvg, 'signp', 'noNeurons')
-#        lw = adata.groupby('date').noNeurons.first().sum() / 400
-#        ax.plot(avg, c='k', alpha=.35, lw=lw)
-#    
-#    ax.set_xticks(np.arange(12))
-#    #ax.set_xticklabels(actions, rotation=90)
-#    ax.set_title(g)
-#    sns.despine()
-#
-#axs[0].set_ylabel('pos. tuned (%)')
-#axs[0].set_yticks((0,.4,.8))
-#axs[0].yaxis.set_minor_locator(MultipleLocator(.2))
-#axs[0].set_yticklabels((0,40,80))
-#axs[0].set_ylim((0,.8))
