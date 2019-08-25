@@ -16,7 +16,7 @@
    version="1.1"
    id="svg8"
    sodipodi:docname="decoding.svg"
-   inkscape:version="0.92.3 (2405546, 2018-03-11)">
+   inkscape:version="0.92.4 (unknown)">
   <sodipodi:namedview
      id="base"
      pagecolor="#ffffff"
@@ -24,15 +24,15 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.7"
-     inkscape:cx="144.46103"
-     inkscape:cy="702.49385"
+     inkscape:zoom="1.4"
+     inkscape:cx="225.21407"
+     inkscape:cy="611.27754"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      showgrid="true"
      inkscape:window-width="1920"
      inkscape:window-height="1043"
-     inkscape:window-x="0"
+     inkscape:window-x="1920"
      inkscape:window-y="0"
      inkscape:window-maximized="1"
      showguides="false"
@@ -193,7 +193,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -280,7 +280,7 @@
        id="rect4924"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727">
       <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_1" />
+         figurefirst:name="decodingAcrossDays_1" />
     </rect>
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727"
@@ -290,7 +290,7 @@
        x="147"
        y="92">
       <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_2" />
+         figurefirst:name="decodingAcrossDays_2" />
     </rect>
     <rect
        y="92.000023"
@@ -300,7 +300,7 @@
        id="rect4928"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727">
       <figurefirst:axis
-         figurefirst:name="decodingAccrossDays_3" />
+         figurefirst:name="decodingAcrossDays_3" />
     </rect>
     <rect
        y="94"
@@ -310,7 +310,7 @@
        id="rect5352"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606595">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex11" />
+         figurefirst:name="acrossDays_ex11" />
     </rect>
     <rect
        y="94"
@@ -320,7 +320,7 @@
        id="rect5354"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex12" />
+         figurefirst:name="acrossDays_ex12" />
     </rect>
     <rect
        y="94"
@@ -330,7 +330,7 @@
        id="rect5356"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex13" />
+         figurefirst:name="acrossDays_ex13" />
     </rect>
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606595"
@@ -340,7 +340,7 @@
        x="26"
        y="106">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex21" />
+         figurefirst:name="acrossDays_ex21" />
     </rect>
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598"
@@ -350,7 +350,7 @@
        x="57"
        y="106">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex22" />
+         figurefirst:name="acrossDays_ex22" />
     </rect>
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606601"
@@ -360,7 +360,7 @@
        x="88"
        y="106">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex23" />
+         figurefirst:name="acrossDays_ex23" />
     </rect>
     <rect
        y="118"
@@ -370,7 +370,7 @@
        id="rect5364"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606595">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex31" />
+         figurefirst:name="acrossDays_ex31" />
     </rect>
     <rect
        y="118"
@@ -380,7 +380,7 @@
        id="rect5366"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606595">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex32" />
+         figurefirst:name="acrossDays_ex32" />
     </rect>
     <rect
        y="118"
@@ -390,7 +390,7 @@
        id="rect5368"
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606601">
       <figurefirst:axis
-         figurefirst:name="accrossDays_ex33" />
+         figurefirst:name="acrossDays_ex33" />
     </rect>
     <rect
        style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.28623271;stroke-miterlimit:4;stroke-dasharray:none"

@@ -19,72 +19,90 @@ import analysisDecoding
 import style
 
 style.set_context()
+plt.ioff()
 
-endoDataPath = "endoData_2019.hdf"
-alignmentDataPath = "alignment_190227.hdf"
 
-outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
-templateFolder = pathlib.Path(__file__).parent / "templates"
+#%%
+endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
+outputFolder = pathlib.Path('svg')
+cacheFolder = pathlib.Path('cache')
+templateFolder = pathlib.Path('templates')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 if not cacheFolder.is_dir():
     cacheFolder.mkdir()
-
+    
+    
+#%%
 layout = figurefirst.FigureLayout(templateFolder / "decoding.svg")
 layout.make_mplfigures()
 
-## Panel A
+
+#%% Panel A
 cachedDataPath = cacheFolder / "decodeWithIncreasingNumberOfNeurons.pkl"
 if cachedDataPath.is_file():
     decodingData = pd.read_pickle(cachedDataPath)
 else:
     decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
     decodingData.to_pickle(cachedDataPath)
+
 decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
+
+##%%
 plt.sca(layout.axes["decodeWithIncreasingNumberOfNeurons"]["axis"])
 for strSess, df in decodingData.groupby("session"):
     genotype = strSess.split("_")[0]
-    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype), alpha=0.2, lw=style.lw()*0.5)
-    plt.plot(df.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"), alpha=0.2, lw=style.lw()*0.5)
+    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype),
+             alpha=0.2, lw=.5)
+    plt.plot(df.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"),
+             alpha=0.2, lw=.5)
 for genotype, df in decodingData.groupby("genotype"):
-    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype), alpha=1.0, lw=style.lw()*2)
-plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"), alpha=1.0, lw=style.lw()*2)
+    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype),
+             alpha=1.0)
+plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"),
+         alpha=1.0)
+
 order = ("oprm1", "d1", "a2a")
-meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g), lw=style.lw()*2) for g in order]
-shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"), lw=style.lw()*2)
+meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g)) for g in order]
+shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"))
 plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(0.45, 0.22), ncol=2)
+
 plt.ylim(0,1)
-plt.xlim(0, 200)
+plt.xlim(0,200)
 plt.xlabel("Number of neurons")
 plt.ylabel("Decoding accuracy (%)")
 plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
 
-## Panel B
+
+#%% Panel B
 cachedDataPath = cacheFolder / "decodeConfusion.pkl"
 if cachedDataPath.is_file():
     decodingData = pd.read_pickle(cachedDataPath)
 else:
     decodingData = analysisDecoding.decodingConfusion(endoDataPath)
     decodingData.to_pickle(cachedDataPath)
+    
 #means = confusionDiagonal.groupby("sess").mean()
 #nNeurons = means.nNeurons
 #labels = list(means.columns)
 #for i in range(6):
 #     labels[i] = labels[i][:4]
 #genotypes = means.index.str.split("_").str[0]
+    
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
+
 for gt, data in decodingData.groupby("genotype"):
     #gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
-    weightedData = data.set_index(["true", "predicted"]).eval("occurencies * nNeurons")
+    weightedData = data.set_index(["true", "predicted"]).eval("occurences * nNeurons")
     weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
     weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
     gtMeans = np.diag(weightedData)
     
     #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
-    cmap = sns.light_palette(style.getColor(gt), 256, as_cmap=True)
+    cmap = sns.light_palette(style.getColor(gt), 1024, as_cmap=True)
     labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
@@ -95,7 +113,8 @@ for gt, data in decodingData.groupby("genotype"):
                                            norm=matplotlib.colors.Normalize(vmin=0, vmax=100),
                                            orientation='vertical')
 
-## Panel D
+
+#%% Panel D
 alignmentStore = h5py.File(alignmentDataPath, "r")
 def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
     if fromDate == toDate:
@@ -116,18 +135,18 @@ for i in range(3):
         signal = sess.readDeconvolvedTraces()[neuron]
         signal -= signal.mean()
         signal /= signal.std()
-        ax = layout.axes["accrossDays_ex{}{}".format(i+1,j+1)]["axis"]
+        ax = layout.axes["acrossDays_ex{}{}".format(i+1,j+1)]["axis"]
         fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5)
         fv.draw(signal, ax=ax)
 
         
-## Panel E
-cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
+#%% Panel E
+cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
 if cachedDataPath.is_file():
-    decodingAccrossDays = pd.read_pickle(cachedDataPath)
+    decodingAcrossDays = pd.read_pickle(cachedDataPath)
 else:
-    decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath, alignmentDataPath)
-    decodingAccrossDays.to_pickle(cachedDataPath)
+    decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
+    decodingAcrossDays.to_pickle(cachedDataPath)
 
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []
@@ -136,17 +155,19 @@ def bootstrapSEM(values, weights, iterations=1000):
         avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
     return np.std(avgs)
     
-#accrossDays = accrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
-fromDate = pd.to_datetime(decodingAccrossDays.fromDate, format="%y%m%d")
-toDate = pd.to_datetime(decodingAccrossDays.toDate, format="%y%m%d")
+#acrossDays = acrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
+fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
+toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
 td = (toDate - fromDate).dt.days
-decodingAccrossDays["dayDifference"] = td
+decodingAcrossDays["dayDifference"] = td
 
-selection = decodingAccrossDays.query("fromTask=='2choice' & toTask=='2choice'")
-for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
-    g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
+selection = decodingAcrossDays.query("fromTask=='2choice' & toTask=='2choice'")
+for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
+    g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
+                  .groupby(["animal", "fromDate", "toDate"]))
     
-    perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
+    perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore',
+                          'sameDayShuffled', 'nextDayShuffled']]
     perAnimal["genotype"] = g.genotype.first()
     
     
@@ -157,7 +178,7 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * perAnimal.nNeurons[:,np.newaxis]
     shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
     
-    plt.sca(layout.axes["decodingAccrossDays_{}".format(i+1)]["axis"])
+    plt.sca(layout.axes["decodingAcrossDays_{}".format(i+1)]["axis"])
     
     for r in perAnimal.itertuples():
         plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
@@ -175,7 +196,7 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     
     plt.ylim(0,1)
     plt.xlim(-0.25, 1.25)
-    xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
+    xlab = ("1-3 days\nlater", "4-13 days\nlater", "14+ days\nlater")
     plt.xticks((0,1), ("Same\nday", xlab[i]))
     if i==0:
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
@@ -184,8 +205,9 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
         plt.yticks(np.linspace(0,1,5), [""]*5)
     sns.despine(ax=plt.gca())
 
-## Panel F
-sess = next(readSessions.findSessions("endoData_2019.hdf", animal="5308", date="190131"))
+
+#%% Panel F
+sess = next(readSessions.findSessions(endoDataPath, animal="5308", date="190131"))
 lfa = sess.labelFrameActions(reward="sidePorts")
 deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
 X = deconv[lfa.label=="mR2C-"]
@@ -206,8 +228,9 @@ fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5,
 for i in range(3):
     ax = layout.axes["movementExample{}".format(i+1)]["axis"]
     fv.draw(deconv[exampleNeurons[i]], ax=ax)
+
     
-## Panel G
+#%% Panel G
 cachedDataPath = cacheFolder / "decodeMovementProgress_mR2C.pkl"
 if cachedDataPath.is_file():
     decodingMovementProgress = pd.read_pickle(cachedDataPath)
@@ -236,7 +259,7 @@ plt.text(100, 10, "r = {:.3f}".format(corr), fontsize=matplotlib.rcParams['font.
 sns.despine(ax=plt.gca())
 
 
-## Panel H
+#%% Panel H
 avgCorr = decodingMovementProgress.query("not shuffle").groupby("sess").apply(calcCorr)
 avgCorr["genotype"] = avgCorr.index.str.split("_").str[0]
 avgCorr["animal"] = avgCorr.index.str.split("_").str[1]
@@ -252,7 +275,9 @@ sessionBarPlot.sessionBarPlot(avgCorr, yCol="correlation", weightCol="nNeurons",
 ax.set_ylim(0,1)
 sns.despine(ax=ax)
 ax.set_ylabel("Correlation\ntruth and decoded")
-    
+
+
+#%%
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "decoding.svg")
 #plt.savefig(outputFolder.join("decoding.svg"), dpi=300, bbox_inches="tight")

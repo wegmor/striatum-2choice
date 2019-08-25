@@ -468,7 +468,7 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
           .sort_index()
           .copy())
 
-    # can't create a intensity plot without session data
+    # can't create a intensity plot without session data -> actually, looks like you can
     s = next(readSessions.findSessions(dataFile, task='2choice'))
     fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
                                            saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])

@@ -70,9 +70,9 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
             deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
             lfa = sess.labelFrameActions(reward="sidePorts")
             if len(deconv) != len(lfa): continue
-            suffledLfa = sess.shuffleFrameLabels(switch=False)[0]
+            shuffledLfa = sess.shuffleFrameLabels(switch=False)[0]
             realX, realY = _prepareTrials(deconv, lfa)
-            shuffledX, shuffledY = _prepareTrials(deconv, suffledLfa)
+            shuffledX, shuffledY = _prepareTrials(deconv, shuffledLfa)
             with tqdm.tqdm(total=int(realX.shape[1]/5)*nShufflesPerNeuronNum, desc=str(sess)) as t:
                 for nNeurons in range(5, realX.shape[1], 5):
                     fcn = functools.partial(_testRealAndShuffled, realX=realX, realY=realY,
@@ -97,21 +97,21 @@ def decodingConfusion(dataFile):
             m = sklearn.metrics.confusion_matrix(testY, pred)
             m = pd.DataFrame(m, index=svm.classes_, columns=svm.classes_)
             m = m.rename_axis(index="true", columns="predicted").unstack()
-            m = m.rename("occurencies").reset_index()
+            m = m.rename("occurences").reset_index()
             m["sess"] = str(sess)
             m["i"] = i
             m["nNeurons"] = deconv.shape[1]
             confMats.append(m)
     return pd.concat(confMats)
 
-def decodingAccrossDays(dataFile, alignmentFile):
+def decodingAcrossDays(dataFile, alignmentFile):
     alignmentStore = h5py.File(alignmentFile, "r")
     with multiprocessing.Pool(5) as pool:
         acrossDaysResult = []
         for genotype in alignmentStore["data"]:
             for animal in alignmentStore["data/{}".format(genotype)]:
                 for fromDate in alignmentStore["data/{}/{}".format(genotype, animal)]:
-                    fromSess = next(readSessions.findSessions("endoData_2019.hdf", animal=animal, date=fromDate))
+                    fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
                     fromTask = fromSess.meta.task
                     if fromTask == "openField": continue
                     fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
@@ -143,7 +143,7 @@ def decodingAccrossDays(dataFile, alignmentFile):
     columns=["genotype", "animal", "fromDate", "toDate", "fromTask",
              "toTask", "nNeurons", "i", "sameDayScore",  "nextDayScore",
              "sameDayShuffled", "nextDayShuffled"]
-    return pd.DataFrame(acrossDaysResult, columns)
+    return pd.DataFrame(acrossDaysResult, columns=columns)
 
 def decodeMovementProgress(dataFile, label="mR2C-"):
     allSess = []
