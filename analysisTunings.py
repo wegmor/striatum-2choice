@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
 from scipy.spatial.distance import pdist, squareform
-from utils import readSessions
+from utils import readSessions, particleFilter
 
 
 #%%
@@ -183,4 +183,89 @@ def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
         dist_df = dist_df.append(series, ignore_index=True)
         
     return dist_df
+
+
+#%%
+def getPDistVsCorrData(dataFilePath):
+    dist_cc_df = pd.DataFrame()
+    
+    for s in readSessions.findSessions(dataFilePath, task='2choice'):    
+        deconv = s.readDeconvolvedTraces().reset_index(drop=True).iloc[:30*60*20]
+        # drop everything but top 20% biggest events
+        #pct80 = np.nanpercentile(deconv[deconv != 0], 80, axis=0)
+        #deconv = deconv[deconv >= pct80].fillna(0)
+        
+        rois = s.readROIs()
+        rois = np.array([rois[n].unstack('x').values for n in rois])
+        coords = get_centers(rois)
+        coords_shuffled = np.random.permutation(coords)
+    
+        ##%%
+        # calculate pairwise pearson correlations (downsample to 200ms bins)
+        pcc = deconv.rolling(4).mean()[3::4].corr('pearson').values
+        # calculate pairwise distances between original positions
+        pdist_orig = squareform(pdist(coords))
+        # inscopix says 1440 px -> 900 um; 4x downsampled 900/360 = 2.5
+        pdist_orig = pdist_orig * 2.5
+        # calculate pairwise distances between shuffeled positions (i.e. shuffled
+        # distances)
+        pdist_perm = squareform(pdist(coords_shuffled))
+        pdist_perm = pdist_perm * 2.5
+        
+        # merge into dataframe (correlation, orig distance, shuffled distance)
+        n_neurons = len(coords)
+        df = pd.DataFrame({'cc': pcc[np.triu_indices(n_neurons,1)],
+                           'dist_orig': pdist_orig[np.triu_indices(n_neurons,1)],
+                           'dist_perm': pdist_perm[np.triu_indices(n_neurons,1)],
+                           'noNeurons': n_neurons,
+                           'genotype': s.meta.genotype,
+                           'animal': s.meta.animal,
+                           'date': s.meta.date,
+                           'task': s.meta.task}) 
+        dist_cc_df = dist_cc_df.append(df)
+        
+    return dist_cc_df
+
+
+#%%
+def getTaskNoTaskData(dataFilePath):
+    df = pd.DataFrame()
+    for s in readSessions.findSessions(dataFilePath, task='2choice'):
+        deconv = s.readDeconvolvedTraces(zScore=True) #, indicateBlocks=True)
+        D = deconv.mean(axis=1)
+        L = s.labelFrameActions()
+        #T = s.readTracking(inCm=True)
+        
+        if len(D) != len(L): continue
+    
+#        T.index = D.index.copy()
+#        T = T.iloc[:30*60*20]
+#        T.index = T.index.remove_unused_levels()
+#        
+#        filtered = []
+#        for block in T.index.levels[0]:
+#            t = T.loc[block]
+#            filtered.append(particleFilter.particleFilter(t, nParticles=2000))
+#        F = pd.concat(filtered).reset_index(drop=True)
+    
+        D = D.reset_index(drop=True).iloc[:30*60*20]
+        L = L.iloc[:30*60*20]
+        
+        eD = D.loc[~L.label.str.startswith('u')].mean()
+        #eF = F.loc[~L.label.str.startswith('u'), 'speed'].mean() * 20
+        uD = D.loc[L.label.str.startswith('u')].mean()
+        #uF = F.loc[L.label.str.startswith('u'), 'speed'].mean() * 20
+        
+        df = df.append({'engaged': eD,
+                        'unengaged': uD,
+                        #'engagedSpeed': eF,
+                        #'unengagedSpeed': uF,
+                        'task': s.meta.task,
+                        'genotype': s.meta.genotype,
+                        'animal': s.meta.animal,
+                        'date': s.meta.date,
+                        'noNeurons': deconv.shape[1]},
+                       ignore_index=True)
+        
+    return df
 

@@ -1,15 +1,16 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import scipy.stats
+#import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import h5py
+#import h5py
 import pathlib
 import figurefirst
 import cmocean
 import tqdm
 from matplotlib.ticker import MultipleLocator
+#import matplotlib.lines as mlines
 
 #import sys
 #thisFolder = pathlib.Path(__file__).resolve().parent
@@ -17,7 +18,7 @@ from matplotlib.ticker import MultipleLocator
 
 from utils import fancyViz
 from utils import readSessions
-from utils import sessionBarPlot
+#from utils import sessionBarPlot
 import analysisTunings
 import style
 
@@ -158,6 +159,134 @@ cax.text(1.025, .25, saturation, ha='left', va='center', fontdict={'fontsize':6}
          transform=cax.transAxes)
 cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
+
+
+#%% Panel D
+df = analysisTunings.getTaskNoTaskData(endoDataPath)
+df['unengaged'] -= df.engaged
+
+for g, gdata in df.groupby('genotype'):
+    ax = layout.axes['{}_task_nontask'.format(g)]['axis']
+    
+    for u,n in gdata[['unengaged','noNeurons']].values:
+        ax.plot([0,u], color=style.getColor(g),
+                alpha=.2, lw=n/200, clip_on=False)
+    
+    avg = analysisTunings.wAvg(gdata, 'unengaged', 'noNeurons')
+    sem = analysisTunings.bootstrap(gdata, 'unengaged', 'noNeurons')
+    ax.errorbar(0, 0, yerr=0, color=style.getColor(g), marker='o',
+                markersize=3.2, markeredgewidth=mpl.rcParams['lines.linewidth'],
+                clip_on=False)
+    ax.errorbar(1, avg, yerr=sem, color=style.getColor(g), marker='v',
+                markersize=3.6, markeredgewidth=mpl.rcParams['lines.linewidth'],
+                clip_on=False)
+    ax.plot([0,1], [0,avg], color=style.getColor(g))
+    
+    ax.axhline(0, ls=':', lw=mpl.rcParams['axes.linewidth'],
+               c='k', alpha=.5, zorder=-99)
+    
+    ax.set_xticks(())
+    #ax.set_xticklabels(['task','non-task'], rotation=40, ha='right')
+    ax.set_ylim((0,.2))
+    ax.set_yticks((0,.1,.2))
+    ax.set_yticklabels(())
+    ax.set_xlim((-.2,1.2))
+    ax.axis('off')
+    if g == 'd1':
+        ax.axis('on')
+        ax.set_ylabel('Δsd')
+        ax.set_yticklabels(ax.get_yticks())
+        sns.despine(ax=ax, bottom=True)
+    ax.set_title({'d1':'D1', 'a2a':'A2A', 'oprm1':'Oprm1'}[g])
+        
+#axt = layout.axes['task_notask_legend1']['axis']
+#legend_elements = [mlines.Line2D([0], [0], marker='o', color='k', label='task',
+#                                 markerfacecolor='k', markersize=3.2,
+#                                 markeredgewidth=mpl.rcParams['lines.linewidth']),
+#                   mlines.Line2D([0], [0], marker='v', color='k', label='non-task',
+#                                 markerfacecolor='k', markersize=3.6,
+#                                 markeredgewidth=mpl.rcParams['lines.linewidth']),
+#                  ]
+#axt.legend(handles=legend_elements, loc='center', ncol=2, mode='expand')
+#axt.axis('off')
+
+#axt = layout.axes['task_notask_legend2']['axis']
+#legend_elements = [mlines.Line2D([0], [0], color=style.getColor(gt),
+#                                 label={'d1':'D1', 'a2a':'A2A', 'oprm1':'Oprm1'}[gt])
+#                       for gt in ['d1','a2a','oprm1']
+#                  ]
+#axt.legend(handles=legend_elements, loc='center', ncol=3, mode='expand')
+#axt.axis('off')
+
+
+#%% Panel E
+df = analysisTunings.getPDistVsCorrData(endoDataPath)
+
+df['bin'] = pd.cut(df.dist_orig, np.logspace(np.log10(15), 3, 10))
+df['bin_perm'] = pd.cut(df.dist_perm, np.logspace(np.log10(15), 3, 10))
+
+df_orig = (df.groupby(['genotype','animal','date','bin'])[['dist_orig','cc']]
+             .mean().dropna())
+df_perm = (df.groupby(['genotype','animal','date','bin_perm'])[['dist_perm','cc']]
+             .mean().dropna())
+no_neurons = df.groupby(['genotype','animal','date']).noNeurons.first()
+
+for g, data in df_orig.groupby('genotype'):
+    data_perm = df_perm.loc[g].copy()
+    ax = layout.axes['{}_dist_corr'.format(g)]['axis']
+    
+    for (a,d), adata in data.groupby(['animal','date']):
+        ax.plot(adata.unstack('bin').dist_orig.T, adata.unstack('bin').cc.T,
+                color=style.getColor(g), alpha=.2, #lw=mpl.rcParams['axes.linewidth'])
+                lw=no_neurons.loc[(g,a,d)]/200)
+    
+    data = data.copy()
+    data['noNeurons'] = no_neurons
+    data_perm['noNeurons'] = no_neurons.loc[g]
+    
+    avg = pd.concat([data.groupby('bin').apply(analysisTunings.wAvg,
+                                               'cc', 'noNeurons'),
+                     data.groupby('bin').apply(analysisTunings.wAvg,
+                                               'dist_orig', 'noNeurons')],
+                    axis=1, keys=['cc','dist'])
+    sem = pd.concat([data.groupby('bin').apply(analysisTunings.bootstrap,
+                                               'cc', 'noNeurons'),
+                     data.groupby('bin').apply(analysisTunings.bootstrap,
+                                               'dist_orig', 'noNeurons')],
+                    axis=1, keys=['cc','dist'])  
+    ax.errorbar(x=avg.dist, y=avg.cc, xerr=sem.dist, yerr=sem.cc,
+                color=style.getColor(g))
+    
+    avg_perm = pd.concat([data_perm.groupby('bin_perm').apply(analysisTunings.wAvg,
+                                                              'cc', 'noNeurons'),
+                          data_perm.groupby('bin_perm').apply(analysisTunings.wAvg,
+                                                              'dist_perm', 'noNeurons')],
+                          axis=1, keys=['cc','dist'])
+    sem_perm = pd.concat([data_perm.groupby('bin_perm').apply(analysisTunings.bootstrap,
+                                                              'cc', 'noNeurons'),
+                          data_perm.groupby('bin_perm').apply(analysisTunings.bootstrap,
+                                                              'dist_perm', 'noNeurons')],
+                          axis=1, keys=['cc','dist'])
+    ax.errorbar(x=avg_perm.dist, y=avg_perm.cc, xerr=sem_perm.dist, yerr=sem_perm.cc,
+                color=style.getColor('shuffled'), zorder=-99)
+    
+    ax.set_xscale('log')
+    ax.set_xlim((10,1000))
+    ax.set_xticks((10,100,1000))
+    ax.set_ylim((-.025, .3))
+    ax.set_ylabel('')
+    ax.set_yticks((0,.1,.2,.3))
+    ax.yaxis.set_minor_locator(MultipleLocator(.05))
+    ax.set_yticklabels(())
+    if g == 'd1':
+        ax.set_ylabel('correlation')
+        ax.set_yticklabels(ax.get_yticks())
+    ax.set_xlabel('')
+    if g == 'a2a':
+        ax.set_xlabel('distance (μm)')
+
+    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
+    sns.despine(ax=ax)
 
 
 #%%

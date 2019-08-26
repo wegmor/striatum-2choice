@@ -8,6 +8,7 @@
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    height="11in"
@@ -24,8 +25,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="285.33541"
-     inkscape:cy="464.46573"
+     inkscape:cx="342.35822"
+     inkscape:cy="105.92636"
      inkscape:document-units="mm"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -34,6 +35,7 @@
      inkscape:snap-bbox="true"
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-global="true"
      inkscape:snap-grids="false"
      inkscape:snap-object-midpoints="true"
      inkscape:window-height="1043"
@@ -41,7 +43,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="1920"
      inkscape:window-y="0"
-     inkscape:zoom="0.70710678"
+     inkscape:zoom="1.4142136"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -320,6 +322,93 @@
       <figurefirst:axis
          figurefirst:name="oprm1_neg_tuning" />
     </rect>
+    <rect
+       height="32.34874"
+       id="rect8221"
+       ry="0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.14962107;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.14962108, 0.29924214;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="123.89291"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="d1_dist_corr" />
+    </rect>
+    <rect
+       height="32.34874"
+       id="rect8221-9"
+       ry="0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.14962107;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.14962108, 0.29924214;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="149.97583"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="a2a_dist_corr" />
+    </rect>
+    <rect
+       height="32.34874"
+       id="rect8221-2"
+       ry="0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.14962107;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.14962108, 0.29924214;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="176.0587"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="oprm1_dist_corr" />
+    </rect>
+    <rect
+       height="32.34874"
+       id="rect9298"
+       style="opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15409973;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.15409976, 0.30819948;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.818058"
+       x="69.982277"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="d1_task_nontask" />
+    </rect>
+    <rect
+       height="32.34874"
+       id="rect9298-5"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15409973;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.15409976, 0.30819948;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.818058"
+       x="93.618378"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="oprm1_task_nontask" />
+    </rect>
+    <rect
+       height="32.34874"
+       id="rect9298-4"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15409973;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.15409976, 0.30819948;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.818058"
+       x="81.800331"
+       y="238.91646">
+      <figurefirst:axis
+         figurefirst:name="a2a_task_nontask" />
+    </rect>
+    <rect
+       height="6.6847687"
+       id="rect13903"
+       ry="0"
+       style="opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.17268902;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17268903, 0.34537806;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="123.89291"
+       y="271.2652" />
+    <rect
+       height="6.6847687"
+       id="rect13903-4"
+       ry="0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.17268902;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17268903, 0.34537806;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="149.97585"
+       y="271.2652" />
+    <rect
+       height="6.6847687"
+       id="rect13903-2"
+       ry="0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#ff00ff;fill-opacity:0.09803922;stroke:none;stroke-width:0.17268902;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17268903, 0.34537806;stroke-dashoffset:0;stroke-opacity:1"
+       width="20.791269"
+       x="176.05872"
+       y="271.2652" />
   </g>
   <g
      id="layer2"
@@ -1985,16 +2074,138 @@
          x="19.054651"
          y="21.322739">A</tspan></text>
     <text
-       xml:space="preserve"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="-153.73083"
-       y="192.40654"
        id="text7848"
-       transform="rotate(-90)"><tspan
-         sodipodi:role="line"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       transform="rotate(-90)"
+       x="-153.73083"
+       xml:space="preserve"
+       y="192.40654"><tspan
          id="tspan7846"
+         sodipodi:role="line"
          style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
          x="-153.73083"
          y="192.40654">correlation</tspan></text>
+    <g
+       id="g14150"
+       transform="matrix(0.35277777,0,0,0.35277777,-0.77171603,0.42271926)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
+      <g
+         transform="translate(0,10.5)"
+         id="line2d_366"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="m 210.37501,626.26251 h 6"
+           style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round"
+           id="path8412"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         transform="translate(0,10.5)"
+         id="line2d_367"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <defs
+           id="defs8416">
+          <path
+             d="M 0,1.6 C 0.424325,1.6 0.831328,1.431414 1.131371,1.131371 1.431414,0.831328 1.6,0.424325 1.6,0 1.6,-0.424325 1.431414,-0.831328 1.131371,-1.131371 0.831328,-1.431414 0.424325,-1.6 0,-1.6 c -0.424325,0 -0.831328,0.168586 -1.131371,0.468629 C -1.431414,-0.831328 -1.6,-0.424325 -1.6,0 c 0,0.424325 0.168586,0.831328 0.468629,1.131371 C -0.831328,1.431414 -0.424325,1.6 0,1.6 Z"
+             id="m3f7fb35e9e"
+             style="stroke:#000000;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:round"
+             inkscape:connector-curvature="0" />
+        </defs>
+        <g
+           id="g8420"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <use
+             style="stroke:#000000;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:round"
+             x="213.37502"
+             xlink:href="#m3f7fb35e9e"
+             y="626.26251"
+             id="use8418"
+             width="100%"
+             height="100%" />
+        </g>
+      </g>
+      <g
+         transform="translate(0,10.5)"
+         id="text_478"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:6px;font-family:Arial;text-anchor:start;stroke-linecap:butt;stroke-linejoin:round"
+           x="217.87502"
+           y="628.36249"
+           id="text8423">task</text>
+      </g>
+    </g>
+    <g
+       id="g14161"
+       transform="matrix(0.35277777,0,0,0.35277777,-18.053943,3.0322308)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
+      <g
+         transform="translate(0,10.5)"
+         id="line2d_368"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <path
+           d="m 259.364,626.26251 h 6"
+           style="fill:none;stroke:#000000;stroke-width:0.80000001;stroke-linecap:round;stroke-linejoin:round"
+           id="path8426"
+           inkscape:connector-curvature="0" />
+      </g>
+      <g
+         transform="translate(0,10.5)"
+         id="line2d_369"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <defs
+           id="defs8430">
+          <path
+             d="M 0,1.8 1.8,-1.8 H -1.8 Z"
+             id="m3a908fee47"
+             style="stroke:#000000;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:miter"
+             inkscape:connector-curvature="0" />
+        </defs>
+        <g
+           id="g8434"
+           style="stroke-linecap:butt;stroke-linejoin:round">
+          <use
+             style="stroke:#000000;stroke-width:0.80000001;stroke-linecap:butt;stroke-linejoin:miter"
+             x="262.36401"
+             xlink:href="#m3a908fee47"
+             y="626.26251"
+             id="use8432"
+             width="100%"
+             height="100%" />
+        </g>
+      </g>
+      <g
+         transform="translate(0,10.5)"
+         id="text_479"
+         style="stroke-linecap:butt;stroke-linejoin:round">
+        <text
+           style="font-style:normal;font-weight:normal;font-size:6px;font-family:Arial;text-anchor:start;stroke-linecap:butt;stroke-linejoin:round"
+           x="266.86401"
+           y="628.36249"
+           id="text8437">non-task</text>
+      </g>
+    </g>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="62.772789"
+       y="217.42473"
+       id="text5855"><tspan
+         sodipodi:role="line"
+         id="tspan5853"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="62.772789"
+         y="217.42473">D</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="116.67722"
+       y="217.42473"
+       id="text5859"><tspan
+         sodipodi:role="line"
+         id="tspan5857"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="116.67722"
+         y="217.42473">E</tspan></text>
   </g>
 </svg>
