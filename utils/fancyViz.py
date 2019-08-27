@@ -686,10 +686,10 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     if "mC2R" in c:
         drawSegments(xx*1.8 + 2.2, yy + 1, normal_x, normal_y, c["mC2R"],
                      (0, 5), (1, 3), edgecolor="k", lw=lw)
-    #drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
-    #drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
-    #drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
-    #drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+    drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
+    drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
+    drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+    drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
     plt.axis("square")
     plt.xlim(-5,5)
     plt.ylim(-2.5,2.5)

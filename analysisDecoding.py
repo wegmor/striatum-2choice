@@ -182,3 +182,10 @@ def decodeMovementProgress(dataFile, label="mR2C-"):
                                              'nNeurons': X.shape[1], 'nTrials': len(uniqueActionNos),
                                              'shuffle': shuffle, 'label': label}))
     return pd.concat(allSess)
+
+def get_centers(rois):
+    # find pixel of maximum intensity in each mask; use as neuron center
+    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
+                                                  rois.shape[1:]))
+    centers = centers[::-1].T
+    return(centers)
