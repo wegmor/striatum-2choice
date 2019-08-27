@@ -73,7 +73,7 @@ def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
 
-def decodingConfusion(dataFile):
+def decodingConfusion(dataFile, allBehaviors):
     confMats = []
     for sess in readSessions.findSessions(dataFile, task="openField"):
         deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
