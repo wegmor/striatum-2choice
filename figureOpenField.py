@@ -173,7 +173,33 @@ for gt, data in decodingData.groupby("genotype"):
     ax.set_ylabel("Truth" if gt=="oprm1" else None)
     ax.set_title(gt[0].upper() + gt[1:])
 
+## Panel E
+cachedDataPath = cacheFolder / "actionTunings.pkl"
+if cachedDataPath.is_file():
+    twoChoiceTunings = pd.read_pickle(cachedDataPath)
+else:
+    twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
+    twoChoiceTunings.to_pickle(cachedDataPath)
 
+twoChoiceTunings = twoChoiceTunings.set_index(["animal", "date", "neuron"])[["action", "pct", "tuning"]]
+joinedTunings = tuningData.join(twoChoiceTunings, on=["animal", "date", "neuron"], rsuffix="_2choice")
+corrMeasure = lambda df: scipy.stats.pearsonr(df.tuning, df.tuning_2choice)[0]
+correlations = joinedTunings.groupby(["genotype", "action", "action_2choice"]).apply(corrMeasure).unstack()
 
+cax = layout.axes['corr_of2c_colorbar']['axis']
+cax.tick_params(axis='y', which='both',length=0)
+
+order2choice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
+                "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr"]
+for gt, perGt in correlations[order2choice].groupby(level=0):
+    ax = layout.axes["openField2choiceCorrs_{}".format(gt)]["axis"]
+    sns.heatmap(perGt.loc[gt].loc[order], ax=ax, vmin=-1, vmax=1, annot=True,
+                fmt=".2f", cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
+                cbar_kws={'ticks':(-1,0,1)}, xticklabels=False,
+                annot_kws={'fontsize': 4.0}, yticklabels=order,
+                linewidths=mpl.rcParams["axes.linewidth"])
+    ax.set_xlabel(None)
+    ax.set_ylabel(gt[0].upper() + gt[1:])
+    ax.set_ylim(4,0)
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "openField.svg")
