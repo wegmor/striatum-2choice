@@ -25,8 +25,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="1.4"
-     inkscape:cx="291.66589"
-     inkscape:cy="781.19684"
+     inkscape:cx="200.76528"
+     inkscape:cy="867.18818"
      inkscape:document-units="mm"
      inkscape:current-layer="layer2"
      showgrid="true"
@@ -156,8 +156,8 @@
      inkscape:label="Layer 1">
     <rect
        style="fill:#808080;stroke:none;stroke-width:0.112215"
-       y="42"
-       x="30"
+       y="97"
+       x="27"
        height="35.000004"
        width="43"
        id="rect10">
@@ -200,8 +200,8 @@
          height="177.79997" />
     </g>
     <rect
-       y="47"
-       x="95"
+       y="102"
+       x="92"
        height="15"
        width="15"
        id="rect1027"
@@ -214,20 +214,120 @@
        id="rect1029"
        width="15"
        height="15"
-       x="135"
-       y="47">
+       x="126"
+       y="102">
       <figurefirst:axis
          figurefirst:name="confusionMatrix_a2a" />
     </rect>
     <rect
-       y="47"
-       x="115"
+       y="102"
+       x="109"
        height="15"
        width="15"
        id="rect1031"
        style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
       <figurefirst:axis
          figurefirst:name="confusionMatrix_d1" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect2571"
+       width="15"
+       height="30.000002"
+       x="27"
+       y="43">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_oprm1_pos" />
+    </rect>
+    <rect
+       y="43"
+       x="44"
+       height="30.000002"
+       width="15"
+       id="rect2573"
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_oprm1_neg" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect2575"
+       width="15"
+       height="30.000002"
+       x="64"
+       y="43">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_d1_pos" />
+    </rect>
+    <rect
+       y="43"
+       x="81"
+       height="30.000002"
+       width="15"
+       id="rect2577"
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_d1_neg" />
+    </rect>
+    <rect
+       y="43"
+       x="101"
+       height="30.000002"
+       width="15"
+       id="rect2589"
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_a2a_pos" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect2591"
+       width="15"
+       height="30.000002"
+       x="118"
+       y="43">
+      <figurefirst:axis
+         figurefirst:name="fracTuned_a2a_neg" />
+    </rect>
+    <rect
+       y="43"
+       x="147"
+       height="15"
+       width="15"
+       id="rect1027-3"
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="corrMatrix_oprm1" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect1029-6"
+       width="15"
+       height="15"
+       x="181"
+       y="43">
+      <figurefirst:axis
+         figurefirst:name="corrMatrix_a2a" />
+    </rect>
+    <rect
+       y="43"
+       x="164"
+       height="15"
+       width="15"
+       id="rect1031-7"
+       style="opacity:1;fill:#808080;fill-opacity:1;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="corrMatrix_d1" />
+    </rect>
+    <rect
+       height="1.27"
+       id="rect1070"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.15068774;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.15068772, 0.30137544;stroke-dashoffset:0;stroke-opacity:1"
+       width="17.424"
+       x="162.78757"
+       y="73.846649">
+      <figurefirst:axis
+         figurefirst:name="corr_colorbar" />
     </rect>
   </g>
   <g
@@ -238,13 +338,13 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="20.019978"
-       y="-106.06564"
+       x="19.136646"
+       y="-51.065643"
        id="text4610"><tspan
          sodipodi:role="line"
          id="tspan4608"
-         x="20.019978"
-         y="-106.06564"
+         x="19.136646"
+         y="-51.065643"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">A</tspan></text>
     <text
        xml:space="preserve"
@@ -259,14 +359,47 @@
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332" /></text>
     <text
        id="text1035"
-       y="-106.06564"
-       x="78.79528"
+       y="-51.065643"
+       x="75.79528"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
        xml:space="preserve"><tspan
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
-         y="-106.06564"
-         x="78.79528"
+         y="-51.065643"
+         x="75.79528"
          id="tspan1033"
          sodipodi:role="line">B</tspan></text>
+    <text
+       id="text2599"
+       y="-106.5335"
+       x="18.961643"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="-106.5335"
+         x="18.961643"
+         id="tspan2597"
+         sodipodi:role="line">C</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="137.11696"
+       y="-107.10046"
+       id="text3127"><tspan
+         sodipodi:role="line"
+         id="tspan3125"
+         x="137.11696"
+         y="-107.10046"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">D</tspan></text>
+    <text
+       id="text7848"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="165.68225"
+       xml:space="preserve"
+       y="-74.596626"><tspan
+         id="tspan7846"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="165.68225"
+         y="-74.596626">correlation</tspan></text>
   </g>
 </svg>

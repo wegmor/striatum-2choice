@@ -3,11 +3,12 @@ import pandas as pd
 import seaborn as sns
 import scipy.stats
 import matplotlib.pyplot as plt
-import matplotlib
+import matplotlib as mpl
 import h5py
 import pathlib
 import figurefirst
 import cmocean
+from matplotlib.ticker import MultipleLocator
 
 import analysisOpenField
 import style
@@ -64,8 +65,8 @@ plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.g
          alpha=1.0)
 
 order = ("oprm1", "d1", "a2a")
-meanHandles = [matplotlib.lines.Line2D([], [], color=style.getColor(g)) for g in order]
-shuffleHandle = matplotlib.lines.Line2D([], [], color=style.getColor("shuffled"))
+meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g)) for g in order]
+shuffleHandle = mpl.lines.Line2D([], [], color=style.getColor("shuffled"))
 plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(0.45, 0.45), ncol=2)
 
 plt.ylim(0,1)
@@ -92,9 +93,85 @@ for gt, data in decodingData.groupby("genotype"):
     yticks = order if gt == "oprm1" else False
     sns.heatmap(weightedData[order].reindex(order), ax=ax, vmin=0, vmax=1, annot=True, fmt=".0%", cmap=cmocean.cm.amp,
                 cbar=False, xticklabels=order, yticklabels=yticks, annot_kws={'fontsize': 4.5},
-                linewidths=matplotlib.rcParams["axes.linewidth"])
+                linewidths=mpl.rcParams["axes.linewidth"])
     ax.set_xlabel("Predicted" if gt=="d1" else None)
     ax.set_ylabel("Truth" if gt=="oprm1" else None)
+    ax.set_title(gt[0].upper() + gt[1:])
+
+## Panel C
+cachedDataPath = cacheFolder / "openFieldTunings.pkl"
+if cachedDataPath.is_file():
+    tuningData = pd.read_pickle(cachedDataPath)
+else:
+    tuningData = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
+    tuningData.to_pickle(cachedDataPath)
+
+df = tuningData.copy()
+
+df['signp'] = df['pct'] > .995
+df['signn'] = df['pct'] < .005
+df['sign'] = df.signp.astype('int') - df.signn.astype('int')
+
+sign_count = (df.groupby(['genotype','animal','date','action'])
+                .agg({'signp':'sum','signn':'sum'}))
+total_count = (df.groupby(['genotype','animal','date','action'])
+                 [['signp','signn']].count())
+sign_pct = sign_count / total_count
+sign_pct['noNeurons'] = total_count.signp
+
+#order = order # Use same order as previous panel
+
+# v x coords for actions
+a2x = dict(zip(order, np.arange(.5,12)))
+sign_pct['x'] = sign_pct.reset_index().action.replace(a2x).values
+# v color for actions
+sign_pct['color'] = sign_pct.reset_index().action.apply(style.getColor).values
+
+for tuning in ('signp','signn'):
+    for g, gdata in sign_pct.groupby('genotype'):
+        ax = layout.axes['fracTuned_{}_{}'.format(g,{'signp':'pos','signn':'neg'}[tuning])]['axis']
+        ax.scatter(analysisOpenField.jitter(gdata.x, .15), gdata[tuning], s=gdata.noNeurons/20,
+                   edgecolor=gdata.color, facecolor='none', clip_on=False)
+        
+        avg = gdata.groupby('x').apply(analysisOpenField.wAvg, tuning, 'noNeurons')
+        sem = gdata.groupby('x').apply(analysisOpenField.bootstrap, tuning, 'noNeurons')
+        ax.errorbar(avg.index, avg, sem, fmt='.-', c='k')
+        
+        ax.set_xticks(np.arange(.5,4))
+        ax.set_xlim((0,4))
+        ax.set_xticklabels(order, rotation=45, ha="right")
+        title = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g]
+        title += "\n" + {'signp':'positively','signn':'negatively'}[tuning]
+        ax.set_title(title)
+        ax.set_ylabel('')
+        ax.set_yticks((0,.5,1))
+        ax.set_yticklabels(())
+        if g == 'oprm1' and tuning == 'signp':
+            ax.set_ylabel('tuned neurons (%)')
+            ax.set_yticklabels((0,50,100))
+        ax.yaxis.set_minor_locator(MultipleLocator(.25))
+        ax.set_ylim((0,1))
+        
+        sns.despine(ax=ax)
+        
+## Panel D
+tunings = tuningData.set_index(["genotype", "animal", "date", "neuron", "action"]).tuning
+
+cax = layout.axes['corr_colorbar']['axis']
+cax.tick_params(axis='x', which='both',length=0)
+
+for genotype in ("oprm1", "d1", "a2a"):
+    corr = tunings.loc[genotype].unstack()[order].corr()
+    ax = layout.axes["corrMatrix_{}".format(genotype)]["axis"]
+    hm = sns.heatmap(corr, ax=ax, vmin=-1, vmax=1, annot=True, fmt=".2f",
+                     cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
+                     cbar_kws={'ticks':(-1,0,1), 'orientation': 'horizontal'},
+                     annot_kws={'fontsize': 4.0}, yticklabels=(genotype=="oprm1"),
+                     linewidths=mpl.rcParams["axes.linewidth"])
+    ax.set_xlabel(None)
+    ax.set_ylabel(None)
+    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[genotype])
+
 
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "openField.svg")
