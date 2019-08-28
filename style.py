@@ -86,6 +86,12 @@ def getColor(key):
     cdict['shuffled'] = (0,0,0)
     cdict['none'] = (0,0,0)
     
+    #Open field
+    cdict['stationary'] = sns.color_palette()[0]
+    cdict['running'] = sns.color_palette()[1]
+    cdict['leftTurn'] = sns.color_palette()[2]
+    cdict['rightTurn'] = sns.color_palette()[3]
+    
     return cdict[key]
 
 def lw():
