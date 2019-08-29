@@ -164,3 +164,57 @@ def getTuningData(dataFilePath, allBehaviors, no_shuffles=1000):
                 df = df.append(pd.Series(ndict), ignore_index=True)
         
     return df
+
+def decodeWallAngle(dataFilePath):
+    all_dfs = []
+    for sess in readSessions.findSessions(dataFilePath, task="openField"):
+        print(str(sess))
+        
+        #TODO: Replace with particle filter coordinates
+        tracking = sess.readTracking(inCm=True)
+        likelihood = tracking[[("leftEar", "likelihood"),
+                               ("rightEar", "likelihood"),
+                               ("tailBase", "likelihood")]].min(axis=1)
+        coords = 0.5*(tracking.leftEar + tracking.rightEar)
+        wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+        wallDists.columns = ["left", "bottom", "right", "top"]
+        closestWallId = wallDists.idxmin(axis=1)
+        bodyVec = coords - tracking.tailBase
+        bodyDir = np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
+        angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                             'right': -np.pi/2, 'bottom': np.pi})
+        wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+        
+        #Distance to the closest wall
+        minWallDist = wallDists.min(axis=1)
+        
+        #Coordinates of the wall in egocentric coordinates
+        wall_xx = np.cos(wallAngle)*minWallDist
+        wall_yy = np.sin(wallAngle)*minWallDist
+
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        
+        #Select good frames to use
+        mask = minWallDist < 5 #Head closer than 5 cm to the wall
+        mask[deconv.isna().any(axis=1)] = False #Discard frames where neural data is missing
+        mask[likelihood<0.9] = False #Discard frames where DeepLabCut is uncertain
+        
+        #Setup in the format expected by scikit learn
+        X = deconv[mask]
+        Y_xx = wall_xx[mask]
+        Y_yy = wall_yy[mask]
+        
+        svr = sklearn.svm.SVR("linear")
+        cv = sklearn.model_selection.KFold(5)
+        pred_xx = sklearn.model_selection.cross_val_predict(svr, X, Y_xx, cv=cv, n_jobs=5)
+        pred_yy = sklearn.model_selection.cross_val_predict(svr, X, Y_yy, cv=cv, n_jobs=5)
+        shufflePerm = np.random.permutation(X.shape[0])
+        shuffled_xx = sklearn.model_selection.cross_val_predict(svr, X.iloc[shufflePerm, :], Y_xx, cv=cv, n_jobs=5)
+        shuffled_yy = sklearn.model_selection.cross_val_predict(svr, X.iloc[shufflePerm, :], Y_yy, cv=cv, n_jobs=5)
+        df = pd.DataFrame({'sess': str(sess), 'x_true': Y_xx, 'y_true': Y_yy,
+                           'x_predicted': pred_xx, 'y_predicted': pred_yy,
+                           'x_shuffled_prediction': shuffled_xx,
+                           'y_shuffled_prediction': shuffled_yy,
+                           'nNeurons': X.shape[1], 'nFrames': X.shape[0]})
+        all_dfs.append(df)
+    return pd.concat(all_dfs)

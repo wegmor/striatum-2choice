@@ -12,6 +12,7 @@ from matplotlib.ticker import MultipleLocator
 
 import analysisOpenField
 import style
+from utils import readSessions, fancyViz
 
 style.set_context()
 plt.ioff()
@@ -201,5 +202,35 @@ for gt, perGt in correlations[order2choice].groupby(level=0):
     ax.set_xlabel(None)
     ax.set_ylabel(gt[0].upper() + gt[1:])
     ax.set_ylim(4,0)
+    
+## Panel F
+cherryPicks = [
+    ('oprm1_5703_190224', 83),
+    ('oprm1_5703_190224', 53),
+    ('oprm1_5308_190204', 255),
+    ('d1_5652_190202', 12),
+    ('d1_5643_190224', 98),
+    ('d1_5643_190201', 17),
+    ('a2a_6043_190224', 155),
+    ('a2a_6043_190201', 66),
+    ('a2a_5693_190202', 253)
+]
+for i, (sess, neuron) in enumerate(cherryPicks):
+    ax = layout.axes["wallAngleEx_{}".format(i+1)]["axis"]
+    genotype, animal, date = sess.split("_")
+    s = next(readSessions.findSessions(endoDataPath, task="openField", animal=animal, date=date))
+    deconv = s.readDeconvolvedTraces()[neuron]
+    deconv -= deconv.mean()
+    deconv /= deconv.std()
+    fancyViz.WallAnglePlot(s).draw(deconv, ax=ax)
+    
+## Panel G
+cachedDataPath = cacheFolder / "wallAngleDecoding.pkl"
+if cachedDataPath.is_file():
+    wallAngleDecoding = pd.read_pickle(cachedDataPath)
+else:
+    wallAngleDecoding = analysisOpenField.decodeWallAngle(endoDataPath)
+    wallAngleDecoding.to_pickle(cachedDataPath)
+
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "openField.svg")
