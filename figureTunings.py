@@ -146,7 +146,8 @@ df['color'] = df.action
 df.loc[~df.signp, 'color'] = 'none'
 df['color'] = df.color.str.slice(0,4).apply(lambda c: np.array(style.getColor(c)))
 
-rois = s.readROIs().values
+rois = s.readROIs()
+rois = np.array([rois[n].unstack('x').values for n in rois])
 sel_cnts = analysisTunings.get_centers(rois)[sel_neurons]
 
 rs = []

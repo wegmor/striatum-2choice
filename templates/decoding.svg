@@ -24,8 +24,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="238.24255"
-     inkscape:cy="728.85236"
+     inkscape:cx="243.33673"
+     inkscape:cy="604.00172"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -39,7 +39,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="0"
      inkscape:window-y="27"
-     inkscape:zoom="1.979899"
+     inkscape:zoom="0.49497475"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -323,7 +323,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -424,36 +424,6 @@
          figurefirst:name="decodingAccuracyCbar" />
     </rect>
     <rect
-       height="35"
-       id="rect4924"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727"
-       width="15"
-       x="127"
-       y="154.97087">
-      <figurefirst:axis
-         figurefirst:name="decodingAcrossDays_1" />
-    </rect>
-    <rect
-       height="35"
-       id="rect4926"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727"
-       width="15"
-       x="147"
-       y="154.97087">
-      <figurefirst:axis
-         figurefirst:name="decodingAcrossDays_2" />
-    </rect>
-    <rect
-       height="35"
-       id="rect4928"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.27111727"
-       width="15"
-       x="167"
-       y="154.97087">
-      <figurefirst:axis
-         figurefirst:name="decodingAcrossDays_3" />
-    </rect>
-    <rect
        height="12.186796"
        id="rect5352"
        style="fill:#808080;fill-opacity:0.85433074;stroke:none;stroke-width:0.37232432;stroke-linecap:butt;stroke-linejoin:round"
@@ -542,66 +512,6 @@
        y="117.1747">
       <figurefirst:axis
          figurefirst:name="acrossDays_ex33" />
-    </rect>
-    <rect
-       height="35"
-       id="rect10406"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.28623271;stroke-miterlimit:4;stroke-dasharray:none"
-       width="35.000004"
-       x="95"
-       y="201.97076">
-      <figurefirst:axis
-         figurefirst:name="decodingProgressExample" />
-    </rect>
-    <rect
-       height="35"
-       id="rect10817"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-miterlimit:4;stroke-dasharray:none"
-       width="20"
-       x="30"
-       y="201.97076">
-      <figurefirst:axis
-         figurefirst:name="movementProgressRaster" />
-    </rect>
-    <rect
-       height="11"
-       id="rect10819"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598"
-       width="22"
-       x="55"
-       y="201.97076">
-      <figurefirst:axis
-         figurefirst:name="movementExample1" />
-    </rect>
-    <rect
-       height="11"
-       id="rect10821"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598"
-       width="22"
-       x="55"
-       y="213.97075">
-      <figurefirst:axis
-         figurefirst:name="movementExample2" />
-    </rect>
-    <rect
-       height="11"
-       id="rect10823"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.33606598"
-       width="22"
-       x="55"
-       y="225.97075">
-      <figurefirst:axis
-         figurefirst:name="movementExample3" />
-    </rect>
-    <rect
-       height="35"
-       id="rect10825"
-       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.26499999;stroke-miterlimit:4;stroke-dasharray:none"
-       width="20"
-       x="146"
-       y="201.97076">
-      <figurefirst:axis
-         figurefirst:name="movementProgressCorrelations" />
     </rect>
     <rect
        height="279.39999"
@@ -972,17 +882,6 @@
          style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
          x="107.62489"
          y="-56.715919">E</tspan></text>
-    <text
-       id="text4934"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="121.33834"
-       xml:space="preserve"
-       y="-0.85327178"><tspan
-         id="tspan4932"
-         sodipodi:role="line"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333311px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
-         x="121.33834"
-         y="-0.85327178">E</tspan></text>
     <text
        id="text1068"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
