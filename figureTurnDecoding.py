@@ -107,22 +107,72 @@ def calcCorr(df):
     r = pearsonr(df.true, df.predicted)[0]
     return pd.Series((r, df.nNeurons.iloc[0]), ("correlation", "nNeurons"))
 
+##%%
 exampleSession = decodingMovementProgress.query("sess == 'oprm1_5308_190131' & not shuffle")
 means = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.mean()
+#xmeans = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).true.mean()
 stds = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.std()
 plt.sca(layout.axes["decodingProgressExample"]["axis"])
 plt.plot([0,100], [0, 100], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
-plt.errorbar(means.index*100, means*100, yerr=stds*100, fmt='o-', ms=3.2,
+plt.errorbar(means.index*100, means*100, yerr=stds*100, fmt='o-', ms=2.8,
              color=style.getColor("oprm1"), markeredgewidth=0)
 plt.xlim(-5,100)
 plt.ylim(-5,100)
-plt.xticks((0,50,100))#, rotation=30, ha="right", va="top")
+plt.xticks((0,50,100),())#, rotation=30, ha="right", va="top")
 plt.yticks((0,50,100))
-plt.xlabel("true")
-plt.ylabel("predicted", labelpad=-2.25)
+plt.gca().set_xticks((25,75), minor=True)
+plt.gca().set_yticks((25,75), minor=True)
+#plt.xlabel("true")
+#plt.ylabel("predicted", labelpad=-2.25)
 corr = calcCorr(exampleSession).loc["correlation"]
-plt.text(100, 1, "r = {:.3f}".format(corr), fontsize=mpl.rcParams['font.size'],
+plt.text(100, 1.5, "r = {:.3f}".format(corr), fontsize=6,
          color="k", ha="right", va='center')
+sns.despine(ax=plt.gca())
+
+##%%
+decodingMovementProgress['bin'] = np.floor(decodingMovementProgress.true * 10)/10 +.05
+moveProgAnimalMean = (decodingMovementProgress.groupby(['shuffle',
+                                                        'genotype','animal','date',
+                                                        'nNeurons','bin'])[['true','predicted']]
+                                              .mean()
+                                              .reset_index('nNeurons')
+                                              .unstack('shuffle'))
+moveProgAnimalMean.columns = moveProgAnimalMean.columns.reorder_levels((1,0))
+
+plt.sca(layout.axes["decodingProgressAvg"]["axis"])
+for gt, gdata in moveProgAnimalMean.groupby('genotype'):
+    wAvg = gdata[False].groupby('bin').apply(analysisStaySwitchDecoding.wAvg,
+                                             'predicted', 'nNeurons')
+    wX = gdata[False].groupby('bin').apply(analysisStaySwitchDecoding.wAvg,
+                                           'true', 'nNeurons')
+    wSem = gdata[False].groupby('bin').apply(analysisStaySwitchDecoding.bootstrap,
+                                             'predicted', 'nNeurons')
+    
+    plt.fill_between(wX, wAvg-wSem, wAvg+wSem,
+                     lw=0, alpha=.35, zorder=-1, color=style.getColor(gt))
+    plt.plot(wX, wAvg, color=style.getColor(gt),
+             alpha=.8)
+    
+r_wAvg = moveProgAnimalMean[True].groupby('bin').apply(analysisStaySwitchDecoding.wAvg,
+                                                       'predicted', 'nNeurons')
+r_wX = moveProgAnimalMean[True].groupby('bin').apply(analysisStaySwitchDecoding.wAvg,
+                                                     'true', 'nNeurons')
+r_wSem = moveProgAnimalMean[True].groupby('bin').apply(analysisStaySwitchDecoding.bootstrap,
+                                                       'predicted', 'nNeurons')
+
+plt.fill_between(r_wX, r_wAvg-r_wSem, r_wAvg+r_wSem,
+                 lw=0, alpha=.35, zorder=-2, color=style.getColor('shuffled'))
+plt.plot(r_wX, r_wAvg, color=style.getColor('shuffled'), alpha=.8)
+
+plt.plot([0,1], [0,1], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
+plt.xlim(-.05,1)
+plt.ylim(-.05,1)
+plt.xticks((0,.5,1), (0,50,100))
+plt.gca().set_xticks((.25,.75), minor=True)
+plt.yticks((0,.5,1), (0,50,100))
+plt.gca().set_yticks((.25,.75), minor=True)
+plt.xlabel("true %")
+#plt.ylabel("predicted", labelpad=-2.25)
 sns.despine(ax=plt.gca())
 
 
