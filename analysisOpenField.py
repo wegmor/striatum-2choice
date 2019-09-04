@@ -165,6 +165,27 @@ def getTuningData(dataFilePath, allBehaviors, no_shuffles=1000):
         
     return df
 
+
+class BlockKFold(sklearn.model_selection.BaseCrossValidator):
+    def __init__(self, nFolds=5, samplesPerGroup=100):
+        self.nFolds = 5
+        self.samplesPerGroup = samplesPerGroup
+        
+    def _iter_test_masks(self, X=None, y=None, groups=None):
+        nSamples = X.shape[0]
+        nGroups = np.int(np.ceil(nSamples / self.samplesPerGroup))
+        perm = np.random.permutation(nGroups)
+        for i in range(self.nFolds):
+            test_mask = np.zeros(nSamples, dtype=np.bool)
+            for j in range(i, nGroups, self.nFolds):
+                lo = perm[j]*self.samplesPerGroup
+                hi = min(lo+self.samplesPerGroup, nSamples)
+                test_mask[lo:hi] = True
+            yield test_mask
+
+    def get_n_splits(self, X=None, y=None, groups=None):
+        return self.nFolds
+
 def decodeWallAngle(dataFilePath):
     all_dfs = []
     for sess in readSessions.findSessions(dataFilePath, task="openField"):
@@ -205,7 +226,7 @@ def decodeWallAngle(dataFilePath):
         Y_yy = wall_yy[mask]
         
         svr = sklearn.svm.SVR("linear")
-        cv = sklearn.model_selection.KFold(5)
+        cv = BlockKFold(5, 100)#sklearn.model_selection.KFold(5)
         pred_xx = sklearn.model_selection.cross_val_predict(svr, X, Y_xx, cv=cv, n_jobs=5)
         pred_yy = sklearn.model_selection.cross_val_predict(svr, X, Y_yy, cv=cv, n_jobs=5)
         shufflePerm = np.random.permutation(X.shape[0])

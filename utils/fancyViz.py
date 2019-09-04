@@ -387,27 +387,57 @@ class WallAnglePlot(IntensityPlot):
         plt.axis("off")
         plt.axis("equal")
         
-    def setSession(self, session):
-        tracking = session.readTracking(inCm=True)
-        coords = 0.5*(tracking.leftEar + tracking.rightEar)
-        wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
-        wallDists.columns = ["left", "bottom", "right", "top"]
-        closestWallId = wallDists.idxmin(axis=1)
-        bodyVec = coords - tracking.tailBase
-        bodyDir = np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
-        angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
-                                             'right': -np.pi/2, 'bottom': np.pi})
-        wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
-        minWallDist = wallDists.min(axis=1)
-        likelihood = tracking[[("leftEar", "likelihood"),
-                               ("rightEar", "likelihood"),
-                               ("tailBase", "likelihood")]].min(axis=1)
-        self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
-                                      np.sin(wallAngle)*minWallDist*30+150]).T
-        self.coordinates[likelihood.values < 0.9, :] = np.nan
-        self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
-        self.coordinates[minWallDist>4.9, :] = np.nan
-        
+    def setSession(self, session, filteredCoordinates=None, speed=False, filterSpeed=None):
+        if filteredCoordinates is None:
+            tracking = session.readTracking(inCm=True)
+            coords = 0.5*(tracking.leftEar + tracking.rightEar)
+            wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+            wallDists.columns = ["left", "bottom", "right", "top"]
+            closestWallId = wallDists.idxmin(axis=1)
+            bodyVec = coords - tracking.tailBase
+            bodyDir = np.arctan2(bodyVec.y, bodyVec.x).rename("bodyDirection")
+            angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                                 'right': -np.pi/2, 'bottom': np.pi})
+            wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+            minWallDist = wallDists.min(axis=1)
+            likelihood = tracking[[("leftEar", "likelihood"),
+                                   ("rightEar", "likelihood"),
+                                   ("tailBase", "likelihood")]].min(axis=1)
+            self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
+                                          np.sin(wallAngle)*minWallDist*30+150]).T
+            self.coordinates[likelihood.values < 0.9, :] = np.nan
+            self.coordinates[likelihood.shift(1).values < 0.9, :] = np.nan
+            self.coordinates[minWallDist>4.9, :] = np.nan
+        elif not speed:
+            coords = filteredCoordinates[["x", "y"]]
+            wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+            wallDists.columns = ["left", "bottom", "right", "top"]
+            closestWallId = wallDists.idxmin(axis=1)
+            bodyDir = filteredCoordinates.bodyAngle
+            angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                                 'right': -np.pi/2, 'bottom': np.pi})
+            wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+            minWallDist = wallDists.min(axis=1)
+            self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
+                                          np.sin(wallAngle)*minWallDist*30+150]).T
+            self.coordinates[minWallDist>4.9, :] = np.nan
+        else:
+            coords = filteredCoordinates[["x", "y"]]
+            wallDists = pd.concat((coords.x, coords.y, 49-coords.x, 49-coords.y), axis=1)
+            wallDists.columns = ["left", "bottom", "right", "top"]
+            closestWallId = wallDists.idxmin(axis=1)
+            bodyDir = np.arctan2(coords.y.diff(), coords.x.diff())
+            angleOfWall = closestWallId.replace({'left': np.pi/2, 'top': 0,
+                                                 'right': -np.pi/2, 'bottom': np.pi})
+            wallAngle = (angleOfWall - bodyDir + 2*np.pi)%(2*np.pi) - np.pi
+            minWallDist = wallDists.min(axis=1)
+            self.coordinates = np.vstack([np.cos(wallAngle)*minWallDist*30+150,
+                                          np.sin(wallAngle)*minWallDist*30+150]).T
+            self.coordinates[minWallDist>4.9, :] = np.nan
+            if filterSpeed is not None:
+                speeds = np.sqrt((coords.diff()**2).sum(axis=1))
+                self.coordinates[speeds < filterSpeed]  = np.nan
+                
 class AllCombinedPlot:
     def __init__(self, block):
         self.schematic = SchematicIntensityPlot(block)
