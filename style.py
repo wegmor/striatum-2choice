@@ -82,6 +82,8 @@ def getColor(key):
     cdict['switch'] = cdict['a2a']
     cdict['o!'] = cdict['switch']
     cdict['o.'] = cdict['oprm1']
+    
+    cdict['double'] = sns.color_palette()[6]
 
     cdict['shuffled'] = (0,0,0)
     cdict['none'] = (0,0,0)
