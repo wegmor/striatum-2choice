@@ -6,6 +6,7 @@ import matplotlib
 import sklearn.svm
 import sklearn.ensemble
 import sklearn.model_selection
+import sklearn.feature_selection
 import tqdm
 import multiprocessing
 import functools
@@ -81,6 +82,44 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
                         res.append((str(sess), sess.meta.task, nNeurons)+scores)
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
+
+#def _calcMI(X, Y):
+#    mi = list()
+#    actionsAsInts = Y.astype("category").cat.codes.values.reshape(-1, 1)
+#    for i in range(X.shape[1]):
+#        mi.append(sklearn.feature_selection.mutual_info_regression(actionsAsInts,
+#                                                                   X[i],
+#                                                                   discrete_features=True,
+#                                                                   n_neighbors=3)[0])
+#    return np.array(mi)
+
+
+def _launchCrossValScore(i, X, Y):
+    np.random.seed(np.random.randint(1000000)+i)
+    return i, _crossValScore(X, Y)
+
+def decodeWithSortedNeurons(dataFile):
+    nShufflesPerNeuronNum = 10
+    with multiprocessing.Pool(5) as pool:
+        res = []
+        for sess in readSessions.findSessions(dataFile, task="2choice"):
+            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            lfa = sess.labelFrameActions(reward="sidePorts")
+            if len(deconv) != len(lfa): continue
+            X, Y = _prepareTrials(deconv, lfa)
+            mutualInformation = sklearn.feature_selection.mutual_info_classif(X, Y)
+            ascending = np.argsort(mutualInformation)
+            descending = ascending[::-1]
+            N = min(201, X.shape[1])
+            with tqdm.tqdm(total=int((N-1)/5)*nShufflesPerNeuronNum*2, desc=str(sess)) as t:
+                for nNeurons in range(5, N, 5):
+                    for ordering in ("ascending", "descending"):
+                        selectedNeurons = ascending[:nNeurons] if ordering=="ascending" else descending[:nNeurons]
+                        fcn = functools.partial(_launchCrossValScore, X=X[selectedNeurons], Y=Y)
+                        for i, score in pool.imap(fcn, range(nShufflesPerNeuronNum)):
+                            res.append((str(sess), sess.meta.task, nNeurons, i, ordering, score))
+                            t.update(1)
+    return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "ordering", "accuracy"])
 
 def decodingConfusion(dataFile):
     confMats = []
