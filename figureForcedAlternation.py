@@ -15,7 +15,7 @@ import figurefirst
 from utils import fancyViz
 from utils import readSessions
 from utils import sessionBarPlot
-import analysisDecoding
+import analysisForcedAlternation, analysisDecoding
 import style
 
 style.set_context()
@@ -35,8 +35,16 @@ if not cacheFolder.is_dir():
 layout = figurefirst.FigureLayout(templateFolder / "forcedAlternation.svg")
 layout.make_mplfigures()
 
+## Panel B
+cachedDataPath = cacheFolder / "forcedAlternationTunings.pkl"
+if cachedDataPath.is_file():
+    tunings = pd.read_pickle(cachedDataPath)
+else:
+    tunings = analysisForcedAlternation.getTuningData(endoDataPath)
+    tunings.to_pickle(cachedDataPath)
+
 ## Panel C
-cachedDataPath = cacheFolder / "decodingAccrossDays.pkl"
+cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAccrossDays = pd.read_pickle(cachedDataPath)
 else:
