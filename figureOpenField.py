@@ -32,6 +32,10 @@ if not cacheFolder.is_dir():
 layout = figurefirst.FigureLayout(templateFolder / "openField.svg")
 layout.make_mplfigures()
 
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn'}
+
 #All 4-behavior panels    
 cachedDataPath = cacheFolder / "segmentedBehavior.pkl"
 if cachedDataPath.is_file():
@@ -84,8 +88,8 @@ for tuning in ('signp','signn'):
         
         ax.set_xticks(np.arange(.5,4))
         ax.set_xlim((0,4))
-        ax.set_xticklabels(order, rotation=45, ha="right")
-        title = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g]
+        ax.set_xticklabels([behaviorNames[b] for b in order], rotation=45, ha="right")
+        title = genotypeNames[g]
         title += "\n" + {'signp':'positively','signn':'negatively'}[tuning]
         ax.set_title(title)
         ax.set_ylabel('')
@@ -108,14 +112,19 @@ cax.tick_params(axis='x', which='both',length=0)
 for genotype in ("oprm1", "d1", "a2a"):
     corr = tunings.loc[genotype].unstack()[order].corr()
     ax = layout.axes["corrMatrix_{}".format(genotype)]["axis"]
+    yticks = [behaviorNames[b] for b in order] if genotype == "oprm1" else False
     hm = sns.heatmap(corr, ax=ax, vmin=-1, vmax=1, annot=True, fmt=".2f",
                      cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
                      cbar_kws={'ticks':(-1,0,1), 'orientation': 'horizontal'},
-                     annot_kws={'fontsize': 4.0}, yticklabels=(genotype=="oprm1"),
+                     annot_kws={'fontsize': 4.0}, yticklabels=yticks,
+                     xticklabels=[behaviorNames[b] for b in order],
                      linewidths=mpl.rcParams["axes.linewidth"])
     ax.set_xlabel(None)
     ax.set_ylabel(None)
-    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[genotype])
+    ax.set_title(genotypeNames[genotype])
+    ax.set_ylim(4, 0)
+    ax.tick_params("both", length=0, pad=3)
+
 
 
 #Panel C
@@ -143,12 +152,13 @@ plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.g
 order = ("oprm1", "d1", "a2a")
 meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g)) for g in order]
 shuffleHandle = mpl.lines.Line2D([], [], color=style.getColor("shuffled"))
-plt.legend(meanHandles+[shuffleHandle], order+("shuffled",), loc=(0.45, 0.45), ncol=2)
+plt.legend(meanHandles+[shuffleHandle], [genotypeNames[g] for g in order]+["shuffled",],
+           loc=(0.45, 0.45), ncol=2)
 
 plt.ylim(0,1)
 plt.xlim(0,300)
-plt.xlabel("Number of neurons")
-plt.ylabel("Decoding accuracy (%)")
+plt.xlabel("number of neurons")
+plt.ylabel("decoding accuracy (%)")
 plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
 
@@ -166,13 +176,16 @@ for gt, data in decodingData.groupby("genotype"):
     weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
     weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
     ax = layout.axes["confusionMatrix_{}".format(gt)]["axis"]
-    yticks = order if gt == "oprm1" else False
+    yticks = [behaviorNames[b] for b in order] if gt == "oprm1" else False
     sns.heatmap(weightedData[order].reindex(order), ax=ax, vmin=0, vmax=1, annot=True, fmt=".0%", cmap=cmocean.cm.amp,
-                cbar=False, xticklabels=order, yticklabels=yticks, annot_kws={'fontsize': 4.5},
+                cbar=False, xticklabels=[behaviorNames[b] for b in order],
+                yticklabels=yticks, annot_kws={'fontsize': 4.5},
                 linewidths=mpl.rcParams["axes.linewidth"])
-    ax.set_xlabel("Predicted" if gt=="d1" else None)
-    ax.set_ylabel("Truth" if gt=="oprm1" else None)
-    ax.set_title(gt[0].upper() + gt[1:])
+    ax.set_xlabel("predicted" if gt=="d1" else None)
+    ax.set_ylabel("truth" if gt=="oprm1" else None)
+    ax.set_title(genotypeNames[gt])
+    ax.set_ylim(4, 0)
+    ax.tick_params("both", length=0, pad=3)
 
 ## Panel E
 cachedDataPath = cacheFolder / "actionTunings.pkl"
@@ -197,27 +210,49 @@ for gt, perGt in correlations[order2choice].groupby(level=0):
     sns.heatmap(perGt.loc[gt].loc[order], ax=ax, vmin=-1, vmax=1, annot=True,
                 fmt=".2f", cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
                 cbar_kws={'ticks':(-1,0,1)}, xticklabels=False,
-                annot_kws={'fontsize': 4.0}, yticklabels=order,
+                annot_kws={'fontsize': 4.0}, yticklabels=[behaviorNames[b] for b in order],
                 linewidths=mpl.rcParams["axes.linewidth"])
     ax.set_xlabel(None)
-    ax.set_ylabel(gt[0].upper() + gt[1:])
+    ax.set_ylabel(genotypeNames[gt])
     ax.set_ylim(4,0)
+    ax.tick_params("both", length=0, pad=3)
+
     
 ## Panel F
 cherryPicks = [
-    ('oprm1_5703_190224', 83),
-    ('oprm1_5703_190224', 53),
-    ('oprm1_5308_190204', 255),
-    ('d1_5652_190202', 12),
-    ('d1_5643_190224', 98),
-    ('d1_5643_190201', 17),
-    ('a2a_6043_190224', 155),
-    ('a2a_6043_190201', 66),
-    ('a2a_5693_190202', 253)
+    (0, 'oprm1_5703_190224', 83),
+    (1, 'oprm1_5703_190224', 53),
+    (2, 'oprm1_5308_190204', 255),
+    (0, 'd1_5652_190202', 12),
+    (1, 'd1_5643_190224', 98),
+    (2, 'd1_5643_190201', 17),
+    (0, 'a2a_6043_190224', 155),
+    (1, 'a2a_6043_190201', 66),
+    (2, 'a2a_5693_190202', 253)
 ]
-for i, (sess, neuron) in enumerate(cherryPicks):
-    ax = layout.axes["wallAngleEx_{}".format(i+1)]["axis"]
+
+# Some extra neurons to fill out the figure...
+cherryPicks += [
+    (3, 'oprm1_5703_190201', 9),
+    (4, 'oprm1_5703_190201', 65),
+    (5, 'oprm1_5703_190130', 113),
+    (6, 'oprm1_5574_190224', 22),
+    (7, 'oprm1_5308_190201', 0),
+    (3, 'd1_5652_190224', 26),
+    (4, 'd1_5652_190203', 5),
+    (5, 'd1_5643_190224', 55),
+    (6, 'd1_5643_190224', 146),
+    (7, 'd1_5643_190130', 12),
+    (3, 'a2a_6043_190130', 1),
+    (4, 'a2a_6043_190130', 78),
+    (5, 'a2a_6043_190130', 152),
+    (6, 'a2a_5693_190224', 26),
+    (7, 'a2a_5693_190202', 0)
+]
+
+for i, sess, neuron in cherryPicks:
     genotype, animal, date = sess.split("_")
+    ax = layout.axes["wallAngleEx_{}_{}".format(genotype, i+1)]["axis"]
     s = next(readSessions.findSessions(endoDataPath, task="openField", animal=animal, date=date))
     deconv = s.readDeconvolvedTraces()[neuron]
     deconv -= deconv.mean()
@@ -225,12 +260,12 @@ for i, (sess, neuron) in enumerate(cherryPicks):
     fancyViz.WallAnglePlot(s).draw(deconv, ax=ax)
     
 ## Panel G
-cachedDataPath = cacheFolder / "wallAngleDecoding.pkl"
-if cachedDataPath.is_file():
-    wallAngleDecoding = pd.read_pickle(cachedDataPath)
-else:
-    wallAngleDecoding = analysisOpenField.decodeWallAngle(endoDataPath)
-    wallAngleDecoding.to_pickle(cachedDataPath)
+#cachedDataPath = cacheFolder / "wallAngleDecoding.pkl"
+#if cachedDataPath.is_file():
+#    wallAngleDecoding = pd.read_pickle(cachedDataPath)
+#else:
+#    wallAngleDecoding = analysisOpenField.decodeWallAngle(endoDataPath)
+#    wallAngleDecoding.to_pickle(cachedDataPath)
 
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "openField.svg")

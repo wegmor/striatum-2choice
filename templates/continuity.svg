@@ -24,11 +24,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="3.959798"
-     inkscape:cx="189.39401"
-     inkscape:cy="878.23179"
+     inkscape:zoom="0.9899495"
+     inkscape:cx="532.57906"
+     inkscape:cy="930.97541"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer3"
+     inkscape:current-layer="layer1"
      showgrid="true"
      units="in"
      inkscape:snap-grids="true"
@@ -38,7 +38,9 @@
      inkscape:window-height="1016"
      inkscape:window-x="1987"
      inkscape:window-y="27"
-     inkscape:window-maximized="1">
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true">
     <inkscape:grid
        type="xygrid"
        id="grid7731"
@@ -46,9 +48,47 @@
        spacingx="2.75"
        spacingy="2.75"
        empspacing="4" />
+    <sodipodi:guide
+       position="186.28686,222.75"
+       orientation="1,0"
+       id="guide898"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="187.55639,220.56418"
+       orientation="1,0"
+       id="guide900"
+       inkscape:locked="false" />
   </sodipodi:namedview>
   <defs
-     id="defs7180" />
+     id="defs7180">
+    <clipPath
+       id="p7571dddc21">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="163.70079"
+         y="67.748032"
+         id="rect2430" />
+    </clipPath>
+    <clipPath
+       id="pf18deae393">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="93.543304"
+         y="67.748032"
+         id="rect2427" />
+    </clipPath>
+    <clipPath
+       id="pce559dd414">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="444.33072"
+         y="67.748032"
+         id="rect2442" />
+    </clipPath>
+  </defs>
   <metadata
      id="metadata7183">
     <rdf:RDF>
@@ -107,14 +147,14 @@
        id="rect7760"
        width="22"
        height="11"
-       x="33"
-       y="41.25">
+       x="30.25"
+       y="36.712044">
       <figurefirst:axis
          figurefirst:name="s1" />
     </rect>
     <rect
-       y="41.25"
-       x="57.75"
+       y="36.712044"
+       x="55"
        height="11"
        width="22"
        id="rect7762"
@@ -127,14 +167,14 @@
        id="rect7764"
        width="22"
        height="11"
-       x="82.5"
-       y="41.25">
+       x="79.75"
+       y="36.712044">
       <figurefirst:axis
          figurefirst:name="s3" />
     </rect>
     <rect
-       y="41.25"
-       x="107.25"
+       y="36.712044"
+       x="104.5"
        height="11"
        width="22"
        id="rect7766"
@@ -147,14 +187,14 @@
        id="rect7768"
        width="22"
        height="11"
-       x="132"
-       y="41.25">
+       x="129.25"
+       y="36.712044">
       <figurefirst:axis
          figurefirst:name="s5" />
     </rect>
     <rect
-       y="41.25"
-       x="156.75"
+       y="36.712044"
+       x="154"
        height="11"
        width="22"
        id="rect7770"
@@ -163,8 +203,8 @@
          figurefirst:name="s6" />
     </rect>
     <rect
-       y="57.75"
-       x="33"
+       y="53.212044"
+       x="30.25"
        height="11"
        width="22"
        id="rect7802"
@@ -177,14 +217,14 @@
        id="rect7804"
        width="22"
        height="11"
-       x="57.75"
-       y="57.75">
+       x="55"
+       y="53.212044">
       <figurefirst:axis
          figurefirst:name="s11" />
     </rect>
     <rect
-       y="57.75"
-       x="82.5"
+       y="53.212044"
+       x="79.75"
        height="11"
        width="22"
        id="rect7806"
@@ -197,14 +237,14 @@
        id="rect7808"
        width="22"
        height="11"
-       x="107.25"
-       y="57.75">
+       x="104.5"
+       y="53.212044">
       <figurefirst:axis
          figurefirst:name="s9" />
     </rect>
     <rect
-       y="57.75"
-       x="132"
+       y="53.212044"
+       x="129.25"
        height="11"
        width="22"
        id="rect7810"
@@ -217,14 +257,14 @@
        id="rect7812"
        width="22"
        height="11"
-       x="156.75"
-       y="57.75">
+       x="154"
+       y="53.212044">
       <figurefirst:axis
          figurefirst:name="s7" />
     </rect>
     <rect
-       y="74.25"
-       x="33"
+       y="69.712044"
+       x="30.25"
        height="11"
        width="22"
        id="rect7802-2"
@@ -237,14 +277,14 @@
        id="rect7804-8"
        width="22"
        height="11"
-       x="57.75"
-       y="74.25">
+       x="55"
+       y="69.712044">
       <figurefirst:axis
          figurefirst:name="s14" />
     </rect>
     <rect
-       y="74.25"
-       x="82.5"
+       y="69.712044"
+       x="79.75"
        height="11"
        width="22"
        id="rect7806-6"
@@ -257,14 +297,14 @@
        id="rect7808-7"
        width="22"
        height="11"
-       x="107.25"
-       y="74.25">
+       x="104.5"
+       y="69.712044">
       <figurefirst:axis
          figurefirst:name="s16" />
     </rect>
     <rect
-       y="74.25"
-       x="132"
+       y="69.712044"
+       x="129.25"
        height="11"
        width="22"
        id="rect7810-3"
@@ -277,8 +317,8 @@
        id="rect7812-5"
        width="22"
        height="11"
-       x="156.75002"
-       y="74.25">
+       x="154.00002"
+       y="69.712044">
       <figurefirst:axis
          figurefirst:name="s18" />
     </rect>
@@ -287,14 +327,14 @@
        id="rect7844"
        width="22"
        height="11"
-       x="33"
-       y="90.75">
+       x="30.25"
+       y="86.212044">
       <figurefirst:axis
          figurefirst:name="s24" />
     </rect>
     <rect
-       y="90.75"
-       x="57.75"
+       y="86.212044"
+       x="55"
        height="11"
        width="22"
        id="rect7846"
@@ -307,14 +347,14 @@
        id="rect7848"
        width="22"
        height="11"
-       x="82.5"
-       y="90.75">
+       x="79.75"
+       y="86.212044">
       <figurefirst:axis
          figurefirst:name="s22" />
     </rect>
     <rect
-       y="90.75"
-       x="107.25"
+       y="86.212044"
+       x="104.5"
        height="11"
        width="22"
        id="rect7850"
@@ -327,14 +367,14 @@
        id="rect7852"
        width="22"
        height="11"
-       x="132"
-       y="90.75">
+       x="129.25"
+       y="86.212044">
       <figurefirst:axis
          figurefirst:name="s20" />
     </rect>
     <rect
-       y="90.75"
-       x="156.75002"
+       y="86.212044"
+       x="154.00002"
        height="11"
        width="22"
        id="rect7854"
@@ -343,8 +383,8 @@
          figurefirst:name="s19" />
     </rect>
     <rect
-       y="107.25"
-       x="33"
+       y="102.71206"
+       x="30.25"
        height="11"
        width="22"
        id="rect7856"
@@ -357,14 +397,14 @@
        id="rect7858"
        width="22"
        height="11"
-       x="57.75"
-       y="107.25">
+       x="55"
+       y="102.71206">
       <figurefirst:axis
          figurefirst:name="s26" />
     </rect>
     <rect
-       y="107.25"
-       x="82.5"
+       y="102.71206"
+       x="79.75"
        height="11"
        width="22"
        id="rect7860"
@@ -377,14 +417,14 @@
        id="rect7862"
        width="22"
        height="11"
-       x="107.25"
-       y="107.25">
+       x="104.5"
+       y="102.71206">
       <figurefirst:axis
          figurefirst:name="s28" />
     </rect>
     <rect
-       y="107.25"
-       x="132"
+       y="102.71206"
+       x="129.25"
        height="11"
        width="22"
        id="rect7864"
@@ -397,8 +437,8 @@
        id="rect7866"
        width="22"
        height="11"
-       x="156.75002"
-       y="107.25">
+       x="154.00002"
+       y="102.71206">
       <figurefirst:axis
          figurefirst:name="s30" />
     </rect>
@@ -409,26 +449,102 @@
      inkscape:label="Layer 2">
     <path
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 33,34.65 h 148.5 c 0,0 2.97453,6.17e-4 2.85417,2.94866 C 184.25,40.15 181.5,40.15 181.5,40.15 H 35.75 c 0,0 -13.885911,1.1e-5 -13.816817,13.98029 C 22,67.65 35.75,67.65 35.75,67.65 H 181.5 c 0,0 2.97453,6.2e-4 2.85417,2.94866 C 184.25,73.15 181.5,73.15 181.5,73.15 H 35.75 c 0,0 -13.749426,-0.0668 -13.816817,13.74203 C 21.866365,100.58318 35.75,100.65 35.75,100.65 H 181.5"
+       d="m 30.25,30.112048 h 148.5 c 0,0 2.97453,6.17e-4 2.85417,2.94866 -0.10417,2.55134 -2.85417,2.55134 -2.85417,2.55134 H 33 c 0,0 -13.885911,1.1e-5 -13.816817,13.98029 C 19.25,63.112048 33,63.112048 33,63.112048 h 145.75 c 0,0 2.97453,6.2e-4 2.85417,2.94866 -0.10417,2.55134 -2.85417,2.55134 -2.85417,2.55134 H 33 c 0,0 -13.749426,-0.0668 -13.816817,13.74203 C 19.116365,96.045228 33,96.112048 33,96.112048 h 145.75"
        id="path7774"
        inkscape:connector-curvature="0"
        sodipodi:nodetypes="ccsccsccsccscc" />
     <path
        style="fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.09354433px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
-       d="m 187,100.62499 c -5.5,-1.374996 -5.5,-1.374996 -5.5,-1.374996 V 102 Z"
+       d="m 184.25,96.087038 c -5.5,-1.374996 -5.5,-1.374996 -5.5,-1.374996 v 2.750006 z"
        id="path7776"
        inkscape:connector-curvature="0" />
-    <flowRoot
+    <g
+       transform="matrix(0.35277777,0,0,0.35277777,142.28686,27.074556)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+       id="line2d_9">
+      <path
+         inkscape:connector-curvature="0"
+         id="path131"
+         style="fill:none;stroke:#d62728;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+         d="M 124.72441,97.511811 V 94.677165"
+         clip-path="url(#pf18deae393)" />
+    </g>
+    <g
+       transform="matrix(0.35277777,0,0,0.35277777,117.53686,31.045389)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+       id="line2d_18">
+      <path
+         inkscape:connector-curvature="0"
+         id="path210"
+         style="fill:none;stroke:#9467bd;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+         d="M 194.88189,97.511811 V 94.677165"
+         clip-path="url(#p7571dddc21)" />
+    </g>
+    <g
+       transform="matrix(0.35277777,0,0,0.35277777,18.536864,22.795389)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+       id="line2d_54">
+      <path
+         inkscape:connector-curvature="0"
+         id="path526"
+         style="fill:none;stroke:#1f77b4;stroke-width:2;stroke-linecap:round;stroke-linejoin:round"
+         d="M 475.51181,97.511811 V 94.677165"
+         clip-path="url(#pce559dd414)" />
+    </g>
+    <text
        xml:space="preserve"
-       id="flowRoot7917"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:9.33333302px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none"
-       transform="scale(0.26458333)"><flowRegion
-         id="flowRegion7919"><rect
-           id="rect7921"
-           width="31.181103"
-           height="31.181103"
-           x="83.149605"
-           y="78.992126" /></flowRegion><flowPara
-         id="flowPara7923"
-         style="font-size:16px">A</flowPara></flowRoot>  </g>
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.27367"
+       y="57.187031"
+       id="text888"><tspan
+         sodipodi:role="line"
+         id="tspan886"
+         x="187.27367"
+         y="57.187031"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">D1</tspan></text>
+    <text
+       id="text892"
+       y="61.47863"
+       x="187.53751"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="61.47863"
+         x="187.53751"
+         id="tspan890"
+         sodipodi:role="line">A2A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="187.42401"
+       y="65.461891"
+       id="text896"><tspan
+         sodipodi:role="line"
+         id="tspan894"
+         x="187.42401"
+         y="65.461891"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">Oprm1</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="183.52151"
+       y="53.049759"
+       id="text904"><tspan
+         sodipodi:role="line"
+         x="183.52151"
+         y="53.049759"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         id="tspan918">genotype</tspan></text>
+    <text
+       id="text930"
+       y="50.025948"
+       x="183.56876"
+       style="font-style:normal;font-weight:normal;font-size:10.58333302px;line-height:1.25;font-family:sans-serif;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         id="tspan928"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="50.025948"
+         x="183.56876"
+         sodipodi:role="line">example</tspan></text>
+  </g>
 </svg>

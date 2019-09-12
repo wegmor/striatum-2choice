@@ -94,6 +94,11 @@ def getColor(key):
     cdict['leftTurn'] = sns.color_palette()[2]
     cdict['rightTurn'] = sns.color_palette()[3]
     
+    #Decoding sorted by mutual information
+    cdict['ascending'] = sns.color_palette()[0]
+    cdict['descending'] = sns.color_palette()[1]
+    cdict['random'] = sns.color_palette()[1]
+    
     return cdict[key]
 
 def lw():
