@@ -22,12 +22,12 @@ import style
 
 style.set_context()
 
-endoDataPath = "endoData_2019.hdf"
-alignmentDataPath = "alignment_190227.hdf"
+endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path("data") / "alignment_190227.hdf"
 
 outputFolder = pathlib.Path("svg")
 cacheFolder = pathlib.Path("cache")
-templateFolder = pathlib.Path(__file__).parent / "templates"
+templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
@@ -37,7 +37,7 @@ if not cacheFolder.is_dir():
 layout = figurefirst.FigureLayout(templateFolder / "forcedAlternation.svg")
 layout.make_mplfigures()
 
-## Panel B
+#%% Panel B
 cachedDataPath = cacheFolder / "forcedAlternationTunings.pkl"
 if cachedDataPath.is_file():
     tuningData = pd.read_pickle(cachedDataPath)
@@ -197,5 +197,38 @@ for i in range(3):
         fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5)
         fv.draw(signal, ax=ax)
 
+#%%
+sessionStats = analysisForcedAlternation.getFASessionStats(endoDataPath)
+sessionStats['fracCorrect'] = sessionStats.correct / sessionStats.trials
+sessionStats['fracSwitch'] = sessionStats.switch / sessionStats.trials
+sessionStats['fracRewarded'] = sessionStats.reward / sessionStats.trials
+
+stats = sessionStats.groupby(['animal','session','bin'])[['fracSwitch',
+                                                          'fracRewarded',
+                                                          'fracCorrect']].mean()
+stats = stats.unstack('animal')
+
+data = stats['fracSwitch']
+
+fig = plt.figure(figsize=(7, 5))
+for s, df in data.groupby('session'):
+    x = [s-1/3, s, s+1/3]
+    plt.plot(x, df.values, c='k', alpha=.2)
+    plt.errorbar(x, df.mean(axis=1).values, yerr=df.sem(axis=1),
+                 c='k', marker='o', markersize=8)
+plt.fill_betweenx([0,1], -4.5, -1.5, color='lightgray', alpha=.5)
+
+plt.ylim((0,1))
+plt.yticks(np.arange(0, 1.1, 0.25))
+plt.xticks(np.arange(-9, 0), ())
+plt.ylabel('fraction of port entries')
+plt.xlabel('recording session')
+sns.despine()
+
+plt.title('switch')
+    
+plt.show()   
+        
+#%%
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "forcedAlternation.svg")
