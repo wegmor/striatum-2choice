@@ -24,13 +24,12 @@ style.set_context()
 plt.ioff
 
 #%%
-dataFolder = pathlib.Path(".")
-endoDataPath = dataFolder / "endoData_2019.hdf"
-alignmentDataPath = dataFolder / "alignment_190227.hdf"
 
+endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 cacheFolder = pathlib.Path("cache")
-templateFolder = pathlib.Path("striatum_2choice/templates")
+templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
