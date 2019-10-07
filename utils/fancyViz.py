@@ -623,6 +623,79 @@ class SwitchSchematicPlot(IntensityPlot):
         schematicCoord.y += 150
         self.coordinates = schematicCoord.values
 
+class OpenFieldSchematicPlot(IntensityPlot):
+    
+    def __init__(self, session=None, saturation=1.0, smoothing=3, linewidth=2):
+        self.saturation = saturation
+        self.smoothing = smoothing
+        self.linewidth = linewidth
+        self.mask = slice(None, None) #No mask, use all values
+        self.clearBuffer()
+        self.setSession(session)
+    
+    def clearBuffer(self):
+        self.valueCanvas = np.zeros((151, 300), np.float64)
+        self.normCanvas = np.zeros((151, 300), np.float64)
+    
+    def _drawSchema(self, im, alpha, ax=None):
+        '''Internal function, do not call directly.'''
+        imshowWithAlpha(im, alpha, self.saturation, origin="lower",
+                        extent=(-3,3,-1,2), zorder=-100000)
+        if ax is None:
+            ax = plt.gca()
+        lw = self.linewidth
+        ax.add_artist(matplotlib.patches.Arc((1.5, 0), 2, 2, 0, 30, 180, lw=lw, edgecolor="k"))
+        ax.add_artist(matplotlib.patches.Arc((-1.5, 0), 2, 2, 0, 0, 150, lw=lw, edgecolor="k"))
+        plt.plot([0, -0.5, 0.5, 0, 0], [-0.75, 0, 0, -0.75, 2.0], lw=lw, color="k")
+        drawArrowHead(ax, (0, 1.75), (0, 2.0), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (1.5+np.cos(np.pi/4), np.sin(np.pi/4)),
+                          (1.5+np.cos(np.pi/6), np.sin(np.pi/6)), facecolor="k", edgecolor="k")
+        drawArrowHead(ax, (-1.5-np.cos(np.pi/4), np.sin(np.pi/4)),
+                          (-1.5-np.cos(np.pi/6), np.sin(np.pi/6)), facecolor="k", edgecolor="k")
+        #plt.axis("square")
+        plt.xlim(-3, 3)
+        plt.ylim(-1,2.5)
+        ax.axis("off")
+        
+    def setSession(self, session):
+        #TODO: This part should probably be stored in the dataframe
+        cachedDataPath = "cache/segmentedBehavior.pkl"
+        segmentedBehavior = pd.read_pickle(cachedDataPath)
+        sb = segmentedBehavior.query("session == '{}'".format(session))
+        
+        lastFrame = sb.stopFrame.iloc[-1]
+        sb = sb[["actionNo", "startFrame", "numFrames", "netTurn", "behavior"]]
+        sb["nextBehavior"] = sb.behavior.shift(-1)
+        sb = sb.set_index("startFrame").reindex(np.arange(lastFrame+1), method="ffill")
+        sb["progress"] = sb.groupby("actionNo").cumcount() / sb.numFrames
+        m = sb.behavior=="leftTurn"
+        rad = 0.5 + 0.5*(sb[m].netTurn / 150.0)
+        ang = np.deg2rad(sb[m].progress * sb[m].netTurn)
+        sb.loc[m, "x"] = -1.5 + rad*np.cos(ang)
+        sb.loc[m, "y"] = rad*np.sin(ang)
+        m = sb.behavior=="rightTurn"
+        rad = 0.5 + 0.5*(-sb[m].netTurn / 150.0)
+        ang = np.deg2rad(-180 + sb[m].progress * sb[m].netTurn)
+        sb.loc[m, "x"] = 1.5 + rad*np.cos(ang)
+        sb.loc[m, "y"] = rad*np.sin(ang)
+        m = sb.behavior=="running"
+        sb.loc[m, "x"] = 0
+        sb.loc[m, "y"] = 2*sb[m].progress
+        m = sb.behavior=="stationary"
+        sb.loc[m, "y"] = 0.75*(sb[m].progress-1)
+        m = np.logical_and(sb.behavior=="stationary", sb.nextBehavior=="running")
+        sb.loc[m, "x"] = 0
+        m = np.logical_and(sb.behavior=="stationary", sb.nextBehavior=="leftTurn")
+        sb.loc[m, "x"] = -0.5 * sb[m].progress
+        m = np.logical_and(sb.behavior=="stationary", sb.nextBehavior=="rightTurn")
+        sb.loc[m, "x"] = 0.5 * sb[m].progress
+        self.rawCoords = sb
+        
+        schematicCoord = sb[["x", "y"]]*50
+        schematicCoord["x"] += 150
+        schematicCoord["y"] += 50
+        self.coordinates = schematicCoord.values
+        
 def imshowWithAlpha(im, alpha, saturation, **kwargs):
     im = np.clip(im / saturation, -1, 1)
     if "cmap" not in kwargs: kwargs["cmap"] = "RdYlBu_r"
