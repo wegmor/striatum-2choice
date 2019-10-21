@@ -37,7 +37,7 @@ if not cacheFolder.is_dir():
 layout = figurefirst.FigureLayout(templateFolder / "forcedAlternation.svg")
 layout.make_mplfigures()
 
-#%% Panel B
+#%% Panel C
 cachedDataPath = cacheFolder / "forcedAlternationTunings.pkl"
 if cachedDataPath.is_file():
     tuningData = pd.read_pickle(cachedDataPath)
@@ -76,7 +76,7 @@ for g in ['d1','a2a','oprm1']:
 
     ax.set_aspect('equal')
 
-#%% tuning counts (simple)
+#%% Panel D
 hist_df = analysisTunings.getTunedNoHistData(tuningData)
 
 axs = {}
@@ -110,7 +110,7 @@ axs['d1'].set_ylabel('neurons (%)')
 axs['a2a'].set_xlabel('number of actions')
     
     
-## Panel D
+## Panel E
 cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
 if cachedDataPath.is_file():
     decodingAccrossDays = pd.read_pickle(cachedDataPath)
@@ -164,15 +164,17 @@ for i in range(2):
     plt.ylim(0,1)
     plt.xlim(-0.25, 1.25)
     if i == 0:
-        plt.xticks((0,1), ("2-choice", "Forced\nalternation"))
+        #plt.xticks((0,1), ("2-choice", "Forced\nalternation"))
+        plt.xticks((0,1),("2C", "FA"))
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
         plt.ylabel("Decoding accuracy (%)")
     else:
-        plt.xticks((0,1), ("Forced\nalternation", "2-choice"))
+        #plt.xticks((0,1), ("Forced\nalternation", "2-choice"))
+        plt.xticks((0,1),("FA", "2C"))
         plt.yticks(np.linspace(0,1,5), [""]*5)
     sns.despine(ax=plt.gca())
 
-## Panel E
+## Panel F
 alignmentStore = h5py.File(alignmentDataPath, "r")
 def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
     if fromDate == toDate:
@@ -197,7 +199,7 @@ for i in range(3):
         fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5)
         fv.draw(signal, ax=ax)
 
-#%%
+#%% Panel B
 sessionStats = analysisForcedAlternation.getFASessionStats(endoDataPath)
 sessionStats['fracCorrect'] = sessionStats.correct / sessionStats.trials
 sessionStats['fracSwitch'] = sessionStats.switch / sessionStats.trials
@@ -208,27 +210,27 @@ stats = sessionStats.groupby(['animal','session','bin'])[['fracSwitch',
                                                           'fracCorrect']].mean()
 stats = stats.unstack('animal')
 
-data = stats['fracSwitch']
+for i, t in enumerate(("fracCorrect", "fracSwitch")):
+    data = stats[t]
 
-fig = plt.figure(figsize=(7, 5))
-for s, df in data.groupby('session'):
-    x = [s-1/3, s, s+1/3]
-    plt.plot(x, df.values, c='k', alpha=.2)
-    plt.errorbar(x, df.mean(axis=1).values, yerr=df.sem(axis=1),
-                 c='k', marker='o', markersize=8)
-plt.fill_betweenx([0,1], -4.5, -1.5, color='lightgray', alpha=.5)
+    plt.sca(layout.axes[t]["axis"])
+    for s, df in data.groupby('session'):
+        x = [s-1/3, s, s+1/3]
+        plt.plot(x, df.values*100, c='k', alpha=.2)
+        plt.errorbar(x, df.mean(axis=1).values*100, yerr=df.sem(axis=1)*100,
+                     c='k', marker='o', markersize=1)
+    plt.fill_betweenx([0,100], -4.5, -1.5, color='lightgray', alpha=.5)
 
-plt.ylim((0,1))
-plt.yticks(np.arange(0, 1.1, 0.25))
-plt.xticks(np.arange(-9, 0), ())
-plt.ylabel('fraction of port entries')
-plt.xlabel('recording session')
-sns.despine()
+    plt.ylim((0,100))
+    #plt.yticks(np.arange(0, 1.1, 0.25))
+    plt.xticks(np.arange(-9, 0), ())
+    plt.ylabel(['correct (%)', 'switches (%)'][i])
+    if i==1:
+        plt.xlabel('recording session')
+    #else:
+    #    plt.title("fraction of trials")
+    sns.despine()
 
-plt.title('switch')
-    
-plt.show()   
-        
 #%%
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "forcedAlternation.svg")

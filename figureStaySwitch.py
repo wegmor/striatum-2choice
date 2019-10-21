@@ -15,11 +15,11 @@ import style
 
 style.set_context()
 
-endoDataPath = "endoData_2019.hdf"
-
+endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 cacheFolder = pathlib.Path("cache")
-templateFolder = pathlib.Path(__file__).parent / "templates"
+templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
