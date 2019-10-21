@@ -513,10 +513,11 @@ class RoiPlot:
     The paths for the ROIs are calculated on object creation, and can then be reused for different
     colors by repeatingly calling the draw function.
     '''
-    def __init__(self, block, peakFrac=0.6):
-        masks = block.readROIs()
+    def __init__(self, sess, peakFrac=0.6):
+        masks = sess.readROIs()
         self.contours = []
         for _, mask in masks.iteritems():
+            mask = mask.unstack()
             peak = mask.values.max()
             contour = skimage.measure.find_contours(mask.values.T, peakFrac*peak)[0]
             self.contours.append(contour)
