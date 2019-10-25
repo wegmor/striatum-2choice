@@ -12,7 +12,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pathlib
-import analysisTunings, analysisClusteringSupport
+import analysisTunings, analysisClusteringSupp
 import figurefirst
 from sklearn.metrics import silhouette_samples
 import style
@@ -31,7 +31,103 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 if not cacheFolder.is_dir():
     cacheFolder.mkdir()
+
+#%%
+layout = figurefirst.FigureLayout(templateFolder / "clusteringSupp.svg")
+layout.make_mplfigures()
+
+#%% Figure A
+cachedDataPath = cacheFolder / "signalHistogram.pkl"
+if cachedDataPath.is_file():
+    signalHistogram = pd.read_pickle(cachedDataPath)
+else:
+    signalHistogram = analysisClusteringSupp.getSignalHistogram(endoDataPath)
+    signalHistogram.to_pickle(cachedDataPath)
+ax = layout.axes['value_distribution']['axis']
+ax.set_xscale("log")
+norm = signalHistogram.iloc[1:].sum() * 0.05
+ax.fill_between(signalHistogram.iloc[1:].index, 0, signalHistogram.iloc[1:] / norm, color="C1")
+ax.set_xlabel("signal value (sd)")
+ax.set_ylabel("pdf")
+ax.set_xlim(10**-2, 10**1.5)
+ax.set_ylim(0, 1.2)
+sns.despine(ax=ax)
+ax = layout.axes['inset_pie']['axis']
+ax.pie([signalHistogram.iloc[0], signalHistogram.iloc[1:].sum()], labels=["$\leq0$", "$>0$"])
+
+#%% Figure B
+cachedDataPath = cacheFolder / "varExplainedByPCA.pkl"
+if cachedDataPath.is_file():
+    varExplained = pd.read_pickle(cachedDataPath)
+else:
+    varExplained = analysisClusteringSupp.getVarianceExplainedByPCA(endoDataPath)
+    varExplained.to_pickle(cachedDataPath)
     
+ax = layout.axes['naive_pca']['axis']
+
+unsmoothed = varExplained.query("sigma == 0")
+for s, d in unsmoothed.groupby("session"):
+    col = style.getColor(s.split("_")[0])
+    fracIncluded = d.numNeuronsIncluded / d.totNeurons
+    ax.plot(100*fracIncluded, 100*d.fracVarExplained, c=col, alpha=0.1, lw=0.5)
+binnedFrac = pd.cut(unsmoothed.numNeuronsIncluded / unsmoothed.totNeurons, np.linspace(0,1,21),
+                    include_lowest=True, labels=False)
+genotypes = unsmoothed.session.str.split("_").str[0]
+for gt, means in unsmoothed.groupby([genotypes, binnedFrac]).fracVarExplained.mean().groupby(level=0):
+    ax.plot(np.arange(2.5,100, 5), means*100, c=style.getColor(gt), lw=1)
+ax.set_xlabel("PCs included (%)")
+ax.set_ylabel("variance explained (%)")
+handles = [mpl.lines.Line2D([0], [0], lw=1, c=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
+ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
+ax.set_xlim(0,100)
+ax.set_ylim(0,100)
+sns.despine(ax=ax)
+
+#%% Figure C
+neuronsTo90 = unsmoothed.query("fracVarExplained >= 0.9").groupby("session").numNeuronsIncluded.min()
+totNeurons = unsmoothed.groupby("session").totNeurons.first()
+genotypes = unsmoothed.groupby("session").session.first().str.split("_").str[0]
+ax = layout.axes['pcs_required']['axis']
+ax.scatter(totNeurons, neuronsTo90, c=list(map(style.getColor, genotypes)))
+ax.set_xlabel("neurons in session")
+ax.set_ylabel("number of PCs")
+ax.set_title("PCs required to explain\n90% of the variance")
+ax.set_xlim(0, 700)
+ax.set_ylim(0, 700)
+handles = [mpl.lines.Line2D([0], [0], ls='', marker='o', color=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
+ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
+sns.despine(ax=ax)
+
+#%% Figure D
+ax = layout.axes['smoothed_pca']['axis']
+binnedFrac = pd.cut(varExplained.numNeuronsIncluded / varExplained.totNeurons,
+                    np.linspace(0,1,21), include_lowest=True, labels=False)
+for sigma, means in varExplained.groupby(["sigma", binnedFrac]).fracVarExplained.mean().groupby(level=0):
+    ax.plot(np.arange(2.5,100, 5), means*100, label="$\sigma={}$ms".format(sigma*50))
+ax.legend(title="smoothing")
+ax.set_xlim(0,100)
+ax.set_ylim(0,100)
+ax.set_xlabel("PCs included (%)")
+ax.set_ylabel("variance explained (%)")
+sns.despine(ax=ax)
+
+#%% Figure E
+cachedDataPath = cacheFolder / "topologicalDimensionality.pkl"
+if cachedDataPath.is_file():
+    topDim = pd.read_pickle(cachedDataPath)
+else:
+    topDim = analysisClusteringSupp.calculateTopologicalDimensionality(endoDataPath)
+    topDim.to_pickle(cachedDataPath)
+    
+meanDim = topDim.groupby("session").mean()
+color = [style.getColor(s.split("_")[0]) for s in meanDim.index]
+ax = layout.axes['topological_dim']['axis']
+ax.scatter(meanDim.nNeurons, meanDim.dimensionality, c=color)
+ax.set_xlabel("number of neurons")
+ax.set_ylabel("dimensionality")
+ax.set_ylim(0, 100)
+sns.despine(ax=ax)
+
 #%%
 cachedDataPath = cacheFolder / "actionTunings.pkl"
 if cachedDataPath.is_file():
@@ -42,11 +138,6 @@ else:
 
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
-
-
-#%%
-layout = figurefirst.FigureLayout(templateFolder / "clusteringSupp.svg")
-layout.make_mplfigures()
 
 
 #%%
@@ -149,13 +240,12 @@ ax.set_yticks(())
 ax.set_ylabel('')
 sns.despine(left=True, trim=True, ax=ax)
 
-
 #%%
 cachedDataPath = cacheFolder / "silhouette_score_df.pkl"
 if cachedDataPath.is_file():
     score_df = pd.read_pickle(cachedDataPath)
 else:
-    score_df = analysisClusteringSupport.getKMeansScores(tunings)
+    score_df = analysisClusteringSupp.getKMeansScores(tunings)
     score_df.to_pickle(cachedDataPath)
 
 
