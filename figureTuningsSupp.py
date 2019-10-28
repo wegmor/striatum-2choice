@@ -9,6 +9,7 @@ import pathlib
 import figurefirst
 import cmocean
 import tqdm
+import os
 from matplotlib.ticker import MultipleLocator
 #import matplotlib.lines as mlines
 
@@ -40,7 +41,7 @@ if not cacheFolder.is_dir():
 
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "tuningsSupp.svg")
+layout = figurefirst.FigureLayout(templateFolder / "tuningsSupp1.svg")
 layout.make_mplfigures()
 
 
@@ -291,5 +292,122 @@ for g, data in df_orig.groupby('genotype'):
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "tuningsSupp.svg")
+layout.write_svg(outputFolder / "tuningsSupp1.svg")
 
+
+#%% Supp 2
+layout = figurefirst.FigureLayout(templateFolder / "tuningsSupp2.svg")
+layout.make_mplfigures()
+
+#%% TSNE 
+cachedDataPath = cacheFolder / "tuning_tsne.pkl"
+if cachedDataPath.is_file():
+    tuningTsne = pd.read_pickle(cachedDataPath)
+else:
+    tuningTsne = analysisTunings.getTSNEProjection(tuningData)
+    tuningTsne.to_pickle(cachedDataPath)
+
+#%% tuning data
+cachedDataPath = cacheFolder / "actionTunings.pkl"
+if cachedDataPath.is_file():
+    tuningData = pd.read_pickle(cachedDataPath)
+else:
+    tuningData = analysisTunings.getTuningData(endoDataPath)
+    tuningData.to_pickle(cachedDataPath)
+    
+#%% "intensity color code" tsne by tuning
+tsne = tuningTsne.set_index(['genotype','animal','date','neuron'])[[0,1]].copy()
+tunings = tuningData.set_index(['genotype','animal','date','neuron'])[['action','tuning']].copy()
+df = (pd.merge(tunings, tsne, how='left', left_index=True, right_index=True)
+        .dropna().set_index('action', append=True))
+
+for action, adata in df.groupby('action'):
+    ax = layout.axes['{}_tsne'.format(action)]['axis']
+    sca = ax.scatter(adata[0], adata[1], c=adata['tuning'],
+                     marker='.', alpha=.75, s=5, lw=0, clip_on=False,
+                     cmap=cmocean.cm.balance, vmin=-6, vmax=6)
+    
+    ax.set_xlim((adata[0].min(), adata[0].max()))
+    ax.set_ylim((adata[1].min(), adata[1].max()))
+    ax.invert_xaxis()
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+    for gt, gdata in adata.groupby('genotype'):
+        ax = layout.axes['{}_tsne_{}'.format(action, gt)]['axis']
+        ax.scatter(gdata[0], gdata[1], c=gdata['tuning'],
+                   marker='.', alpha=.75, s=1.5, lw=0, clip_on=False,
+                   cmap=cmocean.cm.balance, vmin=-6, vmax=6)
+        
+        ax.set_xlim((adata[0].min(), adata[0].max()))
+        ax.set_ylim((adata[1].min(), adata[1].max()))
+        ax.invert_xaxis()
+        ax.set_aspect('equal')
+        if action in ['pR2Cd', 'pR2Co', 'pR2Cr']:
+            ax.set_xlabel({'d1':'D1', 'a2a':'A2A', 'oprm1':'Oprm1'}[gt], labelpad=3.4)
+        else:
+            ax.set_xlabel('')
+        ax.set_xticks(())
+        ax.set_yticks(())
+        sns.despine(top=True, bottom=True, left=True, right=True, ax=ax)
+    
+    ax = layout.axes['{}_dist'.format(action)]['axis']
+    for gt, gdata in adata.groupby('genotype'):
+        sns.kdeplot(gdata.tuning, ax=ax, color=style.getColor(gt),
+                    clip_on=True, alpha=.75, label='', cut=2)
+    ax.axvline(0, ls=':', color='darkgray', lw=mpl.rcParams['axes.linewidth'], alpha=1,
+               zorder=-99)
+
+    ax.set_xlim((-18,18))
+    ax.set_ylim((-.005,.23))
+    ax.set_yticks((0,.1,.2))
+    ax.set_yticks((.05,.15), minor=True)
+    ax.set_xticks(())
+    ax.set_xlabel('')
+    if action in ['mL2C-', 'pL2Cd', 'mR2C-', 'pR2Cd']:
+        ax.set_ylabel('density')
+    else:
+        ax.set_ylabel('')
+    if action == 'mL2C-':
+        ax.legend(['A2A','D1','Oprm1'], loc='upper left', bbox_to_anchor=(.55,.95))
+    sns.despine(bottom=True, trim=True, ax=ax)
+    
+    ax = layout.axes['{}_bp'.format(action)]['axis']
+    palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
+    sns.boxplot('tuning', 'genotype', data=adata.reset_index('genotype'), ax=ax, 
+                palette=palette, saturation=.85, showcaps=False, showfliers=False,
+                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+                medianprops={'c':'k','zorder':99, 'clip_on':False},
+                order=['d1','a2a','oprm1'])
+    ax.axvline(0, ls=':', color='darkgray', lw=mpl.rcParams['axes.linewidth'], alpha=1,
+               zorder=-99)
+    
+    ax.set_xlim((-18,18))
+    ax.set_ylim((-.75,2.75))
+    ax.set_xticks((-12,0,12))
+    ax.set_xticks((-6,6), minor=True)
+    if action in ['pR2Cd', 'pR2Co', 'pR2Cr']:
+        ax.set_xlabel('tuning score')
+    else:
+        ax.set_xlabel('')
+    ax.set_yticks(())
+    ax.set_ylabel('')
+    sns.despine(left=True, trim=True, ax=ax)
+
+cax = layout.axes['colorbar']['axis']
+cb = plt.colorbar(sca, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-0.05, 0.5, -6, ha='right', va='center',
+         fontdict={'fontsize':6}, transform=cax.transAxes)
+cax.text(1.05, 0.5, 6, ha='left', va='center',
+         fontdict={'fontsize':6}, transform=cax.transAxes)
+cax.text(0.5, -.1, 'tuning score', ha='center', va='top',
+         fontdict={'fontsize':6}, transform=cax.transAxes)
+
+#%%
+layout.insert_figures('plots')
+layout.write_svg(outputFolder / "tuningsSupp2.svg")
+os.system('convert -density 300 {} {}'.format(outputFolder / 'tuningsSupp2.svg',
+                                              outputFolder / 'tuningsSupp2.jpg'))
