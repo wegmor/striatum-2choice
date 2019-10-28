@@ -27,13 +27,10 @@ plt.ioff()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path('svg')
-cacheFolder = pathlib.Path('cache')
 templateFolder = pathlib.Path('templates')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
     
     
 #%%
@@ -42,13 +39,7 @@ layout.make_mplfigures()
 
 
 #%% Panel A
-cachedDataPath = cacheFolder / "decodeWithIncreasingNumberOfNeurons.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
-
+decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
 decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
 
 ##%%
@@ -92,13 +83,8 @@ sns.despine(ax=plt.gca())
 
 
 #%% Panel B
-cachedDataPath = cacheFolder / "decodeConfusion.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodingConfusion(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
-    
+decodingData = analysisDecoding.decodingConfusion(endoDataPath)
+
 #means = confusionDiagonal.groupby("sess").mean()
 #nNeurons = means.nNeurons
 #labels = list(means.columns)
@@ -244,13 +230,7 @@ cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
 
 
 #%% Panel D
-cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
-if cachedDataPath.is_file():
-    decodingAcrossDays = pd.read_pickle(cachedDataPath)
-else:
-    decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
-    decodingAcrossDays.to_pickle(cachedDataPath)
-
+decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []
     for _ in range(iterations):

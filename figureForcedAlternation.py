@@ -26,25 +26,16 @@ endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path("data") / "alignment_190227.hdf"
 
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 layout = figurefirst.FigureLayout(templateFolder / "forcedAlternation.svg")
 layout.make_mplfigures()
 
 #%% Panel C
-cachedDataPath = cacheFolder / "forcedAlternationTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisForcedAlternation.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
-    
+tuningData = analysisForcedAlternation.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 df = tuningData.copy()
@@ -111,12 +102,7 @@ axs['a2a'].set_xlabel('number of actions')
     
     
 ## Panel E
-cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
-if cachedDataPath.is_file():
-    decodingAccrossDays = pd.read_pickle(cachedDataPath)
-else:
-    decodingAccrossDays = analysisDecoding.decodingAccrossDays(endoDataPath, alignmentDataPath)
-    decodingAccrossDays.to_pickle(cachedDataPath)
+decodingAccrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
 
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []

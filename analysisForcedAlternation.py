@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import tqdm
 from utils import readSessions
+from utils.cachedDataFrame import cachedDataFrame
 
 def getActionAverages(traces, apf):
     keepLabels = ['pC2L-', 'mC2L-',
@@ -31,6 +32,7 @@ def jitter(x, std):
     
     
 #%%
+@cachedDataFrame("forcedAlternationTunings.pkl")
 def getTuningData(dataFilePath, no_shuffles=1000):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='forcedAlternation'):

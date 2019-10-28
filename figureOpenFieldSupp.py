@@ -21,14 +21,10 @@ plt.ioff()
 
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
-
 layout = figurefirst.FigureLayout(templateFolder / "openFieldSupp.svg")
 layout.make_mplfigures()
 
@@ -37,28 +33,12 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
                  'rightTurn': 'right turn'}
 
 ## Panel A
-cachedDataPath = cacheFolder / "openFieldTunings.pkl"
-if cachedDataPath.is_file():
-    openFieldTunings = pd.read_pickle(cachedDataPath)
-else:
-    #All 4-behavior panels    
-    cachedDataPath = cacheFolder / "segmentedBehavior.pkl"
-    if cachedDataPath.is_file():
-        segmentedBehavior = pd.read_pickle(cachedDataPath)
-    else:
-        segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
-        segmentedBehavior.to_pickle(cachedDataPath)
-    segmentedBehavior = segmentedBehavior.set_index("session")
-    openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
-    openFieldTunings.to_pickle(cachedDataPath)
-    
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    twoChoiceTunings = pd.read_pickle(cachedDataPath)
-else:
-    twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
-    twoChoiceTunings.to_pickle(cachedDataPath)
-    
+segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
+segmentedBehavior = segmentedBehavior.set_index("session")
+openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
+
+twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
+
 for t in (twoChoiceTunings, openFieldTunings):
     t['signp'] = t['pct'] > .995
     t['signn'] = t['pct'] < .005

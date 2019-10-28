@@ -18,26 +18,17 @@ style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "averageActivityPerTuning.svg")
 layout.make_mplfigures()
 
 #%% Figures A and B
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
-    
+tuningData = analysisTunings.getTuningData(endoDataPath)
 tunings = tuningData.set_index(["animal", "date", "neuron", "action"]).pct > 0.995
 tunings = tunings.unstack().sort_index()
 

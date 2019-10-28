@@ -14,7 +14,9 @@ import sklearn.neighbors
 import tqdm
 
 from utils import readSessions
+from utils.cachedDataFrame import cachedDataFrame
 
+@cachedDataFrame("signalHistogram.pkl")
 def getSignalHistogram(endoDataPath, task="2choice"):
     bins = np.arange(-5, 3., 0.05)
     hist = np.zeros(len(bins)-1)
@@ -33,6 +35,7 @@ def getSignalHistogram(endoDataPath, task="2choice"):
     i = np.concatenate(([0], 10**(0.5*(bins[:-1] + bins[1:]))))
     return pd.Series(s, index=i)
 
+@cachedDataFrame("varExplainedByPCA.pkl")
 def getVarianceExplainedByPCA(endoDataPath, task="2choice"):
     dfs = []
     for sess in tqdm.tqdm(readSessions.findSessions(endoDataPath, task=task), total=66):
@@ -62,6 +65,7 @@ def dimPerTime(values, nNeighbours = 500, dropClosest = 3, desc = ""):
         dim[i] = np.linalg.lstsq(X, Y, rcond=None)[0][1]
     return dim
 
+@cachedDataFrame("topologicalDimensionality.pkl")
 def calculateTopologicalDimensionality(endoDataPath, task="2choice"):
     dfs = []
     for sess in readSessions.findSessions(endoDataPath, task=task):
@@ -73,6 +77,7 @@ def calculateTopologicalDimensionality(endoDataPath, task="2choice"):
     return pd.concat(dfs)
     
 #%%
+@cachedDataFrame("silhouette_score_df.pkl")
 def getKMeansScores(tunings):
     #def shuffleTunings(tunings): # shuffle each column (by action) to create fake tunings
     #    shuffled = tunings.copy()
