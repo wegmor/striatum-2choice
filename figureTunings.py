@@ -27,27 +27,17 @@ style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "tunings.svg")
 layout.make_mplfigures()
 
-
 #%%
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
-
+tuningData = analysisTunings.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 
@@ -259,12 +249,7 @@ axs['a2a'].set_xlabel('number of actions')
 
 
 #%% TSNE
-cachedDataPath = cacheFolder / "tuning_tsne.pkl"
-if cachedDataPath.is_file():
-    tuningTsne = pd.read_pickle(cachedDataPath)
-else:
-    tuningTsne = analysisTunings.getTSNEProjection(tuningData)
-    tuningTsne.to_pickle(cachedDataPath)
+tuningTsne = analysisTunings.getTSNEProjection(tuningData)
 
 #%%
 for g,gdata in tuningTsne.groupby('genotype'):
@@ -294,12 +279,7 @@ ax.axis('off')
 
 
 #%% similar tuning == closer spatially?
-cachedDataPath = cacheFolder / "tuning_pdists.pkl"
-if cachedDataPath.is_file():
-    pdists = pd.read_pickle(cachedDataPath)
-else:
-    pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
-    pdists.to_pickle(cachedDataPath)
+pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
     
 #%%
 ax = layout.axes['dist_scatter']['axis']

@@ -20,21 +20,15 @@ import analysisMethods
 #%%
 style.set_context()
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
-
-#%% TODO: only works if in top folder of repository! __file__ doesn't work inside Spyder!
 outputFolder = pathlib.Path("svg")
-cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "methods.svg")
 layout.make_mplfigures()
-
 
 #%% peri-outcome swap choice behavior plot
 win_size = (10,30)

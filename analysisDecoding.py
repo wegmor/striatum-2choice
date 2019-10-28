@@ -14,6 +14,7 @@ import h5py
 import datetime
 
 from utils import readSessions
+from utils.cachedDataFrame import cachedDataFrame
 
 #The bins that the decoder needs to distinguish
 selectedLabels = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pC2L-", "pC2R-",
@@ -63,6 +64,7 @@ def _dateDiff(fromDate, toDate):
     toDate = datetime.datetime.strptime(toDate, "%y%m%d")
     return (toDate-fromDate).days
 
+@cachedDataFrame("decodeWithIncreasingNumberOfNeurons.pkl")
 def decodeWithIncreasingNumberOfNeurons(dataFile):
     nShufflesPerNeuronNum = 10
     with multiprocessing.Pool(5) as pool:
@@ -98,6 +100,7 @@ def _launchCrossValScore(i, X, Y):
     np.random.seed(np.random.randint(1000000)+i)
     return i, _crossValScore(X, Y)
 
+@cachedDataFrame("decodeSortedByMI.pkl")
 def decodeWithSortedNeurons(dataFile):
     nShufflesPerNeuronNum = 10
     with multiprocessing.Pool(5) as pool:
@@ -121,6 +124,7 @@ def decodeWithSortedNeurons(dataFile):
                             t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "ordering", "accuracy"])
 
+@cachedDataFrame("decodeConfusion.pkl")
 def decodingConfusion(dataFile):
     confMats = []
     for sess in readSessions.findSessions(dataFile, task="2choice"):
@@ -143,6 +147,7 @@ def decodingConfusion(dataFile):
             confMats.append(m)
     return pd.concat(confMats)
 
+@cachedDataFrame("decodingAcrossDays.pkl")
 def decodingAcrossDays(dataFile, alignmentFile):
     alignmentStore = h5py.File(alignmentFile, "r")
     with multiprocessing.Pool(5) as pool:
@@ -184,7 +189,14 @@ def decodingAcrossDays(dataFile, alignmentFile):
              "sameDayShuffled", "nextDayShuffled"]
     return pd.DataFrame(acrossDaysResult, columns=columns)
 
+
 def decodeMovementProgress(dataFile, label="mR2C-"):
+    @cachedDataFrame("decodeMovementProgress_{}.pkl".format(label[:4]))
+    def cachedVersion():
+        return _decodeMovementProgress(dataFile, label)
+    return cachedVersion()
+
+def _decodeMovementProgress(dataFile, label):
     allSess = []
     for sess in readSessions.findSessions(dataFile, task="2choice"):
         for shuffle in (False, True):

@@ -24,25 +24,17 @@ style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "clusteringSupp.svg")
 layout.make_mplfigures()
 
 #%% Figure A
-cachedDataPath = cacheFolder / "signalHistogram.pkl"
-if cachedDataPath.is_file():
-    signalHistogram = pd.read_pickle(cachedDataPath)
-else:
-    signalHistogram = analysisClusteringSupp.getSignalHistogram(endoDataPath)
-    signalHistogram.to_pickle(cachedDataPath)
+signalHistogram = analysisClusteringSupp.getSignalHistogram(endoDataPath)
 ax = layout.axes['value_distribution']['axis']
 ax.set_xscale("log")
 norm = signalHistogram.iloc[1:].sum() * 0.05
@@ -56,13 +48,8 @@ ax = layout.axes['inset_pie']['axis']
 ax.pie([signalHistogram.iloc[0], signalHistogram.iloc[1:].sum()], labels=["$\leq0$", "$>0$"])
 
 #%% Figure B
-cachedDataPath = cacheFolder / "varExplainedByPCA.pkl"
-if cachedDataPath.is_file():
-    varExplained = pd.read_pickle(cachedDataPath)
-else:
-    varExplained = analysisClusteringSupp.getVarianceExplainedByPCA(endoDataPath)
-    varExplained.to_pickle(cachedDataPath)
-    
+varExplained = analysisClusteringSupp.getVarianceExplainedByPCA(endoDataPath)
+
 ax = layout.axes['naive_pca']['axis']
 
 unsmoothed = varExplained.query("sigma == 0")
@@ -112,13 +99,7 @@ ax.set_ylabel("variance explained (%)")
 sns.despine(ax=ax)
 
 #%% Figure E
-cachedDataPath = cacheFolder / "topologicalDimensionality.pkl"
-if cachedDataPath.is_file():
-    topDim = pd.read_pickle(cachedDataPath)
-else:
-    topDim = analysisClusteringSupp.calculateTopologicalDimensionality(endoDataPath)
-    topDim.to_pickle(cachedDataPath)
-    
+topDim = analysisClusteringSupp.calculateTopologicalDimensionality(endoDataPath)
 meanDim = topDim.groupby("session").mean()
 color = [style.getColor(s.split("_")[0]) for s in meanDim.index]
 ax = layout.axes['topological_dim']['axis']
@@ -129,16 +110,9 @@ ax.set_ylim(0, 100)
 sns.despine(ax=ax)
 
 #%%
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
-
+tuningData = analysisTunings.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
-
 
 #%%
 tunings = (tuningData.set_index(['genotype','animal','date','neuron','action'])['tuning']
@@ -241,13 +215,7 @@ ax.set_ylabel('')
 sns.despine(left=True, trim=True, ax=ax)
 
 #%%
-cachedDataPath = cacheFolder / "silhouette_score_df.pkl"
-if cachedDataPath.is_file():
-    score_df = pd.read_pickle(cachedDataPath)
-else:
-    score_df = analysisClusteringSupp.getKMeansScores(tunings)
-    score_df.to_pickle(cachedDataPath)
-
+score_df = analysisClusteringSupp.getKMeansScores(tunings)
 
 #%%
 ax = layout.axes['tuning_score']['axis']
