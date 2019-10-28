@@ -325,7 +325,8 @@ for action, adata in df.groupby('action'):
     ax = layout.axes['{}_tsne'.format(action)]['axis']
     sca = ax.scatter(adata[0], adata[1], c=adata['tuning'],
                      marker='.', alpha=.75, s=5, lw=0, clip_on=False,
-                     cmap=cmocean.cm.balance, vmin=-6, vmax=6)
+                     cmap=cmocean.cm.balance, vmin=-6, vmax=6,
+                     rasterized=True)
     
     ax.set_xlim((adata[0].min(), adata[0].max()))
     ax.set_ylim((adata[1].min(), adata[1].max()))
@@ -337,7 +338,8 @@ for action, adata in df.groupby('action'):
         ax = layout.axes['{}_tsne_{}'.format(action, gt)]['axis']
         ax.scatter(gdata[0], gdata[1], c=gdata['tuning'],
                    marker='.', alpha=.75, s=1.5, lw=0, clip_on=False,
-                   cmap=cmocean.cm.balance, vmin=-6, vmax=6)
+                   cmap=cmocean.cm.balance, vmin=-6, vmax=6,
+                   rasterized=True)
         
         ax.set_xlim((adata[0].min(), adata[0].max()))
         ax.set_ylim((adata[1].min(), adata[1].max()))
