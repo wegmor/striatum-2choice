@@ -8,6 +8,7 @@ import analysisTunings
 import figurefirst
 import itertools
 import tqdm
+from collections import defaultdict
 from utils import readSessions, fancyViz
 from sklearn.metrics import silhouette_samples
 import style
@@ -78,6 +79,29 @@ for single in (False, True):
              fontdict={'fontsize':6}, transform=cax.transAxes)
     cax.text(0.5, 1.1, 'z-score', ha='center', va='bottom',
              fontdict={'fontsize':6}, transform=cax.transAxes)
+
+tunings = tuningData.set_index(["genotype", "animal", "date", "neuron", "action"]).pct > 0.995
+tunings = tunings.unstack()
+singleTuned = tunings[tunings.sum(axis=1)==1].idxmax(axis=1)
+cdict = defaultdict(lambda: np.array([1,1,1]),
+                    {a:style.getColor(a[:4]) for a 
+                     in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
+cdict['pL2Cr'] = cdict['pL2C-']
+cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
+cdict['pL2Cd'] = np.append(cdict['pL2C-'], .7)
+cdict['pR2Cr'] = cdict['pR2C-']
+cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
+cdict['pR2Cd'] = np.append(cdict['pR2C-'], .7)
+cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
+
+for gt in ['d1','a2a','oprm1']:
+    ax = layout.axes['pie_{}'.format(gt)]['axis']
+    counts = singleTuned.loc[gt].value_counts().sort_index()
+    ws, ts = ax.pie(counts, wedgeprops={'lw':0, 'edgecolor':'w'},
+                    explode=[.1]*len(counts),
+                    textprops={'color':'k'}, colors=[cdict[a] for a in counts.index])
+
+    ax.set_aspect('equal')
 
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "averageActivityPerTuning.svg")
