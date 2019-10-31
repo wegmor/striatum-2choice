@@ -14,6 +14,8 @@ import matplotlib as mpl
 import pathlib
 import analysisTunings, analysisClusteringSupp
 import figurefirst
+import scipy.spatial
+import scipy.cluster
 from sklearn.metrics import silhouette_samples
 import style
 plt.ioff()
@@ -107,6 +109,8 @@ ax.scatter(meanDim.nNeurons, meanDim.dimensionality, c=color)
 ax.set_xlabel("number of neurons")
 ax.set_ylabel("dimensionality")
 ax.set_ylim(0, 100)
+handles = [mpl.lines.Line2D([0], [0], ls='', marker='o', color=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
+ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
 sns.despine(ax=ax)
 
 #%%
@@ -242,8 +246,51 @@ for gt, gt_scores in score_df.groupby('genotype'):
     ax.set_ylabel('silhouette score')
     ax.legend(labels=['A2A','D1','Oprm1'], loc='upper right', bbox_to_anchor=(1,.95))
     sns.despine(ax=ax)
-        
 
+#%%
+def toLongName(label):
+    portNames = {'L': "left", 'R': "right", 'C': "center"}
+    if label[0] == 'm':
+        longName = "moving "
+        longName += portNames[label[1]]
+        longName += " to "
+        longName += portNames[label[3]]
+    elif label[:2] == "pC":
+        longName = "center port going {}".format(portNames[label[3]])
+    else:
+        longName = portNames[label[1]]
+        if label[4] == 'r':
+            longName += " reward"
+        elif label[4] == 'o':
+            longName += " delay"
+    longName += " ("
+    longName = {'r': "win", 'o': "lose"}[label[4]]
+    longName += "-"
+    longName += {'.': "stay", '!': "switch"}[label[5]]
+    #longName += ")"
+    return longName
+
+distMat = analysisClusteringSupp.populationDistMatrix(endoDataPath)
+pdist = scipy.spatial.distance.squareform(distMat)
+Z = scipy.cluster.hierarchy.linkage(pdist, 'ward')
+labels = distMat.index
+longLabels = list(map(toLongName, labels))
+colors = []
+for i in range(23):
+    if Z[i, 3] <= 3: 
+        color = style.getColor(labels[Z[i, :2].min()][:4])
+        colors.append(mpl.colors.to_hex(color))
+    else:
+        colors.append("black")
+plt.sca(layout.axes['dendrogram']['axis'])
+dn = scipy.cluster.hierarchy.dendrogram(Z, labels=longLabels,
+                                        link_color_func=lambda k: colors[k-24])
+plt.xticks(rotation=90, fontsize=6)
+plt.yticks(fontsize=6)
+sns.despine(ax=plt.gca(), bottom=True, left=False, trim=False)
+plt.ylim(0,80)
+plt.ylabel("Distance")
+plt.title("agglomerative clustering of pooled mean\npopulation activity in all task phases", pad=6)
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "clusteringSupp.svg")

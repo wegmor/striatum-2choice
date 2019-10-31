@@ -11,6 +11,7 @@ import numpy as np
 from sklearn.metrics import silhouette_score
 from sklearn.cluster import KMeans
 import sklearn.neighbors
+import scipy.spatial
 import tqdm
 
 from utils import readSessions
@@ -110,3 +111,22 @@ def getKMeansScores(tunings):
                                                   'n_clusters':n}),
                                        ignore_index=True)
 
+@cachedDataFrame("populationDistMatrix.pkl")
+def populationDistMatrix(dataFile):
+    allLabelMeans = []
+    for sess in tqdm.tqdm(readSessions.findSessions(dataFile, task="2choice"), total=66):
+        lfa = sess.labelFrameActions(reward="fullTrial", switch=True)
+        traces = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        if len(lfa) != len(traces): continue
+        selectedLabels = ["mC2L", "mC2R", "mL2C", "mR2C", "pC2L", "pC2R", "pL2C", "pR2C"]
+        selectedLabels = [selectedPhase+trialType for trialType in ('r.','o!','o.')
+                          for selectedPhase in selectedLabels]
+        traces.set_index([lfa.actionNo, lfa.label], inplace=True)
+        actionMeans = traces.groupby(level=[0,1]).mean()
+        labelMeans = actionMeans.groupby(level=1).mean().loc[selectedLabels]
+        allLabelMeans.append(labelMeans)
+    allLabelMeans = pd.concat(allLabelMeans, axis=1)
+    pdist = scipy.spatial.distance.pdist(allLabelMeans.values)
+    distmat = scipy.spatial.distance.squareform(pdist)
+    return pd.DataFrame(distmat, columns=allLabelMeans.index,
+                         index=allLabelMeans.index)
