@@ -1,0 +1,1566 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:figurefirst="http://flyranch.github.io/figurefirst/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="8.5in"
+   height="11in"
+   viewBox="0 0 215.9 279.4"
+   version="1.1"
+   id="svg7186"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="fractionActiveTrials.svg">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="516.21901"
+     inkscape:cy="755.60596"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="in"
+     inkscape:snap-grids="true"
+     inkscape:measure-start="138.984,359.797"
+     inkscape:measure-end="138.984,356.641"
+     inkscape:window-width="1853"
+     inkscape:window-height="1016"
+     inkscape:window-x="1987"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid7731"
+       units="mm"
+       spacingx="2.75"
+       spacingy="2.75"
+       empspacing="4" />
+    <sodipodi:guide
+       position="196.84998,19.050032"
+       orientation="1,0"
+       id="guide12866"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="36.435518,95.155051"
+       orientation="0,1"
+       id="guide12868"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs7180">
+    <clipPath
+       id="p7571dddc21">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="163.70079"
+         y="67.748032"
+         id="rect2430" />
+    </clipPath>
+    <clipPath
+       id="pf18deae393">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="93.543304"
+         y="67.748032"
+         id="rect2427" />
+    </clipPath>
+    <clipPath
+       id="pce559dd414">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="444.33072"
+         y="67.748032"
+         id="rect2442" />
+    </clipPath>
+  </defs>
+  <metadata
+     id="metadata7183">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-17.6)"
+     style="display:inline">
+    <g
+       transform="translate(0.19998679,1.7166138e-5)"
+       id="g29731"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
+      <rect
+         height="279.39999"
+         id="rect29687"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41715813;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="-0.19998679"
+         y="17.599989" />
+      <rect
+         height="279.39999"
+         id="rect29687-1"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41715813;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="196.64999"
+         y="17.599989" />
+      <rect
+         height="177.79999"
+         id="rect29687-3"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92822504;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="17.599989"
+         y="-196.64999" />
+      <rect
+         height="177.79997"
+         id="rect29687-3-2"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92822504;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="277.94995"
+         y="-196.64999" />
+    </g>
+    <g
+       id="g1664">
+      <g
+         id="g23395"
+         transform="translate(0,6.173953)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect7760"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect23382"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2L_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23384"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,31.023534)"
+         id="g23403">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect23397"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23399"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mL2C_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect23401"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_d1_x" />
+        </rect>
+      </g>
+      <g
+         id="g23411"
+         transform="translate(0,55.873116)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23405"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect23407"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2L_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23409"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,80.722697)"
+         id="g23419">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect23413"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23415"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect23417"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_d1_x" />
+        </rect>
+      </g>
+      <g
+         id="g23427"
+         transform="translate(0,105.57228)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23421"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect23423"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect23425"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,130.42187)"
+         id="g877">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect871"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect873"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect875"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_d1_x" />
+        </rect>
+      </g>
+    </g>
+    <g
+       id="g1149"
+       transform="translate(23.05834,6.1739259)">
+      <g
+         id="g1107"
+         transform="translate(0,2.7084351e-5)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1101"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1103"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2R_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1105"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,24.849608)"
+         id="g1115">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1109"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1111"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mR2C_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1113"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_d1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1123"
+         transform="translate(0,49.69919)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1117"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1119"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2R_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1121"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,74.548771)"
+         id="g1131">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1125"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1127"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1129"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_d1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1139"
+         transform="translate(0,99.398353)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1133"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_d1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1135"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_d1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1137"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_d1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,124.24794)"
+         id="g1147">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1141"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_d1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1143"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_d1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1145"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_d1_x" />
+        </rect>
+      </g>
+    </g>
+    <g
+       id="g1199"
+       transform="translate(55.847234,6.1739259)">
+      <g
+         id="g1157"
+         transform="translate(0,2.7084351e-5)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1151"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1153"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2L_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1155"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,24.849608)"
+         id="g1165">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1159"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1161"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mL2C_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1163"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_a2a_x" />
+        </rect>
+      </g>
+      <g
+         id="g1173"
+         transform="translate(0,49.69919)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1167"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1169"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2L_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1171"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,74.548771)"
+         id="g1181">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1175"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1177"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1179"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_a2a_x" />
+        </rect>
+      </g>
+      <g
+         id="g1189"
+         transform="translate(0,99.398353)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1183"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1185"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1187"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,124.24794)"
+         id="g1197">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1191"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1193"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1195"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_a2a_x" />
+        </rect>
+      </g>
+    </g>
+    <g
+       id="g1249"
+       transform="translate(78.905565,6.1739259)">
+      <g
+         id="g1207"
+         transform="translate(0,2.7084351e-5)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1201"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1203"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2R_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1205"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,24.849608)"
+         id="g1215">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1209"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1211"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mR2C_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1213"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_a2a_x" />
+        </rect>
+      </g>
+      <g
+         id="g1223"
+         transform="translate(0,49.69919)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1217"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1219"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2R_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1221"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,74.548771)"
+         id="g1231">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1225"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1227"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1229"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_a2a_x" />
+        </rect>
+      </g>
+      <g
+         id="g1239"
+         transform="translate(0,99.398353)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1233"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_a2a" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1235"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_a2a_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1237"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_a2a_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,124.24794)"
+         id="g1247">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1241"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_a2a" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1243"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_a2a_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1245"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_a2a_x" />
+        </rect>
+      </g>
+    </g>
+    <g
+       id="g1439"
+       transform="translate(111.69447,6.1739259)">
+      <g
+         id="g1397"
+         transform="translate(0,2.7084351e-5)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1391"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1393"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2L_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1395"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2L_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,24.849608)"
+         id="g1405">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1399"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1401"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mL2C_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1403"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mL2C_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1413"
+         transform="translate(0,49.69919)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1407"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1409"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2L_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1411"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2L_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,74.548771)"
+         id="g1421">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1415"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1417"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1419"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cd_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1429"
+         transform="translate(0,99.398353)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1423"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1425"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1427"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Co_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,124.24794)"
+         id="g1437">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1431"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1433"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1435"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pL2Cr_oprm1_x" />
+        </rect>
+      </g>
+    </g>
+    <g
+       id="g1489"
+       transform="translate(134.75279,6.1739259)">
+      <g
+         id="g1447"
+         transform="translate(0,2.7084351e-5)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1441"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1443"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mC2R_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1445"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="mC2R_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,24.849608)"
+         id="g1455">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1449"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1451"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="mR2C_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1453"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="mR2C_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1463"
+         transform="translate(0,49.69919)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1457"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1459"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pC2R_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1461"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pC2R_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,74.548771)"
+         id="g1471">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1465"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1467"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1469"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cd_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         id="g1479"
+         transform="translate(0,99.398353)">
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1473"
+           width="16"
+           height="16"
+           x="40.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_oprm1" />
+        </rect>
+        <rect
+           y="43.805412"
+           x="56.097168"
+           height="16"
+           width="6"
+           id="rect1475"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_oprm1_y" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1477"
+           width="16"
+           height="6"
+           x="40.097168"
+           y="37.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Co_oprm1_x" />
+        </rect>
+      </g>
+      <g
+         transform="translate(0,124.24794)"
+         id="g1487">
+        <rect
+           y="43.805412"
+           x="40.097168"
+           height="16"
+           width="16"
+           id="rect1481"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_oprm1" />
+        </rect>
+        <rect
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276042;stroke-miterlimit:4;stroke-dasharray:none"
+           id="rect1483"
+           width="6"
+           height="16"
+           x="56.097168"
+           y="43.805412">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_oprm1_y" />
+        </rect>
+        <rect
+           y="37.805412"
+           x="40.097168"
+           height="6"
+           width="16"
+           id="rect1485"
+           style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276041;stroke-miterlimit:4;stroke-dasharray:none">
+          <figurefirst:axis
+             figurefirst:name="pR2Cr_oprm1_x" />
+        </rect>
+      </g>
+    </g>
+    <text
+       id="text1008"
+       y="38.72958"
+       x="19.031607"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="38.72958"
+         x="19.031607"
+         id="tspan1006"
+         sodipodi:role="line">A</tspan></text>
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="Layer 2"
+     style="display:inline">
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="48.683792"
+       y="24.234148"
+       id="text896"><tspan
+         sodipodi:role="line"
+         id="tspan894"
+         x="48.683792"
+         y="24.234148"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">Left</tspan></text>
+    <text
+       id="text900"
+       y="24.234148"
+       x="70.811264"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan902"
+         x="70.811264"
+         y="24.234148">Right</tspan></text>
+    <text
+       id="text922"
+       y="38.29998"
+       x="18.895039"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan948"
+         x="18.895039"
+         y="38.29998">Center to side</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="18.870922"
+       y="63.149563"
+       id="text930"><tspan
+         sodipodi:role="line"
+         id="tspan946"
+         x="18.870922"
+         y="63.149563">Side to center</tspan></text>
+    <text
+       id="text936"
+       y="87.738091"
+       x="18.895039"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan938"
+         x="18.895039"
+         y="87.738091">Center port</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="18.870922"
+       y="112.60938"
+       id="text942"><tspan
+         sodipodi:role="line"
+         id="tspan944"
+         x="18.870922"
+         y="112.60938">Side port delay</tspan></text>
+    <text
+       id="text952"
+       y="137.6983"
+       x="18.895039"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan954"
+         x="18.895039"
+         y="137.6983">Omission</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="18.79134"
+       y="162.5479"
+       id="text972"><tspan
+         sodipodi:role="line"
+         id="tspan974"
+         x="18.79134"
+         y="162.5479">Reward</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="60.634384"
+       y="21.1532"
+       id="text992"><tspan
+         sodipodi:role="line"
+         id="tspan990"
+         x="60.634384"
+         y="21.1532"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">D1</tspan></text>
+    <text
+       id="text1668"
+       y="24.234148"
+       x="104.53103"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="24.234148"
+         x="104.53103"
+         id="tspan1666"
+         sodipodi:role="line">Left</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="126.65849"
+       y="24.234148"
+       id="text1672"><tspan
+         y="24.234148"
+         x="126.65849"
+         id="tspan1670"
+         sodipodi:role="line">Right</tspan></text>
+    <text
+       id="text1676"
+       y="21.1532"
+       x="115.64583"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="21.1532"
+         x="115.64583"
+         id="tspan1674"
+         sodipodi:role="line">A2A</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="160.37827"
+       y="24.234148"
+       id="text1680"><tspan
+         sodipodi:role="line"
+         id="tspan1678"
+         x="160.37827"
+         y="24.234148"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">Left</tspan></text>
+    <text
+       id="text1684"
+       y="24.234148"
+       x="182.50574"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944451px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan1682"
+         x="182.50574"
+         y="24.234148">Right</tspan></text>
+    <text
+       xml:space="preserve"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       x="169.53555"
+       y="21.1532"
+       id="text1688"><tspan
+         sodipodi:role="line"
+         id="tspan1686"
+         x="169.53555"
+         y="21.1532"
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">Oprm1</tspan></text>
+  </g>
+</svg>
