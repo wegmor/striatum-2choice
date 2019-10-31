@@ -317,7 +317,7 @@ axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
 axt.axis('off')
 
 ## Panel E
-for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
+for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
     
     perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
@@ -348,7 +348,7 @@ for i,l,h in ((0,1,3), (1,4,14), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     
     plt.ylim(0,1)
     plt.xlim(-0.25, 1.25)
-    xlab = ("1-3 days\nlater", "4-14 days\nlater", "14+ days\nlater")
+    xlab = ("1-3 days\nlater", "4-13 days\nlater", "14+ days\nlater")
     plt.xticks((0,1), ("Same\nday", xlab[i]))
     if i==0:
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
