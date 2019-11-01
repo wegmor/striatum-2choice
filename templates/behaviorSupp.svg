@@ -1,0 +1,332 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:figurefirst="http://flyranch.github.io/figurefirst/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="8.5in"
+   height="11in"
+   viewBox="0 0 215.9 279.4"
+   version="1.1"
+   id="svg7186"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
+   sodipodi:docname="behaviorSupp.svg">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="396.31297"
+     inkscape:cy="729.09772"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="in"
+     inkscape:snap-grids="true"
+     inkscape:measure-start="138.984,359.797"
+     inkscape:measure-end="138.984,356.641"
+     inkscape:window-width="1853"
+     inkscape:window-height="1016"
+     inkscape:window-x="1987"
+     inkscape:window-y="27"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <inkscape:grid
+       type="xygrid"
+       id="grid7731"
+       units="mm"
+       spacingx="2.75"
+       spacingy="2.75"
+       empspacing="4" />
+    <sodipodi:guide
+       position="196.84998,19.050032"
+       orientation="1,0"
+       id="guide12866"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="36.435518,95.155051"
+       orientation="0,1"
+       id="guide12868"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="19.049993,260.34999"
+       orientation="1,0"
+       id="guide10198"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="104.15073,208.6013"
+       orientation="0,1"
+       id="guide10275"
+       inkscape:locked="false" />
+  </sodipodi:namedview>
+  <defs
+     id="defs7180">
+    <clipPath
+       id="p7571dddc21">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="163.70079"
+         y="67.748032"
+         id="rect2430" />
+    </clipPath>
+    <clipPath
+       id="pf18deae393">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="93.543304"
+         y="67.748032"
+         id="rect2427" />
+    </clipPath>
+    <clipPath
+       id="pce559dd414">
+      <rect
+         height="29.763781"
+         width="62.362206"
+         x="444.33072"
+         y="67.748032"
+         id="rect2442" />
+    </clipPath>
+  </defs>
+  <metadata
+     id="metadata7183">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-17.6)"
+     style="display:inline">
+    <g
+       transform="translate(0.19998679,1.7166138e-5)"
+       id="g29731"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
+      <rect
+         height="279.39999"
+         id="rect29687"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41715813;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="-0.19998679"
+         y="17.599989" />
+      <rect
+         height="279.39999"
+         id="rect29687-1"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41715813;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="196.64999"
+         y="17.599989" />
+      <rect
+         height="177.79999"
+         id="rect29687-3"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92822504;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="17.599989"
+         y="-196.64999" />
+      <rect
+         height="177.79997"
+         id="rect29687-3-2"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92822504;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="277.94995"
+         y="-196.64999" />
+    </g>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect7760"
+       width="37"
+       height="29.66695"
+       x="27.250994"
+       y="44">
+      <figurefirst:axis
+         figurefirst:name="duration_mC2L" />
+    </rect>
+    <text
+       id="text1008"
+       y="38.72958"
+       x="19.031607"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;line-height:1.25;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
+       xml:space="preserve"><tspan
+         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332"
+         y="38.72958"
+         x="19.031607"
+         id="tspan1006"
+         sodipodi:role="line">A</tspan></text>
+    <rect
+       y="44"
+       x="67.150734"
+       height="29.66695"
+       width="37"
+       id="rect10188"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="duration_mC2R" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10190"
+       width="37"
+       height="29.66695"
+       x="107.05048"
+       y="44">
+      <figurefirst:axis
+         figurefirst:name="duration_mL2C" />
+    </rect>
+    <rect
+       y="44"
+       x="146.95023"
+       height="29.66695"
+       width="37"
+       id="rect10192"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="duration_mR2C" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10194"
+       width="10"
+       height="10"
+       x="186.84996"
+       y="53.833473">
+      <figurefirst:axis
+         figurefirst:name="duration_legend" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10196"
+       width="8.2010002"
+       height="29.667"
+       x="19.049994"
+       y="44" />
+    <rect
+       y="73.666946"
+       x="27.250992"
+       height="5.4969997"
+       width="36.999989"
+       id="rect10200"
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none" />
+    <rect
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10202"
+       width="36.999989"
+       height="5.4969997"
+       x="67.150749"
+       y="73.666946" />
+    <rect
+       y="73.666946"
+       x="107.05048"
+       height="5.4969997"
+       width="36.999989"
+       id="rect10204"
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none" />
+    <rect
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10206"
+       width="36.999989"
+       height="5.4969997"
+       x="146.95023"
+       y="73.666946" />
+    <rect
+       y="88.398705"
+       x="27.250994"
+       height="29.66695"
+       width="37"
+       id="rect10257"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="duration_pC2L" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10259"
+       width="37"
+       height="29.66695"
+       x="67.150734"
+       y="88.398705">
+      <figurefirst:axis
+         figurefirst:name="duration_pC2R" />
+    </rect>
+    <rect
+       y="88.398705"
+       x="19.049994"
+       height="29.667"
+       width="8.2010002"
+       id="rect10261"
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none" />
+    <rect
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10263"
+       width="36.999989"
+       height="5.4969997"
+       x="27.250992"
+       y="118.06565" />
+    <rect
+       y="118.06565"
+       x="67.150749"
+       height="5.4969997"
+       width="36.999989"
+       id="rect10265"
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none" />
+    <rect
+       y="88.398697"
+       x="119.95013"
+       height="29.66695"
+       width="37"
+       id="rect10267"
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none">
+      <figurefirst:axis
+         figurefirst:name="duration_pL2C" />
+    </rect>
+    <rect
+       style="fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.07276043;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10269"
+       width="37"
+       height="29.66695"
+       x="159.84998"
+       y="88.398697">
+      <figurefirst:axis
+         figurefirst:name="duration_pR2C" />
+    </rect>
+    <rect
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none"
+       id="rect10271"
+       width="36.999989"
+       height="5.4969997"
+       x="119.95013"
+       y="118.06564" />
+    <rect
+       y="118.06564"
+       x="159.84998"
+       height="5.4969997"
+       width="36.999989"
+       id="rect10273"
+       style="opacity:1;fill:#ff00ff;fill-opacity:0.09803922;stroke-width:0.13229166;stroke-miterlimit:4;stroke-dasharray:none" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer3"
+     inkscape:label="Layer 2"
+     style="display:inline" />
+</svg>
