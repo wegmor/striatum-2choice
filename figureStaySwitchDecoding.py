@@ -111,6 +111,14 @@ if cachedDataPath.is_file():
 else:
     staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
     staySwitchAUC.to_pickle(cachedDataPath)
+    
+cachedDataPath = cacheFolder / 'staySwitchAUC_shuffled.pkl'
+if cachedDataPath.is_file():
+    staySwitchAUC_shuffled = pd.read_pickle(cachedDataPath)
+else:
+    staySwitchAUC_shuffled = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath,
+                                                                           on_shuffled=True)
+    staySwitchAUC_shuffled.to_pickle(cachedDataPath)
 
 
 #%%
@@ -150,7 +158,10 @@ cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 #%% plot stay vs switch ROC AUC tuning distributions
 #  could be done with "tuning" defined as z-scored by shuffle dist?
 staySwitch = staySwitchAUC.loc[staySwitchAUC.action.isin(['pC2L','pC2R'])].copy()
-palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
+staySwitch_shuffled = staySwitchAUC_shuffled[staySwitchAUC_shuffled.action.isin(['pC2L','pC2R'])].copy()
+staySwitch_shuffled['genotype'] = 'shuffled'
+staySwitch = pd.concat([staySwitch, staySwitch_shuffled])
+palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1','shuffled']}
 
 # plot histograms
 for a, adata in staySwitch.groupby('action'):
@@ -162,11 +173,13 @@ for a, adata in staySwitch.groupby('action'):
 #                lw=2, alpha=.8)
         sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
                      ax=ax, color=style.getColor(gt), hist=False,
-                     kde_kws={'clip_on':False, 'alpha':.75})
-    
+                     kde_kws={'clip_on':False, 'alpha':.75,
+                              'zorder':-1 if gt == 'shuffled' else 1})
+     
     ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_ylim((0,2))
-    ax.set_yticks((0,1,2))
+    ax.set_ylim((0,4))
+    ax.set_yticks((1,3), minor=True)
+    ax.set_yticks((0,2,4))
     ax.set_yticklabels(())
     ax.set_ylabel('')
     if a == 'pC2L':
@@ -183,11 +196,12 @@ for a, adata in staySwitch.groupby('action'):
                 palette=palette, saturation=.85, showcaps=False, showfliers=False,
                 boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
                 width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
-                medianprops={'c':'k','zorder':99, 'clip_on':False})
+                medianprops={'c':'k','zorder':99, 'clip_on':False},
+                order=['d1','a2a','oprm1','shuffled'])
     
     ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
     ax.set_xlim((-1,1))
-    ax.set_ylim((-.75,2.75))
+    ax.set_ylim((-.75,3.75))
     ax.set_xticks((-1,0,1))
     ax.set_xticklabels((-1,'',1))
     ax.set_xticks((-.5,.5), minor=True)
@@ -198,8 +212,9 @@ for a, adata in staySwitch.groupby('action'):
     
 axt = layout.axes['auc_legend']['axis']
 legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
-                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1'}[gt])
-                   for gt in ['d1','a2a','oprm1']
+                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
+                                        'shuffled':'shuffled'}[gt])
+                   for gt in ['d1','a2a','oprm1']#,'shuffled']
                   ]
 axt.legend(handles=legend_elements, ncol=3, loc='center',
            mode='expand')
@@ -277,12 +292,12 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
 
 
 #%%
-def shuffleTuning(actionTuning):
-    return pd.Series(np.random.permutation(actionTuning),
-                     index=actionTuning.index)
-    
-def getPercentile(value, shuffle_dist):
-    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
+#def shuffleTuning(actionTuning):
+#    return pd.Series(np.random.permutation(actionTuning),
+#                     index=actionTuning.index)
+#    
+#def getPercentile(value, shuffle_dist):
+#    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
 
 
 order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
@@ -290,19 +305,19 @@ tunings = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']
 
 similarity = tunings.unstack()[order].groupby('genotype').corr().stack()
 
-similarity_shuffled = []
-for _ in range(1000):
-    tunings_shuffled = (tunings.groupby(['genotype','animal','date','action'])
-                               .apply(shuffleTuning))
-    similarity_shuffled.append((tunings_shuffled.unstack()[order]
-                                                .groupby('genotype')
-                                                .corr().stack()))
-similarity_shuffled = pd.concat(similarity_shuffled, axis=1,
-                                keys=np.arange(len(similarity_shuffled)),
-                                names=['shuffle_no'])
-
-percentile = similarity_shuffled.apply(lambda g: getPercentile(similarity.loc[g.name], g),
-                                       axis=1)   
+#similarity_shuffled = []
+#for _ in range(1000):
+#    tunings_shuffled = (tunings.groupby(['genotype','animal','date','action'])
+#                               .apply(shuffleTuning))
+#    similarity_shuffled.append((tunings_shuffled.unstack()[order]
+#                                                .groupby('genotype')
+#                                                .corr().stack()))
+#similarity_shuffled = pd.concat(similarity_shuffled, axis=1,
+#                                keys=np.arange(len(similarity_shuffled)),
+#                                names=['shuffle_no'])
+#
+#percentile = similarity_shuffled.apply(lambda g: getPercentile(similarity.loc[g.name], g),
+#                                       axis=1)   
 
 ##%%
 vmin, vmax = -1, 1
@@ -312,14 +327,14 @@ for genotype in ("oprm1", "d1", "a2a"):
     ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
     
     corr = similarity.loc[genotype].unstack(-1).values
-    pctl = percentile.loc[genotype].unstack(-1).values
+#    pctl = percentile.loc[genotype].unstack(-1).values
     
-    sign_matrix = np.array(([''] * 36)).reshape(6,6)
-    sign_matrix[(pctl < .005) | (pctl > .995)] = '*'
+#    sign_matrix = np.array(([''] * 36)).reshape(6,6)
+#    sign_matrix[(pctl < .005) | (pctl > .995)] = '*'
     
     corr[np.triu_indices_from(corr)] = np.nan
     corr = np.ma.masked_where(np.isnan(corr), corr)
-    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
+#    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
 
     cm = ax.pcolormesh(corr, cmap=cmap, vmin=vmin, vmax=vmax,
                        edgecolors='w', lw=.35)
@@ -504,8 +519,10 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
         ax.set_xlabel('action value')
     ax.set_yticks((0,.5,1))
     if gt == 'd1':
-        ax.set_yticklabels((0,50,100))
-        ax.set_ylabel('SVM prediction\nP(win-stay)')
+        #ax.set_yticklabels((0,50,100))
+        ax.set_yticklabels(('-100', '0', '100'))
+        #ax.set_ylabel('SVM prediction\nP(win-stay)')
+        ax.set_ylabel('certainty')
     else:
         ax.set_yticklabels(())
     ax.yaxis.set_minor_locator(MultipleLocator(.25))

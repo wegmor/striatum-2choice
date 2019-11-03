@@ -49,12 +49,16 @@ def jitter(x, std):
     
     
 #%%
-def getTuningData(dataFilePath, no_shuffles=1000):
+def getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
         traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
-        apf = s.labelFrameActions(switch=False, reward='sidePorts',
-                                  splitCenter=True).reset_index(drop=True)
+        if on_shuffled:
+            apf = s.shuffleFrameLabels(switch=False, reward='sidePorts',
+                                       splitCenter=True)[0].reset_index(drop=True)
+        else:
+            apf = s.labelFrameActions(switch=False, reward='sidePorts',
+                                      splitCenter=True).reset_index(drop=True)
         
         # TODO: fix remaining recordings with dropped frames
         if traces.shape[0] != apf.shape[0]:

@@ -117,7 +117,9 @@ for gt, data in decodingData.groupby("genotype"):
     
     #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
     #cmap = sns.light_palette(style.getColor(gt), 1024, as_cmap=True)
-    cmap = cmocean.cm.algae_r
+    #cmap = cmocean.cm.algae
+    cmap = mpl.cm.RdYlGn
+    #cmap = mpl.cm.rainbow
     labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])

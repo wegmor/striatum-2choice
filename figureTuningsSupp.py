@@ -411,5 +411,5 @@ cax.text(0.5, -.1, 'tuning score', ha='center', va='top',
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "tuningsSupp2.svg")
-os.system('convert -density 300 {} {}'.format(outputFolder / 'tuningsSupp2.svg',
-                                              outputFolder / 'tuningsSupp2.jpg'))
+#os.system('convert -density 300 {} {}'.format(outputFolder / 'tuningsSupp2.svg',
+#                                              outputFolder / 'tuningsSupp2.jpg'))
