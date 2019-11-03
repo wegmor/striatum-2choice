@@ -24,16 +24,16 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="0.9899495"
-     inkscape:cx="319.54765"
-     inkscape:cy="688.02372"
+     inkscape:zoom="4"
+     inkscape:cx="152.4"
+     inkscape:cy="368.86589"
      inkscape:document-units="mm"
      inkscape:current-layer="layer3"
-     showgrid="true"
+     showgrid="false"
      units="in"
      inkscape:snap-grids="true"
-     inkscape:measure-start="135.118,789.921"
-     inkscape:measure-end="135.118,675.591"
+     inkscape:measure-start="138.984,359.797"
+     inkscape:measure-end="138.984,356.641"
      inkscape:window-width="1853"
      inkscape:window-height="1016"
      inkscape:window-x="1987"
@@ -48,6 +48,16 @@
        spacingx="2.75"
        spacingy="2.75"
        empspacing="4" />
+    <sodipodi:guide
+       position="196.84998,19.050032"
+       orientation="1,0"
+       id="guide12866"
+       inkscape:locked="false" />
+    <sodipodi:guide
+       position="36.435518,95.155051"
+       orientation="0,1"
+       id="guide12868"
+       inkscape:locked="false" />
   </sodipodi:namedview>
   <defs
      id="defs7180">
@@ -872,6 +882,36 @@
       <figurefirst:axis
          figurefirst:name="colorbar_single" />
     </rect>
+    <rect
+       height="14.613392"
+       id="rect955"
+       style="display:inline;opacity:1;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.17898332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17898329, 0.3579666;stroke-dashoffset:0;stroke-opacity:1"
+       width="14.613392"
+       x="22.246346"
+       y="202.63661">
+      <figurefirst:axis
+         figurefirst:name="pie_d1" />
+    </rect>
+    <rect
+       height="14.613392"
+       id="rect955-0"
+       style="display:inline;opacity:1;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.17898332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17898329, 0.3579666;stroke-dashoffset:0;stroke-opacity:1"
+       width="14.613392"
+       x="39.010929"
+       y="202.63661">
+      <figurefirst:axis
+         figurefirst:name="pie_a2a" />
+    </rect>
+    <rect
+       height="14.613392"
+       id="rect955-0-2"
+       style="display:inline;opacity:1;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.17898332;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.17898329, 0.3579666;stroke-dashoffset:0;stroke-opacity:1"
+       width="14.613392"
+       x="55.775513"
+       y="202.63661">
+      <figurefirst:axis
+         figurefirst:name="pie_oprm1" />
+    </rect>
   </g>
   <g
      inkscape:groupmode="layer"
@@ -1240,5 +1280,53 @@
          x="19.031607"
          y="119.94573"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.82222223px;font-family:sans-serif;-inkscape-font-specification:'sans-serif, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">B</tspan></text>
+    <text
+       transform="translate(0,-17.6)"
+       id="text24095"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="18.824394"
+       xml:space="preserve"
+       y="202.84021"><tspan
+         id="tspan24093"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="18.824394"
+         y="202.84021">C</tspan></text>
+    <text
+       transform="translate(0,-17.6)"
+       id="text24293"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="28.105499"
+       xml:space="preserve"
+       y="201.8452"><tspan
+         id="tspan24291"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="28.105499"
+         y="201.8452">D1</tspan></text>
+    <text
+       transform="translate(0,-17.6)"
+       id="text24297"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="43.982021"
+       xml:space="preserve"
+       y="201.84589"><tspan
+         id="tspan24295"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="43.982021"
+         y="201.84589">A2A</tspan></text>
+    <text
+       transform="translate(0,-17.6)"
+       id="text24301"
+       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="59.473297"
+       xml:space="preserve"
+       y="201.85208"><tspan
+         id="tspan24299"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="59.473297"
+         y="201.85208">Oprm1</tspan></text>
   </g>
 </svg>

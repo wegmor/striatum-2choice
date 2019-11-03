@@ -31,15 +31,11 @@ plt.ioff()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path('svg')
-cacheFolder = pathlib.Path('cache')
 templateFolder = pathlib.Path('templates')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
-    
-    
+
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "turnDecoding.svg")
 layout.make_mplfigures()
@@ -91,18 +87,10 @@ cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
 
     
 #%% Panel B
-cachedDataPath = cacheFolder / "decodeMovementProgress_mR2C.pkl"
-if cachedDataPath.is_file():
-    decodingMovementProgress = pd.read_pickle(cachedDataPath)
-else:
-    decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath)
-    decodingMovementProgress.to_pickle(cachedDataPath)
-    
+decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath)
 decodingMovementProgress['genotype'] = decodingMovementProgress.sess.str.split('_').str[0]
 decodingMovementProgress['animal'] = decodingMovementProgress.sess.str.split('_').str[1]
 decodingMovementProgress['date'] = decodingMovementProgress.sess.str.split('_').str[2]
-
-    
 def calcCorr(df):
     r = pearsonr(df.true, df.predicted)[0]
     return pd.Series((r, df.nNeurons.iloc[0]), ("correlation", "nNeurons"))

@@ -28,25 +28,18 @@ plt.ioff
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "decodingSupp.svg")
 layout.make_mplfigures()
 
 #%% Panel A
-cachedDataPath = cacheFolder / "decodeConfusion.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodingConfusion(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
+decodingData = analysisDecoding.decodingConfusion(endoDataPath)
+
 order = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
          "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr"]
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
@@ -75,12 +68,7 @@ cax.text(.5, 1.1, 'accuracy (%)', ha='center', va='bottom', fontdict={'fontsize'
          transform=cax.transAxes)
 
 #%% Panel B
-cachedDataPath = cacheFolder / "decodeSortedByMI.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodeWithSortedNeurons(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
+decodingData = analysisDecoding.decodeWithSortedNeurons(endoDataPath)
 
 plt.sca(layout.axes["decodingWithSortedNeurons"]["axis"])
 for (strSess, ordering), df in decodingData.groupby(["session", "ordering"]):
@@ -115,12 +103,7 @@ def calcCorr(df):
 #titles = {'mC2L': 'Center-to-left', 'mC2R': 'Center-to-right',
 #          'mL2C': 'Left-to-center', 'mR2C': 'Right-to-center'}
 for label in ("mC2L", "mC2R", "mL2C", "mR2C","pC2L","pC2R"):
-    cachedDataPath = cacheFolder / "decodeMovementProgress_{}.pkl".format(label)
-    if cachedDataPath.is_file():
-        decodingMovementProgress = pd.read_pickle(cachedDataPath)
-    else:
-        decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath, label=label+"-")
-        decodingMovementProgress.to_pickle(cachedDataPath)
+    decodingMovementProgress = analysisDecoding.decodeMovementProgress(endoDataPath, label=label+"-")
     avgCorr = decodingMovementProgress.groupby(["shuffle","sess"]).apply(calcCorr).reset_index("shuffle")
     avgCorr["genotype"] = avgCorr.index.str.split("_").str[0]
     avgCorr.loc[avgCorr.shuffle, "genotype"] = "shuffled"

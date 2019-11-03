@@ -18,13 +18,10 @@ style.set_context()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 layout = figurefirst.FigureLayout(templateFolder / "staySwitch.svg")
 layout.make_mplfigures()

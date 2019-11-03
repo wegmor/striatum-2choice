@@ -12,7 +12,9 @@ import functools
 import pyximport; pyximport.install()
 
 from utils import readSessions, particleFilter, segmentBehaviors
+from utils.cachedDataFrame import cachedDataFrame
 
+@cachedDataFrame("segmentedBehavior.pkl")
 def segmentAllOpenField(dataFile):
     allBehaviors = []
     for sess in readSessions.findSessions(dataFile, task="openField"):
@@ -51,6 +53,7 @@ def _prepareTrials(deconv, behaviors, minDuration=20):
     Y = labels[validTrials]
     return X, Y
 
+@cachedDataFrame("openFieldDecodingWithIncreasingNumberOfNeurons.pkl")
 def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
     nShufflesPerNeuronNum = 20
     with multiprocessing.Pool(5) as pool:
@@ -73,6 +76,7 @@ def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
                         t.update(1)
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
 
+@cachedDataFrame("openFieldDecodingConfusion.pkl")
 def decodingConfusion(dataFile, allBehaviors):
     confMats = []
     for sess in readSessions.findSessions(dataFile, task="openField"):
@@ -123,6 +127,7 @@ def shuffleBehaviors(behaviors):
     return shuffled
 
 #%%
+@cachedDataFrame("openFieldTunings.pkl")
 def getTuningData(dataFilePath, allBehaviors, no_shuffles=1000):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='openField'):

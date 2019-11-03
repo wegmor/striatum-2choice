@@ -14,6 +14,8 @@ import matplotlib as mpl
 import pathlib
 import analysisTunings, analysisClusteringSupp
 import figurefirst
+import scipy.spatial
+import scipy.cluster
 from sklearn.metrics import silhouette_samples
 import style
 plt.ioff()
@@ -24,25 +26,17 @@ style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "clusteringSupp.svg")
 layout.make_mplfigures()
 
 #%% Figure A
-cachedDataPath = cacheFolder / "signalHistogram.pkl"
-if cachedDataPath.is_file():
-    signalHistogram = pd.read_pickle(cachedDataPath)
-else:
-    signalHistogram = analysisClusteringSupp.getSignalHistogram(endoDataPath)
-    signalHistogram.to_pickle(cachedDataPath)
+signalHistogram = analysisClusteringSupp.getSignalHistogram(endoDataPath)
 ax = layout.axes['value_distribution']['axis']
 ax.set_xscale("log")
 norm = signalHistogram.iloc[1:].sum() * 0.05
@@ -56,13 +50,8 @@ ax = layout.axes['inset_pie']['axis']
 ax.pie([signalHistogram.iloc[0], signalHistogram.iloc[1:].sum()], labels=["$\leq0$", "$>0$"])
 
 #%% Figure B
-cachedDataPath = cacheFolder / "varExplainedByPCA.pkl"
-if cachedDataPath.is_file():
-    varExplained = pd.read_pickle(cachedDataPath)
-else:
-    varExplained = analysisClusteringSupp.getVarianceExplainedByPCA(endoDataPath)
-    varExplained.to_pickle(cachedDataPath)
-    
+varExplained = analysisClusteringSupp.getVarianceExplainedByPCA(endoDataPath)
+
 ax = layout.axes['naive_pca']['axis']
 
 unsmoothed = varExplained.query("sigma == 0")
@@ -112,13 +101,7 @@ ax.set_ylabel("variance explained (%)")
 sns.despine(ax=ax)
 
 #%% Figure E
-cachedDataPath = cacheFolder / "topologicalDimensionality.pkl"
-if cachedDataPath.is_file():
-    topDim = pd.read_pickle(cachedDataPath)
-else:
-    topDim = analysisClusteringSupp.calculateTopologicalDimensionality(endoDataPath)
-    topDim.to_pickle(cachedDataPath)
-    
+topDim = analysisClusteringSupp.calculateTopologicalDimensionality(endoDataPath)
 meanDim = topDim.groupby("session").mean()
 color = [style.getColor(s.split("_")[0]) for s in meanDim.index]
 ax = layout.axes['topological_dim']['axis']
@@ -126,19 +109,14 @@ ax.scatter(meanDim.nNeurons, meanDim.dimensionality, c=color)
 ax.set_xlabel("number of neurons")
 ax.set_ylabel("dimensionality")
 ax.set_ylim(0, 100)
+handles = [mpl.lines.Line2D([0], [0], ls='', marker='o', color=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
+ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
 sns.despine(ax=ax)
 
 #%%
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
-
+tuningData = analysisTunings.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
-
 
 #%%
 tunings = (tuningData.set_index(['genotype','animal','date','neuron','action'])['tuning']
@@ -241,13 +219,7 @@ ax.set_ylabel('')
 sns.despine(left=True, trim=True, ax=ax)
 
 #%%
-cachedDataPath = cacheFolder / "silhouette_score_df.pkl"
-if cachedDataPath.is_file():
-    score_df = pd.read_pickle(cachedDataPath)
-else:
-    score_df = analysisClusteringSupp.getKMeansScores(tunings)
-    score_df.to_pickle(cachedDataPath)
-
+score_df = analysisClusteringSupp.getKMeansScores(tunings)
 
 #%%
 ax = layout.axes['tuning_score']['axis']
@@ -274,8 +246,51 @@ for gt, gt_scores in score_df.groupby('genotype'):
     ax.set_ylabel('silhouette score')
     ax.legend(labels=['A2A','D1','Oprm1'], loc='upper right', bbox_to_anchor=(1,.95))
     sns.despine(ax=ax)
-        
 
+#%%
+def toLongName(label):
+    portNames = {'L': "left", 'R': "right", 'C': "center"}
+    if label[0] == 'm':
+        longName = "moving "
+        longName += portNames[label[1]]
+        longName += " to "
+        longName += portNames[label[3]]
+    elif label[:2] == "pC":
+        longName = "center port going {}".format(portNames[label[3]])
+    else:
+        longName = portNames[label[1]]
+        if label[4] == 'r':
+            longName += " reward"
+        elif label[4] == 'o':
+            longName += " delay"
+    longName += " ("
+    longName = {'r': "win", 'o': "lose"}[label[4]]
+    longName += "-"
+    longName += {'.': "stay", '!': "switch"}[label[5]]
+    #longName += ")"
+    return longName
+
+distMat = analysisClusteringSupp.populationDistMatrix(endoDataPath)
+pdist = scipy.spatial.distance.squareform(distMat)
+Z = scipy.cluster.hierarchy.linkage(pdist, 'ward')
+labels = distMat.index
+longLabels = list(map(toLongName, labels))
+colors = []
+for i in range(23):
+    if Z[i, 3] <= 3: 
+        color = style.getColor(labels[Z[i, :2].min()][:4])
+        colors.append(mpl.colors.to_hex(color))
+    else:
+        colors.append("black")
+plt.sca(layout.axes['dendrogram']['axis'])
+dn = scipy.cluster.hierarchy.dendrogram(Z, labels=longLabels,
+                                        link_color_func=lambda k: colors[k-24])
+plt.xticks(rotation=90, fontsize=6)
+plt.yticks(fontsize=6)
+sns.despine(ax=plt.gca(), bottom=True, left=False, trim=False)
+plt.ylim(0,80)
+plt.ylabel("Distance")
+plt.title("agglomerative clustering of pooled mean\npopulation activity in all task phases", pad=6)
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "clusteringSupp.svg")

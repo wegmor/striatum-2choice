@@ -12,20 +12,17 @@ from utils import readSessions
 import style
 
 style.set_context()
-endoDataPath = pathlib.Path(__file__).parent / "data" / "endoData_2019.hdf"
 
+endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
-templateFolder = pathlib.Path(__file__).parent / "templates"
+templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
     
 layout = figurefirst.FigureLayout(templateFolder / "continuity.svg")
 layout.make_mplfigures()
-selection = pd.read_csv(pathlib.Path(__file__).parent / "continuitySelection.csv", comment="#")
+selection = pd.read_csv("continuitySelection.csv", comment="#")
 fancyVizs = {}
 signals = {}
 lw = matplotlib.rcParams["axes.linewidth"]

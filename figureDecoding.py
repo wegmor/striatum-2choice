@@ -27,13 +27,10 @@ plt.ioff()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path('svg')
-cacheFolder = pathlib.Path('cache')
 templateFolder = pathlib.Path('templates')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
     
     
 #%%
@@ -42,13 +39,7 @@ layout.make_mplfigures()
 
 
 #%% Panel A
-cachedDataPath = cacheFolder / "decodeWithIncreasingNumberOfNeurons.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
-
+decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
 decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
 
 ##%%
@@ -92,13 +83,8 @@ sns.despine(ax=plt.gca())
 
 
 #%% Panel B
-cachedDataPath = cacheFolder / "decodeConfusion.pkl"
-if cachedDataPath.is_file():
-    decodingData = pd.read_pickle(cachedDataPath)
-else:
-    decodingData = analysisDecoding.decodingConfusion(endoDataPath)
-    decodingData.to_pickle(cachedDataPath)
-    
+decodingData = analysisDecoding.decodingConfusion(endoDataPath)
+
 #means = confusionDiagonal.groupby("sess").mean()
 #nNeurons = means.nNeurons
 #labels = list(means.columns)
@@ -137,7 +123,7 @@ cax.text(-.025, .25, 0, ha='right', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
 cax.text(1.025, .25, 100, ha='left', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
-cax.text(.5, 1.125, 'decoding accuracy (%)', ha='center', va='bottom', fontdict={'fontsize':6},
+cax.text(.5, 1.125, 'recall (%)', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
 
 
@@ -246,13 +232,7 @@ cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
 
 
 #%% Panel D
-cachedDataPath = cacheFolder / "decodingAcrossDays.pkl"
-if cachedDataPath.is_file():
-    decodingAcrossDays = pd.read_pickle(cachedDataPath)
-else:
-    decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
-    decodingAcrossDays.to_pickle(cachedDataPath)
-
+decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []
     for _ in range(iterations):
@@ -338,7 +318,52 @@ legend_elements = [mpl.lines.Line2D([0], [0], marker='v', color='k', label='neur
 axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
 axt.axis('off')
 
-
+## Panel E
+for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
+    g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
+    
+    perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
+    perAnimal["genotype"] = g.genotype.first()
+    
+    scaledScore = perAnimal[['sameDayScore', 'nextDayScore']] * perAnimal.nNeurons[:,np.newaxis]
+    perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
+    perGenotype /= perAnimal.groupby("genotype").nNeurons.sum()[:, np.newaxis]
+    
+    shuffleScore = perAnimal[['sameDayShuffled', 'nextDayShuffled']] * perAnimal.nNeurons[:,np.newaxis]
+    shuffleScore = shuffleScore.sum(axis=0) / perAnimal.nNeurons.sum()
+    
+    plt.sca(layout.axes["decodingAcrossDays_{}".format(i+1)]["axis"])
+    
+    for r in perAnimal.itertuples():
+        plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
+                 c=style.getColor(r.genotype), alpha=0.2)
+    for r in perGenotype.itertuples():
+        gt = r.Index
+        animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
+        sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+        nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
+        plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                     lw=style.lw(), c=style.getColor(gt))
+        
+    plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+             lw=style.lw(), c=style.getColor("shuffled"))
+    
+    plt.ylim(0,1)
+    plt.xlim(-0.25, 1.25)
+    xlab = ("1-3 days\nlater", "4-13 days\nlater", "14+ days\nlater")
+    plt.xticks((0,1), ("Same\nday", xlab[i]))
+    if i==0:
+        plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
+        plt.ylabel("Decoding accuracy (%)")
+    else:
+        plt.yticks(np.linspace(0,1,5), [""]*5)
+    sns.despine(ax=plt.gca())
+axt = layout.axes['decodingAcrossDays_legend']['axis']
+legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=g) for g in ("d1", "a2a", "oprm1", "shuffled")]
+axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
+axt.axis('off')
+    
+    
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "decoding.svg")

@@ -11,7 +11,7 @@ import pandas as pd
 from sklearn.manifold import TSNE
 from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, particleFilter
-
+from utils.cachedDataFrame import cachedDataFrame
 
 #%%
 def get_centers(rois):
@@ -49,6 +49,7 @@ def jitter(x, std):
     
     
 #%%
+@cachedDataFrame("actionTunings.pkl")
 def getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
@@ -126,6 +127,7 @@ def getTunedNoHistData(tuningData):
 
 
 #%% TSNE
+@cachedDataFrame("tuning_tsne.pkl")
 def getTSNEProjection(tuningData, perplexity=30):
     df = tuningData.set_index(['genotype','animal','date','neuron']).copy()
     df = df.loc[df.groupby(['genotype','animal','date','neuron']).signp.sum() >= 1]
@@ -145,6 +147,7 @@ def getTSNEProjection(tuningData, perplexity=30):
 
 
 #%% similarly tuned neurons closer than chance?
+@cachedDataFrame("tuning_pdists.pkl")
 def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
     dist_df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
