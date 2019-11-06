@@ -214,9 +214,9 @@ axt = layout.axes['auc_legend']['axis']
 legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
                                  label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
                                         'shuffled':'shuffled'}[gt])
-                   for gt in ['d1','a2a','oprm1']#,'shuffled']
+                   for gt in ['d1','a2a','oprm1','shuffled']
                   ]
-axt.legend(handles=legend_elements, ncol=3, loc='center',
+axt.legend(handles=legend_elements, ncol=4, loc='center',
            mode='expand')
 axt.axis('off')
 
@@ -303,7 +303,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
 order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
 tunings = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
 
-similarity = tunings.unstack()[order].groupby('genotype').corr().stack()
+similarity = tunings.abs().unstack()[order].groupby('genotype').corr().stack()
 
 #similarity_shuffled = []
 #for _ in range(1000):
@@ -520,9 +520,9 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
     ax.set_yticks((0,.5,1))
     if gt == 'd1':
         #ax.set_yticklabels((0,50,100))
-        ax.set_yticklabels(('-100', '0', '100'))
+        ax.set_yticklabels((-100, 0, 100))
         #ax.set_ylabel('SVM prediction\nP(win-stay)')
-        ax.set_ylabel('certainty')
+        #ax.set_ylabel('certainty')
     else:
         ax.set_yticklabels(())
     ax.yaxis.set_minor_locator(MultipleLocator(.25))
@@ -644,7 +644,7 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
         ax.set_yticklabels(())
         ax.set_yticks((.25,), minor=True)
         if gt == 'a2a':
-            ax.set_ylabel('|action value| X P(win-stay)\ncorrelation')
+            ax.set_ylabel('|action value| X certainty\ncorrelation')
             ax.set_yticklabels((.0,.5))
         sns.despine(ax=ax, bottom=True, trim=True)
     else:
