@@ -41,6 +41,10 @@ tuningData = analysisTunings.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 
+tuningData_shuffled = analysisTunings.getTuningData_shuffled(endoDataPath)
+tuningData_shuffled['signp'] = tuningData_shuffled['pct'] > .995
+tuningData_shuffled['signn'] = tuningData_shuffled['pct'] < .005
+
 #%%
 ex_session = ('oprm1','5308','190131')
 s = next(readSessions.findSessions(endoDataPath, genotype=ex_session[0],
@@ -162,24 +166,44 @@ ax.axis('off')
 #%%
 ax = layout.axes['tuning_hist1']['axis']
 hdata = tuningData.query('genotype == "oprm1" & action == "mC2L-"').copy()
+shuffle_kde = tuningData_shuffled.query('genotype == "oprm1" & action == "mC2L-"').copy()
 
-ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
-        histtype='stepfilled')
-ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
-        histtype='stepfilled', color=style.getColor('mC2L'))
+sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+            clip_on=False, zorder=10, label='')
+sns.kdeplot(hdata['tuning'], ax=ax, color='gray', alpha=.75, clip_on=True,
+            zorder=-99, label='')
+bins = np.arange(-20.5, 41.5)
+none_hist = np.histogram(hdata.loc[~hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+#ax.hist(hdata['tuning'], bins=bins, lw=0, color='gray', alpha=.6,
+#        histtype='stepfilled', align='mid')
+ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
+#ax.hist(hdata.loc[hdata.signp,'tuning'], bins=bins, lw=0,
+#        histtype='stepfilled', color=style.getColor('mC2L'), align='mid')
+ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor('mC2L'), bottom=none_hist)
 
-ax.text(30,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+#ax.text(30,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+#        color=style.getColor('mC2L'))
+ax.text(30,.04,'significant\npos. tuning',ha='right',va='bottom',fontdict={'fontsize':7},
         color=style.getColor('mC2L'))
-ax.text(7.5,400,'center to left\nturn',ha='center',va='center',fontdict={'fontsize':7})
+#ax.text(7.5,400,'center to left\nturn',ha='center',va='center',fontdict={'fontsize':7})
+ax.text(7.5,.45,'center to left turn',ha='center',va='center',
+        fontdict={'fontsize':7})
+ax.text(4.5,.25,'shuffled',ha='left',va='center',
+        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':.75})
 
-ax.set_yticks((0,200,400))
-ax.yaxis.set_minor_locator(MultipleLocator(100))
+#ax.set_yticks((0,200,400))
+ax.set_yticks((.0,.2,.4))
+#ax.yaxis.set_minor_locator(MultipleLocator(100))
+ax.set_yticks((.1,.3), minor=True)
 ax.set_xticks((-15,0,15,30))
 ax.set_xlim((-15,30))
-ax.set_ylim((0,400))
+#ax.set_ylim((0,400))
+ax.set_ylim((0,.42))
 ax.set_xlabel('tuning score')
-ax.set_ylabel('# neurons')
-sns.despine(ax=ax)
+#ax.set_ylabel('# neurons')
+ax.set_ylabel('density')
+sns.despine(ax=ax, trim=True)
 
 
 #%% pie charts
