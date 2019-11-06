@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
 from scipy.spatial.distance import pdist, squareform
-from utils import readSessions, particleFilter
+from utils import readSessions #, particleFilter
 from utils.cachedDataFrame import cachedDataFrame
 
 #%%
@@ -49,8 +49,7 @@ def jitter(x, std):
     
     
 #%%
-@cachedDataFrame("actionTunings.pkl")
-def getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
+def _getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
         traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
@@ -99,6 +98,16 @@ def getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
                 
                 df = df.append(pd.Series(ndict), ignore_index=True)
         
+    return df
+
+@cachedDataFrame("actionTunings.pkl")
+def getTuningData(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=False)
+    return df
+
+@cachedDataFrame("actionTunings_shuffled.pkl")
+def getTuningData_shuffled(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=True)
     return df
 
 
