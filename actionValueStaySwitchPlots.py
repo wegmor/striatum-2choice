@@ -83,7 +83,6 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     
     # compute mean of every action for tuned neurons
     actionLabels = lfa.groupby('actionNo').label.first()
-    tuned = auc.loc[auc.auc.abs() > .5, 'neuron'].unique()
     actionMeans = (deconv[auc.neuron.unique()]
                          .groupby(lfa.actionNo).mean())
     av = actionValues.loc[(s.meta.genotype,s.meta.animal,s.meta.date)]
@@ -128,14 +127,25 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
 layout = figurefirst.FigureLayout(templateFolder / "staySwitchActivity.svg")
 layout.make_mplfigures()
 
-for action, df in wstLswActionMeans.groupby('action'):
+#%%
+#for action, df in wstLswActionMeans.groupby('action'):
+for action, df in wstLswActionMeans.loc[wstLswActionMeans.label.str.endswith('o.')].groupby('action'):
     if not action.startswith('p'): continue
     df = df.copy()
     df['bin'] = pd.qcut(df.value, 4).cat.codes # every individual action's value is included X # neuron!
     # v: binned average for tuned populations / session
     session_df = df.groupby(['genotype','tuning','animal','date','bin'])[['value','actionMean']].mean()
+    session_df['noNeurons'] = df.groupby(['genotype','tuning','animal','date']).neuron.nunique()
     # v: across sessions
-    avg_df = session_df.groupby(['genotype','tuning','bin'])[['value','actionMean']].agg(['mean','sem'])
+#    avg_df = session_df.groupby(['genotype','tuning','bin'])[['value','actionMean']].agg(['mean','sem'])
+    grouping = session_df.groupby(['genotype','tuning','bin'])
+    value_wAvg = grouping.apply(analysisStaySwitchDecoding.wAvg, 'value', 'noNeurons')
+    value_sem = grouping.apply(analysisStaySwitchDecoding.bootstrap, 'value', 'noNeurons')
+    mean_wAvg = grouping.apply(analysisStaySwitchDecoding.wAvg, 'actionMean', 'noNeurons')
+    mean_sem = grouping.apply(analysisStaySwitchDecoding.bootstrap, 'actionMean', 'noNeurons')
+    value = pd.concat([value_wAvg, value_sem], axis=1, keys=['mean','sem'])
+    mean = pd.concat([mean_wAvg, mean_sem], axis=1, keys=['mean','sem'])
+    avg_df = pd.concat([value, mean], axis=1, keys=['value','actionMean'])
 
     for gt, gdata in avg_df.groupby('genotype'):
         ax = layout.axes['{}_av_x_d'.format(gt)]
@@ -156,24 +166,30 @@ for action, df in wstLswActionMeans.groupby('action'):
         ax.axvline(0, lw=mpl.rcParams['axes.linewidth'], color='k', ls=':',
                    alpha=.5, zorder=-1)
 
-        ax.set_xticks((5,0,-5))
-        ax.set_xticks((2.5,-2.5), minor=True)
-        ax.set_xlim((5,-5))
-        ax.set_yticks((-.4,0,.4))
-        ax.set_yticks((-.2,.2), minor=True)
-        ax.set_ylim((-.4,.4))
+        #ax.set_xticks((5,0,-5))
+        ax.set_xticks((3,0,-3))
+        #ax.set_xticks((2.5,-2.5), minor=True)
+        ax.set_xticks((1.5,-1.5), minor=True)
+        #ax.set_xlim((5,-5))
+        ax.set_xlim((3,-3))
+        #ax.set_yticks((-.4,0,.4))
+        ax.set_yticks((-.3,0,.3))
+        #ax.set_yticks((-.2,.2), minor=True)
+        ax.set_yticks((-.15,.15), minor=True)
+        #ax.set_ylim((-.4,.4))
+        ax.set_ylim((-.3,.3))
         if gt != 'd1':
             ax.set_yticklabels(())
         else:
             ax.set_ylabel('sd')
         if gt == 'a2a':
             ax.set_xlabel('action value')
-        ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[gt],
-                     pad=11)
+#        ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[gt],
+#                     pad=11)
         sns.despine(ax=ax)
      
 axt = layout.axes['legend']
-legend_elements = [mlines.Line2D([0], [0], marker='<', color='k', markersize=2.8,
+legend_elements = [mlines.Line2D([0], [0], marker='<', color='k', #markersize=2.8,
                          markeredgewidth=0, label='(left) choice', lw=0),
                    mpatches.Patch(color=style.getColor('stay'), alpha=1,
                                   label='win-stay tuned'),
@@ -184,5 +200,48 @@ axt.legend(handles=legend_elements, ncol=len(legend_elements), loc='center',
            mode='expand')
 axt.axis('off')
 
+
+#%%
+staySwitchAUC['stayTuned'] = staySwitchAUC.pct > .995
+staySwitchAUC['switchTuned'] = staySwitchAUC.pct < .005
+
+auc = staySwitchAUC.groupby(['action','genotype','animal','date'])[['stayTuned','switchTuned']].sum().copy()
+auc['noNeurons'] = staySwitchAUC.groupby(['action','genotype','animal','date']).size()
+auc.loc[:,['stayTuned','switchTuned']] = auc[['stayTuned','switchTuned']] / auc.noNeurons.values[:,np.newaxis]
+
+auc = auc.query('action in ["pC2R","pC2L"]').copy()
+
+#%%
+for (genotype, action), df in auc.groupby(['genotype','action']):
+    stay_avg = analysisStaySwitchDecoding.wAvg(df, 'stayTuned', 'noNeurons')
+    stay_sem = analysisStaySwitchDecoding.bootstrap(df, 'stayTuned', 'noNeurons')
+    switch_avg = analysisStaySwitchDecoding.wAvg(df, 'switchTuned', 'noNeurons')
+    switch_sem = analysisStaySwitchDecoding.bootstrap(df, 'switchTuned', 'noNeurons')
+
+    ax = layout.axes['{}_pct_{}'.format(genotype, 'left' if 'L' in action else 'right')]
+    ax.bar([0,1], [stay_avg,switch_avg], yerr=[stay_sem,switch_sem],
+           lw=0, alpha=.5, zorder=1, color=[style.getColor('stay'),style.getColor('switch')])
+    for sess in df.itertuples():
+        ax.plot([0,1], [sess.stayTuned,sess.switchTuned], color='k', alpha=.2,
+                lw=sess.noNeurons/250, clip_on=False)
+        
+    ax.set_xlim((-.6,1.6))
+    ax.set_ylim((0,.4))
+    ax.set_yticks((0,.4))
+    ax.set_yticks((.2,), minor=True)
+    ax.set_xticks(())
+    if (genotype == 'd1') and (action == 'pC2L'):
+        ax.set_ylabel('% neurons')
+        ax.set_yticklabels((0,40))
+    else:
+        ax.set_yticklabels(())
+    if "L" in action:
+        ax.scatter(.5, .4, marker='<', color='k', clip_on=False)
+    else:
+        ax.scatter(.5, .4, marker='>', color='k', clip_on=False)
+    sns.despine(ax=ax)
+
+
+#%%    
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchActivity.svg")
