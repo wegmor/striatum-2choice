@@ -17,6 +17,9 @@ import style
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 import analysisStaySwitchDecoding
+import analysisTunings
+from scipy.spatial.distance import squareform, pdist
+from collections import defaultdict
 from utils import readSessions
 plt.ioff()
 
@@ -56,7 +59,10 @@ else:
     actionValues.to_pickle(cachedDataPaths[0])
     logRegCoef.to_pickle(cachedDataPaths[1])
     logRegDF.to_pickle(cachedDataPaths[2])
-    
+
+tuningData = analysisTunings.getTuningData(endoDataPath)
+tuningData['signp'] = tuningData['pct'] > .995
+tuningData['signn'] = tuningData['pct'] < .005
     
 #%%
 actionValues.set_index(['genotype','animal','date','actionNo'], inplace=True)
@@ -242,6 +248,127 @@ for (genotype, action), df in auc.groupby(['genotype','action']):
     sns.despine(ax=ax)
 
 
-#%%    
+#%% pie charts
+#layout = figurefirst.FigureLayout(templateFolder / "staySwitchActivity.svg")
+#layout.make_mplfigures()
+
+tuning = tuningData.copy()
+tuning = tuning.set_index(['genotype','animal','date','neuron'])
+
+for action, auc in staySwitchAUC.query('action in ["pC2L","pC2R"]').groupby('action'):
+    auc = auc.set_index('neuron', append=True).copy()
+    for staySwitchTuning in ['stayTuned','switchTuned']:
+        df = tuning.loc[auc.loc[auc[staySwitchTuning]].index].copy()
+        df = df.set_index('action', append=True)
+        
+        # only keep max tuning for each neuron
+        maxdf = df.loc[df.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+        maxdf.reset_index('action', inplace=True)
+        maxdf.loc[~maxdf.signp, 'action'] = 'none' # don't color if not significant
+        maxdf = maxdf.groupby(['genotype','action'])[['signp']].count() # get counts
+        
+        # create dictionary with modified alpha to separate r/o/d phases
+        cdict = defaultdict(lambda: np.array([1,1,1]),
+                            {a:style.getColor(a[:4]) for a 
+                             in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
+        cdict['pL2Cr'] = cdict['pL2C-']
+        cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
+        cdict['pL2Cd'] = np.append(cdict['pL2C-'], .7)
+        cdict['pR2Cr'] = cdict['pR2C-']
+        cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
+        cdict['pR2Cd'] = np.append(cdict['pR2C-'], .7)
+        cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
+        
+        fig, axs = plt.subplots(3,1)
+        for g in ['d1','a2a','oprm1']:
+            ax = (layout.axes['pie_{}_{}_{}'.format(g, 'left' if 'L' in action else 'right',
+                                                    'stay' if staySwitchTuning == 'stayTuned' else 'switch')]
+                             ['axis'])
+        
+            gdata = maxdf.loc[g]   
+            ws, ts = ax.pie(gdata.values.squeeze(), wedgeprops={'lw':0, 'edgecolor':'w'},
+                            explode=[.1]*len(gdata),
+                            textprops={'color':'k'}, colors=[cdict[a] for a in gdata.index])
+            
+            ax.set_aspect('equal')
+
+
+#%%           
+def getPercentile(value, shuffle_dist):
+    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
+
+for genotype, auc in staySwitchAUC.query('action in ["pC2L","pC2R"]').groupby('genotype'):
+    auc = auc.set_index(['neuron','action'], append=True)[['stayTuned','switchTuned']].unstack()
+    # jaccard similarity, neurons pooled
+    similarity = pd.DataFrame(1-squareform(pdist(auc.T, metric='jaccard')),
+                              index=auc.columns, columns=auc.columns)
+    
+    similarity_shuffled = []
+    for _ in range(1000):
+        auc_shuffled = (auc.groupby(['genotype','animal','date'])
+                           .apply(lambda g: g.apply(np.random.permutation)))
+        similarity_shuffled.append(1-squareform(pdist(auc_shuffled.T, metric='jaccard')))
+    
+    #similarity_shuffled = np.array(similarity_shuffled)
+    #similarity_shuffled = np.apply_along_axis(np.sort, 0, similarity_shuffled)
+    similarity_shuffled = pd.concat([pd.DataFrame(s, index=similarity.index, columns=similarity.columns) 
+                                         for s in similarity_shuffled],
+                                     axis=1, keys=np.arange(len(similarity_shuffled)))
+    
+    similarity = similarity.stack(level=(0,1))
+    similarity_shuffled = similarity_shuffled.stack(level=(1,2))
+    percentile = similarity_shuffled.apply(lambda g: getPercentile(similarity.loc[g.name], g),
+                                           axis=1)
+    similarity = similarity.unstack(level=(-2,-1))
+    percentile = percentile.unstack(level=(-2,-1))
+    similarity_shuffled = similarity_shuffled.unstack(level=(-2,-1))
+    similarity_shuffled.columns = similarity_shuffled.columns.reorder_levels((1,2,0))
+
+
+    leftStay, leftSwitch = ('stayTuned','pC2L'), ('switchTuned','pC2L')
+    rightStay, rightSwitch = ('stayTuned','pC2R'), ('switchTuned','pC2R')
+    
+    stayXstay = (leftStay, rightStay)
+    switchXswitch = (leftSwitch, rightSwitch)
+    lstayXrswitch = (leftStay, rightSwitch)
+    lswitchXrstay = (leftSwitch, rightStay)
+    comps = [stayXstay, switchXswitch, lstayXrswitch, lswitchXrstay]
+    
+    bp_data = np.stack([similarity_shuffled.loc[comp].values for comp in comps],
+                       axis=1)
+    observed = np.array([similarity.loc[comp] for comp in comps])
+        
+    ax = layout.axes['{}_overlap'.format(genotype)]['axis']
+    sns.boxplot(data=bp_data, ax=ax, color=style.getColor('shuffled'),
+                showcaps=False, showfliers=False,
+                boxprops={'alpha':0.25, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                width=.6, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+                medianprops={'c':'k','zorder':99, 'clip_on':False})
+    ax.scatter(np.arange(4), observed, color='k', marker='x', clip_on=False)
+    
+    y = -.025
+    ax.scatter(-.2,y, marker='<', color=style.getColor('stay'), clip_on=False)
+    ax.scatter(.2,y, marker='>', color=style.getColor('stay'), clip_on=False)
+    ax.scatter(.8,y, marker='<', color=style.getColor('switch'), clip_on=False)
+    ax.scatter(1.2,y, marker='>', color=style.getColor('switch'), clip_on=False)
+    ax.scatter(1.8,y, marker='<', color=style.getColor('stay'), clip_on=False)
+    ax.scatter(2.2,y, marker='>', color=style.getColor('switch'), clip_on=False)
+    ax.scatter(2.8,y, marker='<', color=style.getColor('switch'), clip_on=False)
+    ax.scatter(3.2,y, marker='>', color=style.getColor('stay'), clip_on=False)
+    #[ax.text(x, y, '&', ha='center', va='center') for x in range(4)]
+    
+    ax.set_ylim((0,.2))
+    ax.set_yticks((0,.1,.2))
+    ax.set_yticks((.05,.15), minor=True)
+    if genotype == 'd1':
+        ax.set_ylabel('% overlap')
+        ax.set_yticklabels((0,10,20))
+    else:
+        ax.set_yticklabels(())
+    ax.set_xticks(np.arange(4))
+    ax.set_xticklabels(())
+    sns.despine(ax=ax)
+    
+#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchActivity.svg")

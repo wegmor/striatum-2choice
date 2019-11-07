@@ -211,7 +211,7 @@ df = tuningData.copy()
 
 # only keep max tuning for each neuron
 maxdf = df.loc[df.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
-maxdf.loc[~df.signp, 'action'] = 'none' # don't color if not significant
+maxdf.loc[~maxdf.signp, 'action'] = 'none' # don't color if not significant
 maxdf = maxdf.groupby(['genotype','action'])[['signp']].count() # get counts
 
 # create dictionary with modified alpha to separate r/o/d phases
