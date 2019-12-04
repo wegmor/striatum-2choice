@@ -98,7 +98,7 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
         continue
     
     # loop over actions for which tunings have been computed
-    for action in auc.action.unique():
+    for action in ['pC2L','pC2R']: #auc.action.unique():
         # select win-stay and lose-switch tuned neurons
         wstTuned = auc.query('action == @action & pct > .995')['neuron'].values
         lswTuned = auc.query('action == @action & auc < .005')['neuron'].values
@@ -107,7 +107,7 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
             print(str(s)+': no strongly stay-switch tuned neurons in '+action+'!')
             continue
         
-        selected_labels = [action+tt for tt in ['r.','o.','o!']]          
+        selected_labels = [a+tt for a in ('pC2L','pC2R') for tt in ['r.','o.','o!']] #[action+tt for tt in ['r.','o.','o!']]          
         
         # select action means for reward-stay, omission-stay and omission switch trials
         # for tuned neurons
@@ -135,10 +135,16 @@ layout.make_mplfigures()
 
 #%%
 #for action, df in wstLswActionMeans.groupby('action'):
-for action, df in wstLswActionMeans.loc[wstLswActionMeans.label.str.endswith('o.')].groupby('action'):
+for action, df in (wstLswActionMeans#.loc[wstLswActionMeans.label.str.endswith('o.')]
+                                            #.groupby(['action','label'])):
+                                            #.groupby([wstLswActionMeans.action,
+                                            #          wstLswActionMeans.label.str.slice(0,4)])):
+                                    .groupby('action')):
     if not action.startswith('p'): continue
     df = df.copy()
-    df['bin'] = pd.qcut(df.value, 4).cat.codes # every individual action's value is included X # neuron!
+    if action == 'pC2R':
+        df['value'] *= -1
+    df['bin'] = pd.qcut(df.value, 9).cat.codes # every individual action's value is included X # neuron!
     # v: binned average for tuned populations / session
     session_df = df.groupby(['genotype','tuning','animal','date','bin'])[['value','actionMean']].mean()
     session_df['noNeurons'] = df.groupby(['genotype','tuning','animal','date']).neuron.nunique()
@@ -157,10 +163,23 @@ for action, df in wstLswActionMeans.loc[wstLswActionMeans.label.str.endswith('o.
         ax = layout.axes['{}_av_x_d'.format(gt)]
         
         for tuning, tdata in gdata.groupby('tuning'):
-            ax.errorbar(tdata['value','mean'], tdata['actionMean','mean'],
-                        xerr=tdata['value','sem'], yerr=tdata['actionMean','sem'],
-                        color=style.getColor(tuning), clip_on=False,
-                        marker='>' if 'R' in action else '<')
+            if action == 'pC2R':
+                ax.errorbar(tdata['value','mean'], tdata['actionMean','mean'],
+                            xerr=tdata['value','sem'], yerr=tdata['actionMean','sem'],
+                            #xerr=0, yerr=0,
+                            color=style.getColor(tuning), clip_on=False,
+                            marker='>' if 'R' in action else '<', markersize=3.3,
+                            linestyle='-', markeredgewidth=0) #markerfacecolor='none', 
+                            #alpha=1 if label == action else .35)
+                            #alpha=1 if action == 'pC2L' else .45)
+            
+            if action == 'pC2L':
+                ax.fill_between(tdata['value','mean'],
+                                tdata['actionMean','mean']-tdata['actionMean','sem'],
+                                tdata['actionMean','mean']+tdata['actionMean','sem'],
+                                alpha=.35, color=style.getColor(tuning), lw=0)
+#                ax.plot(tdata['value','mean'], tdata['actionMean','mean'], lw=.5,
+#                        alpha=.5, color=style.getColor(tuning))
             
 #            for _, sdata in session_df.loc[(gt,tuning)].groupby(['animal','date']):
 #                ax.plot(sdata.value, sdata.actionMean, clip_on=False,
@@ -172,18 +191,18 @@ for action, df in wstLswActionMeans.loc[wstLswActionMeans.label.str.endswith('o.
         ax.axvline(0, lw=mpl.rcParams['axes.linewidth'], color='k', ls=':',
                    alpha=.5, zorder=-1)
 
-        #ax.set_xticks((5,0,-5))
-        ax.set_xticks((3,0,-3))
-        #ax.set_xticks((2.5,-2.5), minor=True)
-        ax.set_xticks((1.5,-1.5), minor=True)
-        #ax.set_xlim((5,-5))
-        ax.set_xlim((3,-3))
-        #ax.set_yticks((-.4,0,.4))
+        ax.set_xticks((-5,0,5))
+        #ax.set_xticks((3,0,-3))
+        ax.set_xticks((2.5,-2.5), minor=True)
+        #ax.set_xticks((1.5,-1.5), minor=True)
+        ax.set_xlim((-5,5))
+        #ax.set_xlim((3,-3))
         ax.set_yticks((-.3,0,.3))
-        #ax.set_yticks((-.2,.2), minor=True)
+        #ax.set_yticks((-.25,0,.25))
         ax.set_yticks((-.15,.15), minor=True)
-        #ax.set_ylim((-.4,.4))
+        #ax.set_yticks((-.125,.125), minor=True)
         ax.set_ylim((-.3,.3))
+        #ax.set_ylim((-.25,.25))
         if gt != 'd1':
             ax.set_yticklabels(())
         else:
