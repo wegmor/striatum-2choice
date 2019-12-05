@@ -21,6 +21,7 @@ import analysisTunings
 from scipy.spatial.distance import squareform, pdist
 from collections import defaultdict
 from utils import readSessions
+import cmocean
 plt.ioff()
 
 
@@ -142,8 +143,8 @@ for action, df in (wstLswActionMeans#.loc[wstLswActionMeans.label.str.endswith('
                                     .groupby('action')):
     if not action.startswith('p'): continue
     df = df.copy()
-    if action == 'pC2R':
-        df['value'] *= -1
+#    if action == 'pC2R':
+#        df['value'] *= -1
     df['bin'] = pd.qcut(df.value, 9).cat.codes # every individual action's value is included X # neuron!
     # v: binned average for tuned populations / session
     session_df = df.groupby(['genotype','tuning','animal','date','bin'])[['value','actionMean']].mean()
@@ -160,24 +161,25 @@ for action, df in (wstLswActionMeans#.loc[wstLswActionMeans.label.str.endswith('
     avg_df = pd.concat([value, mean], axis=1, keys=['value','actionMean'])
 
     for gt, gdata in avg_df.groupby('genotype'):
-        ax = layout.axes['{}_av_x_d'.format(gt)]
+        #ax = layout.axes['{}_av_x_d'.format(gt)]
         
         for tuning, tdata in gdata.groupby('tuning'):
-            if action == 'pC2R':
-                ax.errorbar(tdata['value','mean'], tdata['actionMean','mean'],
-                            xerr=tdata['value','sem'], yerr=tdata['actionMean','sem'],
-                            #xerr=0, yerr=0,
-                            color=style.getColor(tuning), clip_on=False,
-                            marker='>' if 'R' in action else '<', markersize=3.3,
-                            linestyle='-', markeredgewidth=0) #markerfacecolor='none', 
-                            #alpha=1 if label == action else .35)
-                            #alpha=1 if action == 'pC2L' else .45)
+            ax = layout.axes['{}_av_x_d_{}'.format(gt, 'r' if action=='pC2R' else 'l')]
+#            if action == 'pC2R':
+            ax.errorbar(tdata['value','mean'], tdata['actionMean','mean'],
+                        xerr=tdata['value','sem'], yerr=tdata['actionMean','sem'],
+                        #xerr=0, yerr=0,
+                        color=style.getColor(tuning), clip_on=False,
+                        marker='>' if 'R' in action else '<', markersize=3.3,
+                        linestyle='-', markeredgewidth=0) #markerfacecolor='none', 
+                        #alpha=1 if label == action else .35)
+                        #alpha=1 if action == 'pC2L' else .45)
             
-            if action == 'pC2L':
-                ax.fill_between(tdata['value','mean'],
-                                tdata['actionMean','mean']-tdata['actionMean','sem'],
-                                tdata['actionMean','mean']+tdata['actionMean','sem'],
-                                alpha=.35, color=style.getColor(tuning), lw=0)
+#            if action == 'pC2L':
+#                ax.fill_between(tdata['value','mean'],
+#                                tdata['actionMean','mean']-tdata['actionMean','sem'],
+#                                tdata['actionMean','mean']+tdata['actionMean','sem'],
+#                                alpha=.35, color=style.getColor(tuning), lw=0)
 #                ax.plot(tdata['value','mean'], tdata['actionMean','mean'], lw=.5,
 #                        alpha=.5, color=style.getColor(tuning))
             
@@ -388,6 +390,135 @@ for genotype, auc in staySwitchAUC.query('action in ["pC2L","pC2R"]').groupby('g
     ax.set_xticklabels(())
     sns.despine(ax=ax)
     
+
+#%%
+def getEventWindows(events, win_size=(20, 19)):
+    windows = pd.DataFrame()
+    for s in readSessions.findSessions(endoDataPath, task='2choice'):
+        lfa = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
+        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        
+        if not len(lfa) == len(deconv):
+            print(str(s)+': more labeled frames than signal!')
+            continue
+    
+        actionLabels = lfa.groupby('actionNo').label.first()
+        av = actionValues.loc[(s.meta.genotype,s.meta.animal,s.meta.date)]
+        
+        if not (av['label'] == actionLabels).all():
+            print(str(s)+': labeling does not match!')
+            continue
+    
+        lfa['index'] = deconv.index
+        deconv = deconv.set_index([lfa.label,lfa.actionNo], append=True)
+        deconv.index.names = ['index','label','actionNo']
+        deconv.columns.name = 'neuron'
+        
+        center_idx = (lfa.loc[lfa.label.str.slice(0,4).isin(events)].groupby('actionNo')
+                                 [['index','actionNo','label']].first().values)
+    
+        _windows = []
+        neurons = deconv.columns
+        for idx, actionNo, label in center_idx:
+            win = deconv.loc[idx-win_size[0]:idx+win_size[1]].reset_index()
+            win.loc[win.actionNo > actionNo, neurons] = np.nan
+            win['frameNo'] = np.arange(len(win))
+            win['label'] = label
+            win['actionNo'] = actionNo
+            win = win.set_index(['actionNo','label','frameNo'])[neurons]
+            win = win.unstack('frameNo').stack('neuron')
+            win.columns = pd.MultiIndex.from_product([['frameNo'], win.columns])
+            _windows.append(win.reset_index())
+        _windows = pd.concat(_windows, ignore_index=True)
+        
+        for k,v in [('date',s.meta.date),('animal',s.meta.animal),('genotype',s.meta.genotype)]:
+            _windows.insert(0,k,v)
+            
+        windows = windows.append(_windows, ignore_index=True)
+    
+    return windows
+    
+#%%
+#windows = getEventWindows(['mR2C','mL2C'])
+#windows.to_pickle('mrlEventWindows.pkl')
+    
+#%%
+av = actionValues.copy()
+auc = staySwitchAUC.copy()
+auc = auc.reset_index().set_index(['action','genotype','animal','date','neuron'])
+tuning = tuningData.copy()
+tuning = tuning.set_index(['genotype','animal','date','neuron','action'])
+tuning = tuning.loc[tuning.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+tuning = tuning.reset_index('action')
+tuning.loc[~tuning.signp, 'action'] = 'none'
+windows = pd.read_pickle('pcEventWindows.pkl')
+
+windows.set_index(['genotype','animal','date','actionNo'], inplace=True)
+windows['value'] = av.value
+windows.reset_index(inplace=True)
+windows['action'] = windows.label.str.slice(0,4)
+windows.set_index(['genotype','animal','date','neuron'], inplace=True)
+#windows['stay'] = (auc.pct > .995).astype('int') - (auc.pct < .005).astype('int')
+windows['pC2R_stay'] = auc.loc['pC2R', 'pct'] > .995
+windows['pC2L_stay'] = auc.loc['pC2L', 'pct'] > .995
+#windows.reset_index('action', inplace=True)
+windows['pTuning'] = tuning.action
+
+
+#%%
+#cmap = sns.color_palette('hsv', 7)
+cmap = [cmocean.cm.phase(c) for c in np.linspace(.12,.88,7)]
+for side in ['pC2R','pC2L']:
+    for genotype, df in (windows.loc[windows['{}_stay'.format(side)] &
+                                     (windows.pTuning == side+'-')]
+                                .groupby('genotype')):
+        df = df.copy()
+        bins = [-10, -2.5, -1.25, -.5, .5, 1.25, 2.5, 10]
+        df['bin'] = pd.cut(df.value, bins)
+        
+        ax = layout.axes['{}_pC_{}stay'.format(genotype, 'r' if side == 'pC2R' else 'l')]['axis']
+
+        for c,(b, bdf) in enumerate(df.groupby('bin')):
+            neuronAvgs = bdf.frameNo.groupby(['animal','neuron']).mean()
+            mean = neuronAvgs.mean()
+            sem = neuronAvgs.sem()
+            ax.fill_between(np.arange(len(mean)), mean-sem, mean+sem,
+                            label=b, color=cmap[c], alpha=.35, lw=0)
+            ax.plot(mean, color=sns.desaturate(cmap[c],.75), lw=.7, alpha=.85)
+            ax.axvline(20, c='k', ls=':', alpha=.5, lw=mpl.rcParams['axes.linewidth'],
+                       zorder=-99)
+        
+        ax.set_xlim((0,30))
+        ax.set_ylim((-.2, 1))
+        ax.set_yticks((0,.5,1))
+        ax.set_yticks((.25,.75), minor=True)
+        ax.set_yticklabels(())
+        if genotype == 'd1':
+            ax.set_yticklabels(ax.get_yticks())
+            ax.set_ylabel('sd')
+        ax.set_xticks((0,10,20,30))
+        ax.set_xticks((5,15,25), minor=True)
+        ax.set_xticklabels(())
+        if (side == 'pC2L') & (genotype == 'a2a'):
+            ax.set_xticklabels((-1.,-.5,0,.5))
+            ax.set_xlabel('time (s)')
+        sns.despine(ax=ax)
+   
+ax = layout.axes['colorbar']['axis']     
+cbar = mpl.colors.ListedColormap(cmap)
+#cbar.set_under(cmap[0])
+#cbar.set_over(cmap[-1])
+bounds = [-5]+bins[1:-1]+[5]
+norm = mpl.colors.BoundaryNorm(bounds, cbar.N)
+cb = mpl.colorbar.ColorbarBase(ax, cmap=cbar, norm=norm, orientation='horizontal',
+                               extend='neither', ticks=[-5,-2.5,0,2.5,5],
+                               spacing='proportional')
+cb.outline.set_visible(False)
+ax.tick_params(bottom=False, pad=-.4)
+ax.set_xticklabels([-5,-2.5,0,2.5,5], rotation=0)
+ax.text(.5, 1.25, 'action value', ha='center')
+
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchActivity.svg")
