@@ -662,12 +662,12 @@ class OpenFieldSchematicPlot(IntensityPlot):
         #TODO: This part should probably be stored in the dataframe
         cachedDataPath = "cache/segmentedBehavior.pkl"
         segmentedBehavior = pd.read_pickle(cachedDataPath)
-        sb = segmentedBehavior.query("session == '{}'".format(session))
+        sb = segmentedBehavior.loc[str(session)].reset_index()
         
         lastFrame = sb.stopFrame.iloc[-1]
         sb = sb[["actionNo", "startFrame", "numFrames", "netTurn", "behavior"]]
         sb["nextBehavior"] = sb.behavior.shift(-1)
-        sb = sb.set_index("startFrame").reindex(np.arange(lastFrame+1), method="ffill")
+        sb = sb.set_index("startFrame").reindex(np.arange(lastFrame), method="ffill")
         sb["progress"] = sb.groupby("actionNo").cumcount() / sb.numFrames
         m = sb.behavior=="leftTurn"
         rad = 0.5 + 0.5*(sb[m].netTurn / 150.0)

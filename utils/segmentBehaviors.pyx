@@ -102,4 +102,7 @@ def segmentBehaviors(tracking):
     res.insert(1, 'stopTime', tracking.reset_index().time[res.stopFrame].values)
     res.insert(2, 'duration', res.stopTime - res.startTime)
     res.insert(5, 'numFrames', res.stopFrame - res.startFrame)
+    
+    #Fix an offset error
+    res.stopFrame.iloc[-1] += 1
     return res

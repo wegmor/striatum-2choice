@@ -14,20 +14,47 @@ import pyximport; pyximport.install()
 from utils import readSessions, particleFilter, segmentBehaviors
 from utils.cachedDataFrame import cachedDataFrame
 
+@cachedDataFrame("filteredOpenField.pkl")
+def filterAllOpenField(dataFile):
+    all_filtered = []
+    for sess in readSessions.findSessions(dataFile, task="openField"):
+        deconv = sess.readDeconvolvedTraces(indicateBlocks=True)
+        tracking = sess.readTracking(inCm=True)
+        tracking.index = deconv.index
+        blocks = tracking.index.levels[0]
+        filtered = []
+        for block in blocks:
+            t = tracking.loc[block]
+            filtered.append(particleFilter.particleFilter(t, nParticles=2000, flattening=1e-12))
+        filtered = pd.concat(filtered)
+        filtered.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
+        filtered.rename_axis("time", axis=0, inplace=True)
+        filtered.bodyDirection *= 180/np.pi
+        ind = tracking.index.to_frame()
+        ind.insert(0, "session", str(sess))
+        filtered.index = pd.MultiIndex.from_frame(ind)
+        all_filtered.append(filtered)
+    return pd.concat(all_filtered)
+
 @cachedDataFrame("segmentedBehavior.pkl")
 def segmentAllOpenField(dataFile):
-    allBehaviors = []
-    for sess in readSessions.findSessions(dataFile, task="openField"):
-        tracking = sess.readTracking(inCm=True)
-        coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
-        coords.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
-        coords.rename_axis("time", axis=0, inplace=True)
-        coords.bodyDirection *= 180/np.pi
-        behaviors = segmentBehaviors.segmentBehaviors(coords)
-        behaviors.insert(0, "session", str(sess))
-        behaviors.insert(1, "actionNo", behaviors.index.copy())
-        allBehaviors.append(behaviors)
-    return pd.concat(allBehaviors)
+    all_filtered = filterAllOpenField(dataFile)
+    all_segmented = []
+    for sess, outer in all_filtered.groupby(level=0):
+        print(str(sess))
+        action_no = 0
+        frame_no = 0
+        for block, filtered in outer.groupby(level=1):
+            segmented = segmentBehaviors.segmentBehaviors(filtered)
+            segmented.insert(0, "session", sess)
+            segmented.insert(1, "block", block)
+            segmented.insert(2, "actionNo", action_no + np.arange(len(segmented)))
+            action_no += len(segmented)
+            segmented.startFrame += frame_no
+            segmented.stopFrame += frame_no
+            frame_no = segmented.stopFrame.iloc[-1]
+            all_segmented.append(segmented)
+    return pd.concat(all_segmented).set_index(["session", "block", "actionNo"])
 
 def _crossValScore(X, Y):
     svm = sklearn.svm.SVC(kernel="linear", cache_size=2000)
@@ -128,11 +155,12 @@ def shuffleBehaviors(behaviors):
 
 #%%
 @cachedDataFrame("openFieldTunings.pkl")
-def getTuningData(dataFilePath, allBehaviors, no_shuffles=1000):
+def getTuningData(dataFilePath, no_shuffles=1000):
+    allBehaviors = segmentAllOpenField(dataFilePath)
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='openField'):
         traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
-        behaviors = allBehaviors.loc[str(s)].set_index("startFrame", drop=True)[["actionNo", "behavior"]]
+        behaviors = allBehaviors.loc[str(s)].set_index("startFrame", drop=False)[["actionNo", "behavior"]]
         behaviors = behaviors.reindex(np.arange(len(traces)), method="ffill")
         if behaviors.behavior.nunique() < 4:
             raise ValueError("All four actions are not present in the session {}.".format(s))
@@ -244,3 +272,103 @@ def decodeWallAngle(dataFilePath):
                            'nNeurons': X.shape[1], 'nFrames': X.shape[0]})
         all_dfs.append(df)
     return pd.concat(all_dfs)
+
+@cachedDataFrame("openFieldSpeedTunings.pkl")
+def calculateSpeedTuning(dataFilePath, nShuffles=1000):
+    behaviors = segmentAllOpenField(dataFilePath)
+    allDfs = []
+    for sess in readSessions.findSessions(dataFilePath, task="openField"):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        tracking = sess.readTracking(inCm=True)
+        if len(deconv) != len(tracking): continue
+        coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
+        df = behaviors.query("behavior=='running' & session=='{}'".format(sess))
+        runningFrames = np.concatenate([np.arange(r.startFrame, r.stopFrame)
+                                        for r in df.itertuples()])
+        speed = coords.iloc[runningFrames].speed
+        realCorr = deconv.iloc[runningFrames].corrwith(speed)
+        shuffles = []
+        for i in tqdm.trange(nShuffles):
+            shuffledSpeed = pd.Series(np.random.permutation(speed), speed.index)
+            shuffles.append(deconv.iloc[runningFrames].corrwith(shuffledSpeed))
+        shuffles = pd.concat(shuffles, axis=1)
+        pct = np.array([np.searchsorted(a, r)
+                        for r, a in zip(realCorr, shuffles.values)]) / nShuffles
+        tuning = (realCorr - shuffles.mean(axis=1)) / shuffles.std(axis=1)
+        allDfs.append(pd.DataFrame({'sess': str(sess),
+                                    'neuron': deconv.columns,
+                                    'correlation': realCorr,
+                                    'pct': pct,
+                                    'tuning': tuning}))
+    return pd.concat(allDfs)
+
+@cachedDataFrame("oft_illustration.pkl")
+def getSmoothedOFTTracking(dataFile, genotype, animal, date):
+    sess = next(readSessions.findSessions(dataFile, task="openField",
+                                          genotype=genotype, animal=animal,
+                                          date=date))
+    tracking = sess.readTracking(inCm=True)
+    coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
+    coords.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
+    coords.rename_axis("time", axis=0, inplace=True)
+    coords.bodyDirection = np.rad2deg(coords.bodyDirection)
+    behaviors = segmentBehaviors.segmentBehaviors(coords)[['startFrame','behavior']]
+    coords.reset_index(inplace=True)
+    coords.rename(columns={'time':'frame'}, inplace=True)
+    behaviors.insert(0, "actionNo", behaviors.index.copy())
+    coords = coords.merge(behaviors, left_on='frame', right_on='startFrame',
+                          how='left').fillna(method='ffill')
+    return coords
+
+@cachedDataFrame("avgActivityPerSpeed.pkl")
+def avgActivityPerSpeed(dataFilePath):
+    all_filtered = filterAllOpenField(dataFilePath)
+    bins = [-.00001, .1, 1, 2, 3, 5, 8, 10]
+    per_session = []
+    meta = []
+    for sess in readSessions.findSessions(dataFilePath, task="openField"):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        tracking = sess.readTracking(inCm=True)
+        speed = all_filtered.loc[str(sess)].reset_index().speed*20
+        speed_bin = pd.cut(speed, bins).cat.codes.astype("int")
+        pop_activity = deconv.mean(axis=1)
+        activity_per_bin = pop_activity.groupby(speed_bin).mean().sort_index()
+        per_session.append(activity_per_bin)
+        meta.append((str(sess), deconv.shape[1]))
+    meta = pd.MultiIndex.from_tuples(meta, names=["session", "noNeurons"])
+    return pd.DataFrame(per_session, index=meta)
+
+@cachedDataFrame("openFieldEventWindows.pkl")
+def getEventWindows(events, win_size=(20, 19)):
+    segmented = analysisOpenField.segmentAllOpenField(endoDataPath)
+    windows = pd.DataFrame()
+    for s in readSessions.findSessions(endoDataPath, task='openField'):
+        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        thisSegmented = segmented.loc[str(s)].copy()
+        thisSegmented.index = thisSegmented.index.droplevel(0)
+        lastFrame = thisSegmented.stopFrame.iloc[-1]
+        segs = thisSegmented.reset_index().set_index("startFrame").reindex(np.arange(lastFrame), method="ffill")
+        segs['index'] = deconv.index
+        deconv = deconv.set_index([segs.behavior,segs.actionNo], append=True)
+        deconv.index.names = ['index','label','actionNo']
+        deconv.columns.name = 'neuron'      
+        center_idx = (segs.loc[segs.behavior.isin(events)].groupby('actionNo')
+                              [['index','actionNo','behavior']].first().values)
+        _windows = []
+        neurons = deconv.columns
+        for idx, actionNo, label in tqdm.tqdm(center_idx, desc=str(s)):
+            win = deconv.loc[idx-win_size[0]:idx+win_size[1]].reset_index()
+            win.loc[win.actionNo > actionNo, neurons] = np.nan
+            win['frameNo'] = np.arange(len(win))
+            win['label'] = label
+            win['actionNo'] = actionNo
+            win = win.set_index(['actionNo','label','frameNo'])[neurons]
+            win = win.unstack('frameNo').stack('neuron')
+            win.columns = pd.MultiIndex.from_product([['frameNo'], win.columns])
+            _windows.append(win.reset_index())
+        _windows = pd.concat(_windows, ignore_index=True)
+        
+        for k,v in [('date',s.meta.date),('animal',s.meta.animal),('genotype',s.meta.genotype)]:
+            _windows.insert(0,k,v)
+        windows = windows.append(_windows, ignore_index=True)
+    return windows

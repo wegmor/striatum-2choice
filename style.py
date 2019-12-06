@@ -87,6 +87,7 @@ def getColor(key):
 
     cdict['shuffled'] = (0,0,0)
     cdict['none'] = (0,0,0)
+    cdict['blank'] = (1.0,1.0,1.0)
     
     #Open field
     cdict['stationary'] = sns.color_palette()[0]
