@@ -451,7 +451,7 @@ tuning = tuning.set_index(['genotype','animal','date','neuron','action'])
 tuning = tuning.loc[tuning.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
 tuning = tuning.reset_index('action')
 tuning.loc[~tuning.signp, 'action'] = 'none'
-windows = pd.read_pickle('pcEventWindows.pkl')
+windows = pd.read_pickle('mrlEventWindows.pkl')
 
 windows.set_index(['genotype','animal','date','actionNo'], inplace=True)
 windows['value'] = av.value
@@ -459,9 +459,13 @@ windows.reset_index(inplace=True)
 windows['action'] = windows.label.str.slice(0,4)
 windows.set_index(['genotype','animal','date','neuron'], inplace=True)
 #windows['stay'] = (auc.pct > .995).astype('int') - (auc.pct < .005).astype('int')
-windows['pC2R_stay'] = auc.loc['pC2R', 'pct'] > .995
-windows['pC2L_stay'] = auc.loc['pC2L', 'pct'] > .995
+windows['mR2C_stay'] = auc.loc['mR2C', 'pct'] > .995
+windows['mL2C_stay'] = auc.loc['mL2C', 'pct'] > .995
+windows['mR2C_auc'] = auc.loc['mR2C', 'auc']
+windows['mL2C_auc'] = auc.loc['mL2C', 'auc']
+windows['auc'] = windows[['mL2C_auc','mR2C_auc']].max(axis=1)
 #windows.reset_index('action', inplace=True)
+windows['trial_mean'] = windows['frameNo'].mean(axis=1)
 windows['pTuning'] = tuning.action
 
 
@@ -470,13 +474,20 @@ windows['pTuning'] = tuning.action
 cmap = [cmocean.cm.phase(c) for c in np.linspace(.12,.88,7)]
 for side in ['pC2R','pC2L']:
     for genotype, df in (windows.loc[windows['{}_stay'.format(side)] &
+                                     windows.label.str.endswith('.') &
+                                     (windows.action == side) &
                                      (windows.pTuning == side+'-')]
                                 .groupby('genotype')):
-        df = df.copy()
-        bins = [-10, -2.5, -1.25, -.5, .5, 1.25, 2.5, 10]
+#        df = df.copy()
+#        bins = [-10, -2.5, -1.25, -.5, .5, 1.25, 2.5, 10]
+#        df['bin'] = pd.cut(df.value, bins)
+        if 'R' in side:
+            df.value *= -1
+        #df['bin'] = pd.qcut(df.value, 4)
+        bins = [-10,1,3,10]
         df['bin'] = pd.cut(df.value, bins)
         
-        ax = layout.axes['{}_pC_{}stay'.format(genotype, 'r' if side == 'pC2R' else 'l')]['axis']
+        ax = layout.axes['{}_pC_{}stay'.format(genotype, 'r' if 'R' in side else 'l')]['axis']
 
         for c,(b, bdf) in enumerate(df.groupby('bin')):
             neuronAvgs = bdf.frameNo.groupby(['animal','neuron']).mean()
@@ -499,7 +510,7 @@ for side in ['pC2R','pC2L']:
         ax.set_xticks((0,10,20,30))
         ax.set_xticks((5,15,25), minor=True)
         ax.set_xticklabels(())
-        if (side == 'pC2L') & (genotype == 'a2a'):
+        if ('L' in side) & (genotype == 'a2a'):
             ax.set_xticklabels((-1.,-.5,0,.5))
             ax.set_xlabel('time (s)')
         sns.despine(ax=ax)
@@ -522,3 +533,34 @@ ax.text(.5, 1.25, 'action value', ha='center')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchActivity.svg")
+
+
+#%%
+df = (windows.loc[windows.mL2C_stay | windows.mR2C_stay].reset_index()
+             .set_index(['auc','genotype','animal','date','neuron'])
+             .sort_index(ascending=False).copy())
+
+#%%
+for neuron, data in (df.groupby(['auc', 'genotype','animal','date','neuron'],
+                                sort=False)):
+    print(data.reset_index().auc.unique())
+    data = data.loc[data.label.str.slice(-2).isin(['r.','o.','o!'])].copy()
+    
+    fig, (lax, rax) = plt.subplots(1, 2, sharey=True)
+
+    for label, sdata in data.groupby('label'):
+        ax = lax if 'L' in label else rax
+        sns.regplot('value', 'trial_mean', data=sdata, ax=ax, fit_reg=True, ci=0,
+                    color=style.getColor(label[-2:]), scatter_kws={'alpha':.5})
+        
+    for action, sdata in data.groupby('action'):
+        ax = lax if 'L' in action else rax
+        sns.regplot('value', 'trial_mean', data=sdata, ax=ax, ci=68,
+                    x_bins=4, color='k')
+        
+    lax.set_xlim((6,-1))
+    lax.set_ylim((-.5,1))
+    rax.set_xlim((1,-6))
+    rax.set_ylim((-.5,1))
+    
+    plt.show()

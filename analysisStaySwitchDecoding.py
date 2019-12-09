@@ -520,8 +520,8 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False):
         if len(deconv) != len(lfa): continue
         trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
         labels = lfa.groupby("actionNo").label.first()
-        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-                                                  'pC2R','mC2R','mR2C']
+        selectedLabels = [base+trial for base in ['dL2C','pL2C','mL2C','pC2L','mC2L',
+                                                  'dR2C','pR2C','mR2C','pC2R','mC2R']
                                      for trial in ['r.','o!']]
         validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
         labels = pd.DataFrame(labels.loc[validTrials])
