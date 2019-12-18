@@ -383,8 +383,9 @@ ax.errorbar(-np.arange(1,trials_back+1),
             yerr=coefficients_sem[['N{}'.format(j) for j in range(1,trials_back+1)]].values,
             marker='.', markersize=2.5, color=style.getColor('switch'), label='no reward',
             clip_on=False)
-ax.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
-            marker='.', markersize=2.5, color='k', label='bias', clip_on=False)
+eb = ax.errorbar(0, coefficients_mean['intercept'], coefficients_sem['intercept'],
+                 marker='.', markersize=2.5, color='k', label='bias', clip_on=False)
+[l.set_clip_on(False) for l in eb[2]]
 
 for (gt,a), coefficients in logRegCoef.groupby(['genotype','animal']):
     ax.plot(-np.arange(1,trials_back+1),

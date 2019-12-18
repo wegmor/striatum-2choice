@@ -24,8 +24,8 @@ def get_centers(rois):
 def getActionAverages(traces, apf):
     keepLabels = ['pC2L-', 'mC2L-',
                   'pC2R-', 'mC2R-',
-                  'pL2Cd', 'pL2Co', 'pL2Cr', 'mL2C-',
-                  'pR2Cd', 'pR2Co', 'pR2Cr', 'mR2C-']
+                  'dL2C-', 'pL2Co', 'pL2Cr', 'mL2C-',
+                  'dR2C-', 'pR2Co', 'pR2Cr', 'mR2C-']
     apf = apf.loc[apf.label.isin(keepLabels)].copy()
     apf['label'] = apf.label.astype('str')
     actionAvg = traces.loc[apf.index].groupby([apf.label,apf.actionNo]).mean().dropna()
