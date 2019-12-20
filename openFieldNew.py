@@ -429,6 +429,76 @@ layout.axes["onset_running"]["axis"].legend(lines, ["D1", "A2A", "Oprm1"], bbox_
 #layout.axes["onset_rightTurn"]["axis"].set_xlabel("time from onset (s)")
 
 #%%
+pdists = analysisOpenField.getPDistData(endoDataPath, tuningData)
+ax = layout.axes['dist_scatter']['axis']
+
+for g, gdata in pdists.groupby('genotype'):
+    ax.scatter(gdata.dist_shuffle, gdata.dist, s=gdata.noNeurons/25,
+               edgecolor=style.getColor(g), facecolor=style.getColor(g),
+               alpha=.4, lw=mpl.rcParams['axes.linewidth'])
+    
+avg = pdists.groupby('genotype').apply(analysisOpenField.wAvg, 'dist', 'noNeurons')
+avg_s = pdists.groupby('genotype').apply(analysisOpenField.wAvg, 'dist_shuffle', 'noNeurons')
+sem = pdists.groupby('genotype').apply(analysisOpenField.bootstrap, 'dist', 'noNeurons')
+sem_s = pdists.groupby('genotype').apply(analysisOpenField.bootstrap, 'dist_shuffle', 'noNeurons')
+
+for g in ['d1','a2a','oprm1']:
+    ax.errorbar(avg_s[g], avg[g], xerr=sem_s[g], yerr=sem[g],
+                color=style.getColor(g), fmt='s', markersize=3,
+                markeredgewidth=mpl.rcParams['axes.linewidth'],
+                markeredgecolor='k', ecolor='k',
+                label={'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
+
+ax.plot([15,65],[15,65], ls=':', color='k', alpha=.5, zorder=-1)    
+
+ax.set_xlim((15,65))
+ax.set_ylim((15,65))
+ax.set_xticks(np.arange(15,66,25))
+ax.set_yticks(np.arange(15,66,25))
+ax.set_aspect('equal')
+ax.set_xlabel('expected')
+ax.set_ylabel('observed')
+ax.text(40, 65, 'μm to nearest\ntuned neighbor', ha='center', va='center',
+        fontdict={'fontsize':7})
+ax.legend(loc='lower right', bbox_to_anchor=(1.1, .05))
+ax.set_aspect('equal')
+sns.despine(ax=ax)
+
+#%% Decoding
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running',
+                 'leftTurn': 'left turn', 'rightTurn': 'right turn'}
+segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
+decodingData = analysisOpenField.decodeWithIncreasingNumberOfNeurons(endoDataPath, segmentedBehavior)
+decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
+
+plt.sca(layout.axes["decodeWithIncreasingNumberOfNeurons"]["axis"])
+for strSess, df in decodingData.groupby("session"):
+    genotype = strSess.split("_")[0]
+    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype),
+             alpha=0.2, lw=.5)
+    plt.plot(df.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"),
+             alpha=0.2, lw=.5)
+for genotype, df in decodingData.groupby("genotype"):
+    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype),
+             alpha=1.0)
+plt.plot(decodingData.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"),
+         alpha=1.0)
+
+order = ("oprm1", "d1", "a2a")
+meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g)) for g in order]
+shuffleHandle = mpl.lines.Line2D([], [], color=style.getColor("shuffled"))
+plt.legend(meanHandles+[shuffleHandle], [genotypeNames[g] for g in order]+["shuffled",],
+           loc=(0.45, 0.45), ncol=2)
+
+plt.ylim(0,1)
+plt.xlim(0,300)
+plt.xlabel("number of neurons")
+plt.ylabel("decoding accuracy (%)")
+plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
+sns.despine(ax=plt.gca())
+
+#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "openFieldNew.svg")
 print("Done")

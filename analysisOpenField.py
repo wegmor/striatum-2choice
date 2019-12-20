@@ -372,3 +372,69 @@ def getEventWindows(events, win_size=(20, 19)):
             _windows.insert(0,k,v)
         windows = windows.append(_windows, ignore_index=True)
     return windows
+
+from scipy.spatial.distance import pdist, squareform
+
+@cachedDataFrame("tuning_pdists_open_field.pkl")
+def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
+    dist_df = pd.DataFrame()
+    for s in readSessions.findSessions(dataFilePath, task='openField'):
+        # load ROI centers
+        roics = np.array(list(s.readROIs().idxmax()))
+        # generate shuffled ROIs
+        roics_shuffle = [np.random.permutation(roics) for _ in range(no_shuffles)]
+        
+        # calc pairwise distances
+        # inscopix says 1440 px -> 900 um; 4x downsampled 900/360 = 2.5
+        dist = squareform(pdist(roics)) * 2.5
+        dist[np.diag_indices_from(dist)] = np.nan
+    
+        # load tuning data for session
+        tunings = tuningData.query('animal == @s.meta.animal & date == @s.meta.date').copy()
+        if len(tunings) == 0: continue
+        tunings = tunings.set_index(['action','neuron']).sort_index()
+        
+        min_dists = []
+        min_dists_shuffle = []
+        for action, ts in tunings.groupby('action'):
+            if ts.signp.sum() >= 2: # at least 2 tuned neurons in this group?
+                # find the minimum distance to the closest neuron tuned to action
+                min_dists += np.nanmin(dist[ts.signp][:,ts.signp], axis=0).tolist()
+                
+                # calculate min distance for shuffled ROIs
+                for roicss in roics_shuffle:
+                    dist_shuffle = squareform(pdist(roicss)) * 2.5
+                    dist_shuffle[np.diag_indices_from(dist_shuffle)] = np.nan
+                    min_dists_shuffle += np.nanmin(dist_shuffle[ts.signp][:,ts.signp], axis=0).tolist()
+        
+        # calculate mean minimum distance, real & expected by chance, for session
+        mean_dist = np.mean(min_dists)
+        mean_dist_shuffle = np.mean(min_dists_shuffle)
+    
+        series = pd.Series({'genotype': s.meta.genotype,
+                            'animal': s.meta.animal, 'date': s.meta.date,
+                            'dist': mean_dist, 'dist_shuffle': mean_dist_shuffle,
+                            'noNeurons': len(ts)})
+        dist_df = dist_df.append(series, ignore_index=True)
+        
+    return dist_df
+
+#def get_centers(rois):
+#    # find pixel of maximum intensity in each mask; use as neuron center
+#    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
+#                                                  rois.shape[1:]))
+#    centers = centers[::-1].T
+#    return(centers)
+
+
+
+def wAvg(group, var, weights):
+    return(np.average(group[var], weights=group[weights]))
+    
+def bootstrap(group, var, weights, iterations=1000):
+    avgs = []
+    for _ in range(iterations):
+        idx = np.random.choice(len(group[var]), size=len(group[var]),
+                               replace=True)
+        avgs.append(np.average(group[var].iloc[idx], weights=group[weights].iloc[idx]))
+    return(np.std(avgs))

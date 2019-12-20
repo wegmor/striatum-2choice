@@ -90,10 +90,10 @@ def getColor(key):
     cdict['blank'] = (1.0,1.0,1.0)
     
     #Open field
-    cdict['stationary'] = sns.color_palette()[0]
-    cdict['running'] = sns.color_palette()[1]
-    cdict['leftTurn'] = sns.color_palette()[2]
-    cdict['rightTurn'] = sns.color_palette()[3]
+    cdict['stationary'] = sns.color_palette()[9]
+    cdict['running'] = sns.color_palette()[6]
+    cdict['leftTurn'] = sns.color_palette()[8]
+    cdict['rightTurn'] = sns.color_palette("tab20")[5]
     
     #Decoding sorted by mutual information
     cdict['ascending'] = sns.color_palette()[0]
