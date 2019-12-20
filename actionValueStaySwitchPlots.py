@@ -467,8 +467,10 @@ windows.set_index(['genotype','animal','date','neuron'], inplace=True)
 #windows['mL2C_auc'] = auc.loc['mL2C', 'auc']
 #windows['auc'] = windows[['mL2C_auc','mR2C_auc']].max(axis=1)
 #windows.reset_index('action', inplace=True)
-windows['auc'] = auc.auc.unstack('action').max(axis=1)
+windows['maxAuc'] = auc.auc.unstack('action').max(axis=1)
+windows['minAuc'] = auc.auc.unstack('action').min(axis=1)
 windows['stay'] = (auc.pct.unstack('action') > .995).any(axis=1)
+windows['switch'] = (auc.pct.unstack('action') < .005).any(axis=1)
 windows['trial_mean'] = windows['frameNo'].mean(axis=1)
 #windows['pTuning'] = tuning.action
 
@@ -540,22 +542,25 @@ windows['trial_mean'] = windows['frameNo'].mean(axis=1)
 
 
 #%%
-df = (windows.loc[windows.stay].reset_index()
-             .set_index(['auc','genotype','animal','date','neuron'])
-             .sort_index(ascending=False).copy())
+#df = (windows.loc[windows.stay].reset_index()
+#             .set_index(['auc','genotype','animal','date','neuron'])
+#             .sort_index(ascending=False).copy())
+df = (windows.loc[windows.switch].reset_index()
+             .set_index(['minAuc','genotype','animal','date','neuron'])
+             .sort_index(ascending=True).copy())
 df = df.loc[df.label.str.slice(-2).isin(['r.','o.','o!'])]
 
 #%%
-with PdfPages("svg/top100_value_x_sd.pdf") as pdf:
+with PdfPages("svg/bottom300_value_x_sd.pdf") as pdf:
     
     actions = [('mL2C','mR2C'),('pC2L','pC2R'),('mC2L','mC2R'),('dL2C','dR2C')]
     i = 0
     
-    for neuron, data in (df.groupby(['auc', 'genotype','animal','date','neuron'],
+    for neuron, data in (df.groupby(['minAuc', 'genotype','animal','date','neuron'],
                                     sort=False)):
         #print(neuron[0])
         i+=1
-        if i>100: break
+        if i>300: break
         
         fig, axs = plt.subplots(4, 2, figsize=(5,10), gridspec_kw={'hspace':.3})
         

@@ -38,7 +38,8 @@ if not cacheFolder.is_dir():
 Xs = []
 for s in readSessions.findSessions(endoDataPath, task='2choice'):
     deconv = s.readDeconvolvedTraces().reset_index(drop=True).fillna(0)
-
+    
+    # 10 min zscore window
     window = 10*60*20
     df = pd.concat([deconv.iloc[:window//2+1],deconv,deconv.iloc[-(window//2+1):]])
     df = (df - df.rolling(window, center=True).mean()) / df.rolling(window, center=True).std()
@@ -47,7 +48,7 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     labels = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
     if len(deconv) != len(labels): continue
 
-    ##%%
+    # trials start upon outcome delivery
     labels['trialNo'] = (labels.label.str.contains('p[LR]2C[or][\.\!]$') * \
                          (labels.actionNo.diff() == 1).astype('int')).cumsum()
     labels = labels.set_index('trialNo')
@@ -55,12 +56,12 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     labels['bin'] = labels.actionProgress // (1/3)
     labels = labels.reset_index().set_index(['trialType','trialNo'])
     labels = labels.sort_index()
-    ##%%
+    # only keep actions with all actions longer than 5 frames
     labels['include'] = (labels.groupby(['trialType','trialNo']).actionDuration.apply(
                              lambda t: (np.unique(t) >= 5).all()))
-    #labels['include'] = True
+    # make sure trials included follow trial structure perfectly
     properTrials = [l1+l2 for l1,l2 in product((['pL2C','mL2C'],['pR2C','mR2C']),
-                                               (['pC2L','mC2L','pL2C'],['pC2R','mC2R','pR2C']))]
+                                               (['pC2L','mC2L','dL2C'],['pC2R','mC2R','dR2C']))]
     labels['include'] = (labels.include & (labels.groupby(['trialType','trialNo','actionNo']).label.first()
                                                  .groupby(['trialType','trialNo'])
                                                  .apply(lambda t: [l[:-2] for l in t] in properTrials)))
@@ -68,10 +69,13 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     labels = labels.sort_values(['actionNo','actionProgress'])
     labels = labels.reset_index().set_index(['include','trialType','trialNo','actionNo','bin'])
     
+    # if there are fewer than 20 trials in any trial type, omit! -> smallest # trials determines
+    # the size of the final collated data set
     if not (labels.loc[True].groupby(['trialType','trialNo']).first().groupby('trialType').size()
                   .loc[['pL2Cr.','pL2Co.','pL2Co!', 'pR2Cr.','pR2Co.','pR2Co!']] >= 20).all():
         continue
 
+    # mean activity for bins
     deconv = deconv.set_index(labels.index).sort_index()
     X = deconv.loc[True].groupby(['trialType','trialNo','actionNo','bin']).mean()
     X['bin'] = X.groupby(['trialType','trialNo']).cumcount()
@@ -79,7 +83,10 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     X = X.loc[['pL2Cr.','pL2Co.','pL2Co!',
                'pR2Cr.','pR2Co.','pR2Co!']]
     X = X.unstack('bin')
-    X['trialNo'] = X.groupby('trialType').cumcount()
+    #X['trialNo'] = X.groupby('trialType').cumcount()
+    X['trialNo'] = (X.groupby('trialType', as_index=False).apply(
+                        lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
+                        .reset_index(0, drop=True))
     X = X.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
     X = X.stack('bin')
     X.columns.name = 'neuron'
@@ -96,11 +103,13 @@ X = pd.concat(Xs, axis=1)
 
 #df = X.loc[:,'oprm1'].dropna().copy()
 #df = X.loc[['pR2Co!','pR2Co.','pR2Cr.'],:].dropna().copy()
-df = X.dropna().copy()
-df = df.loc[:,(df != np.inf).all()]
+df = X.loc[:,(X != np.inf).all()].dropna().copy()
+#df = X.loc[['pL2Co!','pL2Co.','pL2Cr.'],(X != np.inf).all()].dropna().copy()
+df = df.query('bin >= 6')
 
 #fa = LocallyLinearEmbedding(10, 3, max_iter=1000, method='hessian', eigen_solver='dense')
-fa = FastICA(3)
+#fa = FastICA(3)
+fa = PCA(3)
 #fa = Isomap(5,3,max_iter=10000)
 #fa = MDS(3, metric=True, max_iter=10000)
 fit = fa.fit_transform(df)
@@ -137,6 +146,7 @@ for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
     ax.plot(df[0], df[1], df[2], c='g', alpha=.25)
 
 plt.show()
+
 #%%
 from mpl_toolkits.mplot3d import Axes3D
 fig = plt.figure()
