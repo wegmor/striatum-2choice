@@ -141,7 +141,7 @@ def decodeStaySwitchSession(sess, selectedPhase):
         
         return M, P, C
         
-    deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+    deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
     lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
     if len(deconv) != len(lfa): 
         raise Exception('trace has fewer frames than behavior data!')
@@ -214,7 +214,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                     fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
                     fromTask = fromSess.meta.task
                     if fromTask != "2choice": continue
-                    fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                    fromDeconv = fromSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                     fromLfa = fromSess.labelFrameActions(reward="fullTrial", switch=True)
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
@@ -230,7 +230,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                             toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
                             toTask = toSess.meta.task
                             if toTask != "2choice": continue
-                            toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                            toDeconv = toSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                             toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
                             if len(toDeconv) != len(toLfa): continue
 
@@ -301,7 +301,7 @@ def predictStaySwitchAcrossDays(dataFile, alignmentFile):
                 toTask = toSess.meta.task
                 if toTask not in ["forcedAlternation","2choiceAgain"]: continue
                 if meta.loc[genotype, animal, toDate] not in [-4,-3,-2,-1]: continue
-                toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                toDeconv = toSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                 toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
                 if len(toDeconv) != len(toLfa): continue
 
@@ -317,7 +317,7 @@ def predictStaySwitchAcrossDays(dataFile, alignmentFile):
                         fromTask = fromSess.meta.task
                         if fromTask != "2choice": continue
                         if meta.loc[genotype, animal, fromDate] not in [-7,-6,-5]: continue
-                        fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                        fromDeconv = fromSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                         fromLfa = fromSess.labelFrameActions(reward="fullTrial", switch=True)
                         if len(fromDeconv) != len(fromLfa): continue
 
@@ -378,7 +378,7 @@ def crossDecodeStaySwitch(dataFile):
     shuffledCrossDecode = pd.DataFrame()
     realCrossDecode = pd.DataFrame()
     for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
         if len(deconv) != len(lfa): continue
         slfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
@@ -512,7 +512,8 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False):
         
     auc_df = pd.DataFrame()
     for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
+        print(str(sess))
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         if on_shuffled:
             lfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
         else:
@@ -527,6 +528,8 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False):
         labels = pd.DataFrame(labels.loc[validTrials])
         trialAvgs = trialAvgs.loc[validTrials]
         
+        # v nasty hack
+        labels['label'] = labels.label.replace({'pC2Lo!':'pC2Ro!', 'pC2Ro!':'pC2Lo!'})
         labels['action'], labels['trialType'] = (labels.label.str.slice(0,4),
                                                  labels.label.str.slice(4))
         
@@ -571,7 +574,7 @@ def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=Fals
                                            saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
     
     for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = s.labelFrameActions(switch=True, reward='fullTrial')
         if len(deconv) != len(lfa): continue
         
@@ -627,7 +630,7 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
         s = next(readSessions.findSessions(dataFile, task='2choice',
                                            genotype=genotype, animal=animal, date=date))
         
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         if auc_weigh:
             aucs = pop.set_index('neuron').auc
             deconv *= aucs

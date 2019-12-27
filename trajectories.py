@@ -104,8 +104,8 @@ X = pd.concat(Xs, axis=1)
 #df = X.loc[:,'oprm1'].dropna().copy()
 #df = X.loc[['pR2Co!','pR2Co.','pR2Cr.'],:].dropna().copy()
 df = X.loc[:,(X != np.inf).all()].dropna().copy()
-#df = X.loc[['pL2Co!','pL2Co.','pL2Cr.'],(X != np.inf).all()].dropna().copy()
-df = df.query('bin >= 6')
+#df = X.loc[['pR2Co!','pR2Co.','pR2Cr.'],(X != np.inf).all()].dropna().copy()
+#df = df.query('bin <= 8')
 
 #fa = LocallyLinearEmbedding(10, 3, max_iter=1000, method='hessian', eigen_solver='dense')
 #fa = FastICA(3)
@@ -174,3 +174,104 @@ for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
     ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
 
 plt.show()
+
+#%%
+from mpl_toolkits.mplot3d import Axes3D
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+
+df = mfit.query('trialType == "pL2Co!"')
+ax.plot(df[0], df[1], df[2], c='r',alpha=.9, lw=2.5, ls=':')
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='r', alpha=.1)
+
+df = mfit.query('trialType == "pL2Co."')
+ax.plot(df[0], df[1], df[2], c='y',alpha=.9, lw=2.5, ls=':')
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='y', alpha=.1)
+
+df = mfit.query('trialType == "pL2Cr."')
+ax.plot(df[0], df[1], df[2], c='g', alpha=.9, lw=2.5, ls=':')
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
+
+df = mfit.query('trialType == "pR2Co!"')
+ax.plot(df[0], df[1], df[2], c='r',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Co!"').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='r', alpha=.1)
+
+df = mfit.query('trialType == "pR2Co."')
+ax.plot(df[0], df[1], df[2], c='y',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Co."').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='y', alpha=.1)
+
+df = mfit.query('trialType == "pR2Cr."')
+ax.plot(df[0], df[1], df[2], c='g', alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
+    ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
+
+plt.show()
+
+#%%
+fig = plt.figure()
+ax = plt.gca()
+
+df = mfit.query('trialType == "pL2Co!"')
+ax.plot(df[0], df[2], c='r',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
+    ax.plot(df[0], df[2], c='r', alpha=.5)
+
+df = mfit.query('trialType == "pL2Co."')
+ax.plot(df[0], df[2], c='y',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
+    ax.plot(df[0], df[2], c='y', alpha=.5)
+
+df = mfit.query('trialType == "pL2Cr."')
+ax.plot(df[0], df[2], c='g', alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
+    ax.plot(df[0], df[2], c='g', alpha=.5)
+
+plt.show()
+
+#%%
+fig = plt.figure()
+ax = plt.gca()
+
+df = mfit.query('trialType == "pR2Co!"')
+ax.plot(df[0], df[1], c='r',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Co!"').groupby('trialNo'):
+    ax.plot(df[0], df[1], c='r', alpha=.5)
+
+df = mfit.query('trialType == "pR2Co."')
+ax.plot(df[0], df[1], c='y',alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Co."').groupby('trialNo'):
+    ax.plot(df[0], df[1], c='y', alpha=.5)
+
+df = mfit.query('trialType == "pR2Cr."')
+ax.plot(df[0], df[1], c='g', alpha=.9, lw=2.5)
+df = df.loc[df.bin % 3 == 0]
+ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
+    ax.plot(df[0], df[1], c='g', alpha=.5)

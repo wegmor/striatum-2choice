@@ -20,7 +20,7 @@ import analysisStaySwitchDecoding
 import analysisTunings
 from scipy.spatial.distance import squareform, pdist
 from collections import defaultdict
-from utils import readSessions
+from utils import readSessions, fancyViz
 import cmocean
 from matplotlib.backends.backend_pdf import PdfPages
 plt.ioff()
@@ -393,11 +393,11 @@ for genotype, auc in staySwitchAUC.query('action in ["pC2L","pC2R"]').groupby('g
     
 
 #%%
-def getEventWindows(events, win_size=(20, 19)):
+def getEventWindows(events, win_size=(5, 19)):
     windows = pd.DataFrame()
     for s in readSessions.findSessions(endoDataPath, task='2choice'):
         lfa = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         
         if not len(lfa) == len(deconv):
             print(str(s)+': more labeled frames than signal!')
@@ -423,6 +423,7 @@ def getEventWindows(events, win_size=(20, 19)):
         for idx, actionNo, label in center_idx:
             win = deconv.loc[idx-win_size[0]:idx+win_size[1]].reset_index()
             win.loc[win.actionNo > actionNo, neurons] = np.nan
+            win.loc[win.actionNo < actionNo-1, neurons] = np.nan
             win['frameNo'] = np.arange(len(win))
             win['label'] = label
             win['actionNo'] = actionNo
@@ -440,9 +441,9 @@ def getEventWindows(events, win_size=(20, 19)):
     return windows
     
 #%%
-#windows = getEventWindows(['mR2C','mL2C','pC2L','pC2R','mC2L','mC2R','dL2C','dR2C'])
-#windows.to_pickle('EventWindows.pkl')
-    
+windows = getEventWindows(['pC2L','pC2R'])
+#windows.to_pickle('EventWindows.pkl') 
+
 #%%
 av = actionValues.copy()
 auc = staySwitchAUC.copy()
@@ -471,7 +472,7 @@ windows['maxAuc'] = auc.auc.unstack('action').max(axis=1)
 windows['minAuc'] = auc.auc.unstack('action').min(axis=1)
 windows['stay'] = (auc.pct.unstack('action') > .995).any(axis=1)
 windows['switch'] = (auc.pct.unstack('action') < .005).any(axis=1)
-windows['trial_mean'] = windows['frameNo'].mean(axis=1)
+windows['trial_mean'] = windows['frameNo'].mean(axis=1) # stupid!
 #windows['pTuning'] = tuning.action
 
 
@@ -542,27 +543,152 @@ windows['trial_mean'] = windows['frameNo'].mean(axis=1)
 
 
 #%%
-#df = (windows.loc[windows.stay].reset_index()
-#             .set_index(['auc','genotype','animal','date','neuron'])
-#             .sort_index(ascending=False).copy())
-df = (windows.loc[windows.switch].reset_index()
-             .set_index(['minAuc','genotype','animal','date','neuron'])
-             .sort_index(ascending=True).copy())
-df = df.loc[df.label.str.slice(-2).isin(['r.','o.','o!'])]
+actionMeans = pd.DataFrame()
+for s in readSessions.findSessions(endoDataPath, task='2choice'):
+    lfa = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
+    deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+
+    if not len(lfa) == len(deconv):
+        print(str(s)+': more labeled frames than signal!')
+        continue
+
+    actionLabels = lfa.groupby('actionNo').label.first()
+    av = actionValues.loc[(s.meta.genotype,s.meta.animal,s.meta.date)]
+
+    if not (av['label'] == actionLabels).all():
+        print(str(s)+': labeling does not match!')
+        continue
+
+    means = pd.DataFrame(deconv.groupby([lfa['label'], lfa['actionNo']]).mean().stack(),
+                         columns=['trialMean'])
+    means.index.names = means.index.names[:2] + ['neuron']
+    means.reset_index(inplace=True)
+    means['action'] = means.label.str.slice(0,4)
+    
+    for k,v in [('date',s.meta.date),('animal',s.meta.animal),('genotype',s.meta.genotype)]:
+        means.insert(0,k,v)
+        
+    actionMeans = actionMeans.append(means, ignore_index=True)
 
 #%%
-with PdfPages("svg/bottom300_value_x_sd.pdf") as pdf:
+av = actionValues.copy()
+auc = staySwitchAUC.copy()
+auc = auc.reset_index().set_index(['action','genotype','animal','date','neuron'])
+
+actionMeans.set_index(['genotype','animal','date','actionNo'], inplace=True)
+actionMeans['value'] = av.value
+actionMeans.reset_index(inplace=True)
+
+actionMeans.set_index(['genotype','animal','date','neuron'], inplace=True)
+actionMeans['maxAuc'] = auc.auc.unstack('action')[['pC2L','pC2R']].max(axis=1)
+actionMeans['minAuc'] = auc.auc.unstack('action')[['pC2L','pC2R']].min(axis=1)
+actionMeans['stay'] = (auc.pct.unstack('action')[['pC2L','pC2R']] > .995).any(axis=1)
+actionMeans['stayMax'] = auc.auc.unstack('action')[['pC2L','pC2R']].idxmax(axis=1)
+actionMeans['switch'] = (auc.pct.unstack('action')[['pC2L','pC2R']] < .005).any(axis=1)
+actionMeans['switchMin'] = auc.auc.unstack('action')[['pC2L','pC2R']].idxmin(axis=1)
+#for phase in ['returnM','centerP','choiceM','delayP']:
+#    actionMeans['{}Auc'.format(action)] = auc.loc[action, 'auc']
+
+actionMeans = actionMeans.dropna()
+
+actionMeans.to_pickle('actionMeans.pkl')
+actionMeans = pd.read_pickle('actionMeans.pkl')
+
+#("5308", "190131", 292, "oprm1")
+#df = (actionMeans.loc[actionMeans.stay & actionMeans.stayMax.isin(['pC2L','pC2R'])].reset_index()
+df = (actionMeans.loc[actionMeans.switch].reset_index()
+                 .set_index(['minAuc','genotype','animal','date','neuron'])
+                 .sort_index(ascending=True).copy())
+df = df.loc[df.label.str.slice(-2).isin(['r.','o.','o!'])]
+df = df.loc[df.action.isin(['mL2C','mR2C','pC2L','pC2R','mC2L','mC2R','dL2C','dR2C'])]
+
+
+pdf = PdfPages('svg/bottom50.pdf')
+
+actions = [('mL2C','mR2C'),('pC2L','pC2R'),('mC2L','mC2R'),('dL2C','dR2C')]
+i = 0
+
+for neuron, ndata in (df.groupby(['minAuc', 'genotype','animal','date','neuron'],
+                                sort=False)):
+    #print(neuron[0])
+    i+=1
+    if i>50: break
+
+    fig, axs = plt.subplots(2, 2, figsize=(6,6), gridspec_kw={'hspace':.3})
+
+    ndata = ndata.copy()    
+    for action, ax in zip(actions, axs.flatten()):
+        data = ndata.loc[ndata.action.isin(action)]
+        data = data.replace([np.inf, -np.inf], np.nan)
+        data['trialMean'] -= data.trialMean.mean()
+        data['trialMean'] /= data.trialMean.std()
+        
+        # plot data per label (r., o., o!)
+        for l, ldata in data.groupby('label'):
+            sns.regplot('value', 'trialMean', data=ldata, ax=ax, fit_reg=True, ci=0,
+                        color=style.getColor(l[-2:]), marker='<' if 'L' in l else '>',
+                        scatter_kws={'alpha':.25}, truncate=True,
+                        line_kws={'lw':1.25})
+            ax.errorbar(ldata.value.mean(), ldata.trialMean.mean(),
+                        xerr=ldata.value.sem(), yerr=ldata.trialMean.sem(),
+                        color=style.getColor(l[-2:]), ms=5, marker='<' if 'L' in l else '>',
+                        elinewidth=1.25, markerfacecolor='w', linewidth=1.5)
+            ax.set_title(action)
+            
+        sns.regplot('value', 'trialMean', data=data, order=2, ci=0, scatter=False, color='k',
+                    line_kws={'lw':1.25}, ax=ax)
+        sns.regplot('value', 'trialMean', data=data.loc[data.value < 0], #order=2,
+                    ci=0, scatter=False, truncate=True, color='k', line_kws={'lw':1.25}, ax=ax)
+        sns.regplot('value', 'trialMean', data=data.loc[data.value > 0], #order=2,
+                    ci=0, scatter=False, truncate=True, color='k', line_kws={'lw':1.25}, ax=ax)
+ 
+            
+        ax.invert_xaxis()
+        ylims = np.percentile(data['trialMean'].dropna(), [0,97.5])
+        ylims += [-np.abs(ylims[1])*.1, np.abs(ylims[1])*.2]
+        ax.set_ylim(ylims)
+        ax.set_ylabel('sd')
+        sns.despine(ax=ax)
+
+    plt.suptitle('{} {} {} #{}\n{}'.format(*neuron[1:-1], int(neuron[-1]), neuron[0]),
+                 y=.93, fontsize=10)
+    pdf.savefig(bbox_inches='tight', pad_inches=.01)
+    plt.show()
     
-    actions = [('mL2C','mR2C'),('pC2L','pC2R'),('mC2L','mC2R'),('dL2C','dR2C')]
+pdf.close()
+    
+    
+#############
+mean_df = (df.query('switchMin in ["pC2L","pC2R"] and action in ["pC2L","pC2R"] and not stay')
+             .groupby(['genotype','animal','date','neuron','action','label'])
+             [['trialMean','value']].mean())
+mean_df['trialMean'] -= (df.groupby(['genotype','animal','date','neuron','action'])
+                           ['trialMean'].mean())
+mean_df['trialMean'] /= (df.groupby(['genotype','animal','date','neuron','action'])
+                           ['trialMean'].std())
+
+from sklearn.decomposition import PCA
+
+data = mean_df[['trialMean']].reset_index('action',drop=True).unstack('label').dropna()
+fit = PCA(2).fit_transform(data)
+fit = pd.DataFrame(fit, index=data.index)
+
+plt.scatter(fit[0], fit[1], c=fit.reset_index()['genotype'].replace({'d1':'r','oprm1':'m','a2a':'b'}))
+plt.show()
+
+#%%
+with PdfPages("svg/top50_value_x_sd.pdf") as pdf:
+    
+    actions = [('pL2C','pR2C'),('mL2C','mR2C'),('pC2L','pC2R'),('mC2L','mC2R'),('dL2C','dR2C')]
     i = 0
     
-    for neuron, data in (df.groupby(['minAuc', 'genotype','animal','date','neuron'],
+    for neuron, data in (df.groupby(['maxAuc', 'genotype','animal','date','neuron'],
                                     sort=False)):
         #print(neuron[0])
         i+=1
-        if i>300: break
+        if i>50: break
         
-        fig, axs = plt.subplots(4, 2, figsize=(5,10), gridspec_kw={'hspace':.3})
+        fig, axs = plt.subplots(5, 2, figsize=(5,10), gridspec_kw={'hspace':.3})
         
         data = data.copy()    
         for action, row_axs in zip(actions, axs):
@@ -570,18 +696,18 @@ with PdfPages("svg/bottom300_value_x_sd.pdf") as pdf:
             # plot data per label (r., o., o!)
             for l, ldata in data.loc[data.action.isin(action)].groupby('label'):
                 ax = lax if 'L' in l else rax
-                sns.regplot('value', 'trial_mean', data=ldata, ax=ax, fit_reg=True, ci=0,
+                sns.regplot('value', 'trialMean', data=ldata, ax=ax, fit_reg=True, ci=0,
                             color=style.getColor(l[-2:]), marker='x',
                             scatter_kws={'alpha':.4}, truncate=True,
                             line_kws={'lw':1.25})
-                ax.errorbar(ldata.value.mean(), ldata.trial_mean.mean(),
-                            xerr=ldata.value.sem(), yerr=ldata.trial_mean.sem(),
+                ax.errorbar(ldata.value.mean(), ldata.trialMean.mean(),
+                            xerr=ldata.value.sem(), yerr=ldata.trialMean.sem(),
                             color=style.getColor(l[-2:]), ms=4, marker='o',
                             elinewidth=1.25, markerfacecolor='w', linewidth=1.5)
             # print per action (L, R)
             for a, adata in data.loc[data.action.isin(action)].groupby('action'):
                 ax = lax if 'L' in a else rax
-                sns.regplot('value', 'trial_mean', data=adata, ax=ax, ci=0,
+                sns.regplot('value', 'trialMean', data=adata, ax=ax, ci=0,
                             scatter=False, color='k', truncate=True,
                             line_kws={'lw':1.25, 'alpha':1, 'zorder':99})
                 ax.set_title(a)
@@ -589,7 +715,7 @@ with PdfPages("svg/bottom300_value_x_sd.pdf") as pdf:
             lax.get_shared_y_axes().join(lax, rax)
             lax.invert_xaxis()
             rax.invert_xaxis()
-            ylims = np.percentile(data.loc[data.action.isin(action), 'trial_mean'],
+            ylims = np.percentile(data.loc[data.action.isin(action), 'trialMean'],
                                   [0,97.5])
             ylims += [-np.abs(ylims[1])*.1, np.abs(ylims[1])*.1]
             lax.set_ylim(ylims)
@@ -600,6 +726,21 @@ with PdfPages("svg/bottom300_value_x_sd.pdf") as pdf:
             sns.despine(ax=rax)
         
         plt.suptitle('{} {} {} #{}\n{}'.format(*neuron[1:-1], int(neuron[-1]), neuron[0]),
-                     y=.91)
+                     y=.93, fontsize=10)
+        pdf.savefig(bbox_inches='tight', pad_inches=.05)
+        plt.show()
+        
+        fig, axs = plt.subplots(3, 1, gridspec_kw={'hspace':0})
+        s = next(readSessions.findSessions('data/endoData_2019.hdf', task='2choice',
+                                           genotype=neuron[1], animal=neuron[2], date=neuron[3]))
+        fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+                                             linewidth=mpl.rcParams['axes.linewidth'],
+                                             smoothing=7.5, saturation=1)
+        lfa = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
+        trace = s.readDeconvolvedTraces(rScore=True)[neuron[4]]
+        for ax, trialType in zip(axs, ['r.','o.','o!']):
+            fv.setMask(lfa.label.str.endswith(trialType).values)
+            img = fv.draw(trace, ax=ax)
+        
         pdf.savefig(bbox_inches='tight', pad_inches=.05)
         plt.show()

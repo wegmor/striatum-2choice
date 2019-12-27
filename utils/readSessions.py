@@ -53,7 +53,7 @@ class Session:
         '''
         return self.readTraces("caTraces", fillDropped, indicateBlocks)
     
-    def readDeconvolvedTraces(self, zScore=False, fillDropped=True, indicateBlocks=False):
+    def readDeconvolvedTraces(self, zScore=False, rScore=False, fillDropped=True, indicateBlocks=False):
         '''Read all deconvolved traces from this session. Deconvolved traces are
         a guess of the "true" activity of the neuron.
 
@@ -69,6 +69,14 @@ class Session:
         if zScore:
             traces -= traces.mean(axis=0)
             traces /= traces.std(axis=0)
+        if rScore:
+            # 10 min zscore window
+            window = 10*60*20
+            df = pd.concat([traces.iloc[:window//2+1],traces,traces.iloc[-(window//2+1):]])
+            df -= df.rolling(window, center=True).mean()
+            df /= df.rolling(window, center=True).std()
+            traces = df.iloc[window//2+1:-(window//2+1)]
+            traces = traces.replace({-np.inf: 0, np.inf: 0})
         return traces
     
     def readSensorValues(self, slim=True, onlyRecording=True, reindexFrameNo=True):
