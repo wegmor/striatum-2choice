@@ -755,15 +755,15 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
         drawRoundedRect(plt.gca(), (-4.75, -1),  0.7, 1.2, [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pL2Co"], edgecolor="k")
     if "pL2Cr" in c:
         drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"], edgecolor="k")
-    if "pL2Cd" in c:
-        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pL2Cd"], edgecolor="k")
+    if "dL2C" in c:
+        drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["dL2C"], edgecolor="k")
 
     if "pR2Cr" in c:
         drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"], edgecolor="k")
     if "pR2Co" in c:
         drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"], edgecolor="k")
-    if "pR2Cd" in c:
-        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["pR2Cd"], edgecolor="k")
+    if "dR2C" in c:
+        drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["dR2C"], edgecolor="k")
 
     xx = np.linspace(-1,1)
     yy = 1-xx*xx

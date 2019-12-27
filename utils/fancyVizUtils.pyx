@@ -279,7 +279,7 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinatesFrameLabelsOld(st
     cdef str port
     for i in range(N):
         progress = actionProgress[i]
-        if label[i][0] == "p":
+        if (label[i][0] == "p") or (label[i][0] == "d"):
             port = label[i][1]
             if port == "L": x = -4
             elif port == "C": x = 0
@@ -357,10 +357,10 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _taskSchematicCoordinates(str[:] label,
         elif label[i][:4] == "pC2R":
             x = 0.375
             y = 1.8 * progress - 0.9
-        elif label[i] == "pL2Cd":
+        elif label[i][:4] == "dL2C":
             x = -4
             y = 0.8 - 0.4 * progress
-        elif label[i] == "pR2Cd":
+        elif label[i][:4] == "dR2C":
             x = 4
             y = 0.8 - 0.4 * progress
         elif label[i] == "pL2Cr":
@@ -475,7 +475,8 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _switchSchematicCoordinates(str[:] label,
             y = -4.5
             
         # Left port
-        elif label[i] == "pL2Cd." or label[i] == "pL2Cd!":
+        elif (label[i] == "dL2Cr." or label[i] == "dL2Co." or 
+              label[i] == "dL2Cr!" or label[i] == "dL2Co!"):
             phi = progress*pi/4 + pi/2
             x = -8 + 3*libc.math.cos(phi)
             y =  0 + 3*libc.math.sin(phi)
@@ -497,7 +498,8 @@ cdef cnp.ndarray[cnp.float_t, ndim=2] _switchSchematicCoordinates(str[:] label,
             y =  0 + 4.5*libc.math.sin(phi)
         
         # Right port
-        elif label[i] == "pR2Cd." or label[i] == "pR2Cd!":
+        elif (label[i] == "dR2Cr." or label[i] == "dR2Co." or
+              label[i] == "dR2Cr!" or label[i] == "dR2Co!"):
             phi = progress*pi/4 - pi/2
             x =  8 + 3*libc.math.cos(phi)
             y =  0 + 3*libc.math.sin(phi)
