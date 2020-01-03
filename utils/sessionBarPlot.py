@@ -33,3 +33,23 @@ def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="a
                clip_on=False, lw=.5)
     ax.set_xticks(np.arange(len(genotypeOrder)))
     ax.set_xticklabels(genotypeOrder)
+    
+def actionBarPlot(df, yCol, hueCol, ax, colorFunc, animalCol="animal", dateCol="date", weightCol="noNeurons",
+                  weightScale=0.02, hueOrder=None, barAlpha=0.3):
+    hueMeans = df.groupby(hueCol).apply(lambda df: np.average(df[yCol], weights=df[weightCol]))
+    hueSEMs = df.groupby(hueCol).apply(lambda df: bootstrapSEM(df[yCol], weights=df[weightCol]))
+    if hueOrder is not None:
+        hueMeans = hueMeans.loc[list(hueOrder)]
+        hueSEMs = hueSEMs.loc[list(hueOrder)]
+    barColors = [colorFunc(h) for h in hueMeans.index]
+    ax.bar(np.arange(len(hueMeans)), hueMeans, 0.9, color=barColors,
+           alpha=barAlpha, yerr=hueSEMs, clip_on=False)
+    gby = df.groupby(animalCol)
+    xCoord = (gby.ngroup()+1) / (len(gby)+1)
+    xCoord += df[hueCol].replace({h: i for i, h in enumerate(hueOrder)})
+    xCoord -= 0.5
+    colors = [colorFunc(h) for h in df[hueCol]]
+    ax.scatter(xCoord, df[yCol], df[weightCol]*weightScale, edgecolors=colors,
+                facecolor="none", clip_on=False, lw=.5)
+    ax.set_xticks(np.arange(len(hueOrder)))
+    ax.set_xticklabels(hueOrder, rotation=45, ha="right")

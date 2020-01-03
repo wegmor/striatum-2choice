@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import cmocean
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
@@ -26,6 +27,8 @@ if not outputFolder.is_dir():
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "openFieldNew.svg")
 layout.make_mplfigures()
+
+longGtNames = {'d1':'D1-Cre','a2a':'A2A-Cre','oprm1':'Oprm1-Cre'}
 
 #%%
 tuningData = analysisOpenField.getTuningData(endoDataPath)
@@ -236,6 +239,24 @@ for g in ['d1','a2a','oprm1']:
                     textprops={'color':'k'}, colors=[style.getColor(b) for b in gdata.index])
 
     ax.set_aspect('equal')
+    
+#%%
+gby = tuningData.groupby(["genotype", "animal", "date", "action"])
+df = pd.DataFrame({'nNeurons': gby.size(),
+                   'percTuned': gby.signp.mean()*100}).reset_index()
+order = ("leftTurn", "rightTurn", "running", "stationary")
+for gt, subset in df.groupby("genotype"):
+    ax = layout.axes['tunedFrac_'+gt]['axis']
+    sessionBarPlot.actionBarPlot(subset, "percTuned", "action", ax, style.getColor, 
+                                  weightCol="nNeurons", hueOrder=order, barAlpha=0.5)
+    ax.set_ylim(0,75)
+    if gt == "d1":
+        ax.set_ylabel("tuned neurons (%)")
+        ax.set_yticks([0,25,50,75])
+    else:
+        ax.set_yticks([])
+    ax.set_title(longGtNames[gt])
+    sns.despine(ax=ax)
 '''
 
 #%% tuning counts (simple)
@@ -391,18 +412,19 @@ for gt in ("d1", "a2a", "oprm1"):
     ax.plot(xx, mean, lw=1.8, color=style.getColor(gt))
     ax.set_ylim(-0.01, 0.1)
     sns.despine(ax=ax)
-    if gt!="d1":
-        ax.set_yticks([])
-    else:
-        ax.set_ylabel('Δsd')
-        ax.set_yticks((0,0.05,0.10))
     if gt=="a2a":
+        ax.set_ylabel('Δsd')
+    if gt=="oprm1":
+        ax.set_xticks((0,5,10))
         ax.set_xlabel("velocity (cm/s)")
-    ax.set_title(gt)
-    ax.set_xticks((0,5,10))
+    else:
+        ax.set_xticks([])
+    ax.text(0.5, 0.08, longGtNames[gt])#, color=style.getColor(gt))
+    #ax.set_title(gt)
+
 
 #%%
-ewindows = analysisOpenField.getEventWindows(["leftTurn", "rightTurn", "running"])
+ewindows = analysisOpenField.getEventWindows(endoDataPath, ["leftTurn", "rightTurn", "running"])
 ewindows.set_index(["animal", "date", "neuron", "label"], inplace=True)
 ewindows["tuned"] = tuningData.set_index(["animal", "date", "neuron", "action"]).pct>0.0995
 ewindows.reset_index(inplace=True)
@@ -497,6 +519,27 @@ plt.xlabel("number of neurons")
 plt.ylabel("decoding accuracy (%)")
 plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
+
+#%%
+decodingData = analysisOpenField.decodingConfusion(endoDataPath, segmentedBehavior)
+order = ["stationary", "running", "leftTurn", "rightTurn"]
+decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
+for gt, data in decodingData.groupby("genotype"):
+    weightedData = data.set_index(["true", "predicted"]).eval("occurencies * nNeurons")
+    weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
+    weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
+    ax = layout.axes["confusionMatrix_{}".format(gt)]["axis"]
+    yticks = [behaviorNames[b] for b in order] if gt == "oprm1" else False
+    sns.heatmap(weightedData[order].reindex(order), ax=ax, vmin=0, vmax=1, annot=True, fmt=".0%", cmap=cmocean.cm.amp,
+                cbar=False, xticklabels=[behaviorNames[b] for b in order],
+                yticklabels=yticks, annot_kws={'fontsize': 4.5},
+                linewidths=mpl.rcParams["axes.linewidth"])
+    ax.set_xlabel("predicted" if gt=="d1" else None)
+    ax.set_ylabel("truth" if gt=="oprm1" else None)
+    ax.set_title(genotypeNames[gt])
+    ax.set_ylim(4, 0)
+    ax.tick_params("both", length=0, pad=3)
+
 
 #%%
 layout.insert_figures('plots')

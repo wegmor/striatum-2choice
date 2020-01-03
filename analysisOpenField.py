@@ -87,7 +87,8 @@ def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
         res = []
         for sess in readSessions.findSessions(dataFile, task="openField"):
             deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-            behaviors = allBehaviors.loc[str(sess)].set_index("startFrame", drop=True)[["actionNo", "behavior"]]
+            behaviors = allBehaviors.loc[str(sess)].reset_index()
+            behaviors = behaviors.set_index("startFrame", drop=True)[["actionNo", "behavior"]]
             behaviors = behaviors.reindex(np.arange(len(deconv)), method="ffill")
             if behaviors.behavior.nunique() < 4: continue
             suffledBehaviors = behaviors.copy()
@@ -160,7 +161,8 @@ def getTuningData(dataFilePath, no_shuffles=1000):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='openField'):
         traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
-        behaviors = allBehaviors.loc[str(s)].set_index("startFrame", drop=False)[["actionNo", "behavior"]]
+        behaviors = allBehaviors.loc[str(s)].reset_index()
+        behaviors = behaviors.set_index("startFrame", drop=False)[["actionNo", "behavior"]]
         behaviors = behaviors.reindex(np.arange(len(traces)), method="ffill")
         if behaviors.behavior.nunique() < 4:
             raise ValueError("All four actions are not present in the session {}.".format(s))
@@ -339,8 +341,8 @@ def avgActivityPerSpeed(dataFilePath):
     return pd.DataFrame(per_session, index=meta)
 
 @cachedDataFrame("openFieldEventWindows.pkl")
-def getEventWindows(events, win_size=(20, 19)):
-    segmented = analysisOpenField.segmentAllOpenField(endoDataPath)
+def getEventWindows(endoDataPath, events, win_size=(20, 19)):
+    segmented = segmentAllOpenField(endoDataPath)
     windows = pd.DataFrame()
     for s in readSessions.findSessions(endoDataPath, task='openField'):
         deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
