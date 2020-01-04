@@ -13,11 +13,12 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import pathlib
 import figurefirst
+from mpl_toolkits.mplot3d import Axes3D
 import style
 from utils import readSessions
 from itertools import product
-from sklearn.decomposition import FactorAnalysis, PCA, FastICA
-from sklearn.manifold import LocallyLinearEmbedding, MDS, Isomap
+from sklearn.decomposition import FactorAnalysis, PCA, FastICA, SparsePCA
+from sklearn.manifold import LocallyLinearEmbedding, MDS, Isomap, TSNE
 
 plt.ioff()
 style.set_context()
@@ -34,16 +35,10 @@ if not outputFolder.is_dir():
 if not cacheFolder.is_dir():
     cacheFolder.mkdir()
 
-#%%
+#%% 
 Xs = []
 for s in readSessions.findSessions(endoDataPath, task='2choice'):
-    deconv = s.readDeconvolvedTraces().reset_index(drop=True).fillna(0)
-    
-    # 10 min zscore window
-    window = 10*60*20
-    df = pd.concat([deconv.iloc[:window//2+1],deconv,deconv.iloc[-(window//2+1):]])
-    df = (df - df.rolling(window, center=True).mean()) / df.rolling(window, center=True).std()
-    deconv = df.iloc[window//2+1:-(window//2+1)]
+    deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True).fillna(0)
 
     labels = s.labelFrameActions(reward='fullTrial', switch=True, splitCenter=True)
     if len(deconv) != len(labels): continue
@@ -53,7 +48,7 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
                          (labels.actionNo.diff() == 1).astype('int')).cumsum()
     labels = labels.set_index('trialNo')
     labels['trialType'] = labels.groupby('trialNo').label.first()
-    labels['bin'] = labels.actionProgress // (1/3)
+    labels['bin'] = labels.actionProgress // (1/4)
     labels = labels.reset_index().set_index(['trialType','trialNo'])
     labels = labels.sort_index()
     # only keep actions with all actions longer than 5 frames
@@ -76,6 +71,7 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
         continue
 
     # mean activity for bins
+    deconv.columns.name = 'neuron'
     deconv = deconv.set_index(labels.index).sort_index()
     X = deconv.loc[True].groupby(['trialType','trialNo','actionNo','bin']).mean()
     X['bin'] = X.groupby(['trialType','trialNo']).cumcount()
@@ -83,69 +79,299 @@ for s in readSessions.findSessions(endoDataPath, task='2choice'):
     X = X.loc[['pL2Cr.','pL2Co.','pL2Co!',
                'pR2Cr.','pR2Co.','pR2Co!']]
     X = X.unstack('bin')
-    #X['trialNo'] = X.groupby('trialType').cumcount()
-    X['trialNo'] = (X.groupby('trialType', as_index=False).apply(
-                        lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
-                        .reset_index(0, drop=True))
+
+    X['trialNo'] = X.groupby('trialType').cumcount()
     X = X.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
-    X = X.stack('bin')
-    X.columns.name = 'neuron'
+    #X['trialNo'] = (X.groupby('trialType', as_index=False).apply(
+    #                    lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
+    #                    .reset_index(0, drop=True))
+    #X = X.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
+    #X = X.stack('bin')
+    X = X.stack('neuron')
     
     for k,v in [('genotype',s.meta.genotype), ('animal',s.meta.animal), ('date',s.meta.date)]:
         X.insert(0,k,v)
-    X = X.set_index(['genotype','animal','date'], append=True).unstack(['genotype','animal','date'])
-    X = X.reorder_levels([1,2,3,0], axis=1)
+    X = X.set_index(['genotype','animal','date'], append=True)#.unstack(['genotype','animal','date'])
+    #X = X.reorder_levels([1,2,3,0], axis=1)
+    #X = X.reorder_levels([0,-1,-2,-3,2,1], axis=0)
+    X = X.reorder_levels([3,4,5,2,0,1])
     
     Xs.append(X)
 
-#%%
-X = pd.concat(Xs, axis=1)
+X = pd.concat(Xs, axis=0)
 
-#df = X.loc[:,'oprm1'].dropna().copy()
-#df = X.loc[['pR2Co!','pR2Co.','pR2Cr.'],:].dropna().copy()
-df = X.loc[:,(X != np.inf).all()].dropna().copy()
-#df = X.loc[['pR2Co!','pR2Co.','pR2Cr.'],(X != np.inf).all()].dropna().copy()
-#df = df.query('bin <= 8')
+X.to_pickle('trajectory.pkl')
 
-#fa = LocallyLinearEmbedding(10, 3, max_iter=1000, method='hessian', eigen_solver='dense')
-#fa = FastICA(3)
-fa = PCA(3)
-#fa = Isomap(5,3,max_iter=10000)
-#fa = MDS(3, metric=True, max_iter=10000)
-fit = fa.fit_transform(df)
-fit = pd.DataFrame(fit, index=df.index)
-
-mfit = fit.groupby(['trialType','bin']).mean()
-mfit = mfit.reset_index()
-fit = fit.reset_index()
 
 #%%
-from mpl_toolkits.mplot3d import Axes3D
+X = pd.read_pickle('trajectory.pkl')
+
+#%%
+def prepTrajectoryData(X, trials=None, shuffle=True, seed=None):
+    T = X.copy()
+    # drop trials with NaN bins
+    T = T.dropna()
+    # shuffle trial numbers / neuron
+    if seed:
+        np.random.seed(seed)
+    if shuffle:
+        T['trialNo'] = (T.groupby(['trialType','genotype','animal','date','neuron'], as_index=False)
+                         .apply(lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
+                         .reset_index(0, drop=True))
+        T = T.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
+    # reformat, reduce to "complete" trials
+    T = T.unstack(['genotype','animal','date','neuron']).stack('bin')
+    T = T.loc[:,(T != np.inf).all()].dropna().copy()
+    # reduce to x trials per condition
+    if trials:
+        T = T.query('trialNo < @trials').copy()
+    # normalize matrix
+    T -= T.mean(axis=1).values[:,np.newaxis]
+    T /= T.std(axis=1).values[:,np.newaxis]
+    return T
+
+
+#%%
+Ts = []
+for i in range(5):
+    Ts.append(prepTrajectoryData(
+                  X.query("trialType in ['pL2Cr.','pL2Co!']"), 
+                  shuffle=True, seed=i+20, trials=20))
+T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+
+pca = PCA(3, whiten=True, svd_solver='full')
+#pca = FastICA(3, whiten=True, max_iter=10000)
+#pca = FactorAnalysis(3, max_iter=1000, svd_method='lapack')
+pca.fit(T)
+
+Ts = []
+for i in range(5):
+    Ts.append(prepTrajectoryData(
+                  X, 
+                  shuffle=True, seed=i+20, trials=20))
+T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+
+pca_trans = pca.transform(T)
+fits = pd.DataFrame(pca_trans, index=T.index).reset_index()
+
+
+#%% try single session; can project real trials into space obtained from shuffled data
+genotype = 'oprm1'
+pca_dims = 10 #10
+pca = PCA(whiten=True, svd_solver='full') # 10
+iso = Isomap(5,3,max_iter=10000,eigen_solver='dense',n_jobs=-1,path_method='D',
+             neighbors_algorithm='brute')
+##%%
+Ts = []
+for i in range(1):
+    T = prepTrajectoryData(X.query('genotype == @genotype' + \
+                                   ' and trialType in ["pL2Co.","pL2Cr."]'),
+                           shuffle=True, trials=20, seed=i+10)
+    Ts.append(T)
+T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+
+pca.fit(T)
+pca_trans = pca.transform(T)
+iso.fit(pca_trans[:,:pca_dims])
+iso_trans = iso.transform(pca_trans[:,:pca_dims])
+
+main_fits = pd.DataFrame(iso_trans, index=T.index).reset_index()
+
+
+#%%
+Ts = []
+for i in range(1):
+    Ts.append(prepTrajectoryData(X.loc[[genotype]], shuffle=False, trials=20, seed=i+10*200))
+T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+
+pca_trans = pca.transform(T)
+iso_trans = iso.transform(pca_trans[:,:pca_dims])
+fits = pd.DataFrame(iso_trans, index=T.index).reset_index()
+
+
+#%%
+def plot3D(fits, azimuth, angle, xlims=None, ylims=None, zlims=None, bins=4):
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    for (tt,it,tn), df in fits.groupby(['trialType','iteration','trialNo']):
+        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
+                alpha=.2, lw=.5)
+    
+    if not xlims: ax.set_xlim(np.array(ax.get_xlim())*1.3)
+    else: ax.set_xlim(np.array(xlims))
+    if not ylims: ax.set_ylim(np.array(ax.get_ylim())*1.3)
+    else: ax.set_ylim(ylims)
+    if not zlims: ax.set_zlim(np.array(ax.get_zlim())*1.3)
+    else: ax.set_zlim(zlims)
+#    lims = (ax.get_xlim()[0], ax.get_ylim()[0], ax.get_zlim()[0])
+    
+    meandf = fits.groupby(['trialType','bin']).mean().reset_index()
+    for tt, df in meandf.groupby('trialType'):
+        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
+                alpha=.6, lw=1.25)
+#        ax.plot(df[0], df[1], lims[2], zdir='z', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+#        ax.plot(df[0], df[2], lims[1], zdir='y', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+#        ax.plot(df[1], df[2], lims[0], zdir='x', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
+                   alpha=.6, s=10, lw=0)
+#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+        df = df.loc[df.bin % bins == 0]
+        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
+                   alpha=.6, s=30, lw=0)
+#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+    
+    ax.view_init(azimuth, angle)
+    ax.set_title('{} {}'.format(azimuth, angle))
+    
+    plt.show()
+
+
+#%% more BS
+T = prepTrajectoryData(X.loc[['oprm1']], shuffle=True, trials=9999)
+T = T.groupby(['trialType','bin']).mean()
+pca = PCA(25, whiten=True, svd_solver='full')
+tsne = TSNE(3, method='exact', init='pca', n_iter=10000)
+pca_trans = pca.fit_transform(T)
+tsne_trans = tsne.fit_transform(pca_trans)
+fit = pd.DataFrame(tsne_trans, index=T.index)
+
+
+
+#%%
+def plotSide3D(sides, azimouth, angle, bins=3, phases=['o!','o.','r.']):
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    for n,side in enumerate(sides):
+        if 'o!' in phases:
+            #df = mfit.query('trialType == "p{}2Co!"'.format(side))
+            #ax.plot(df[0], df[1], df[2], 
+            #        c=sns.desaturate(style.getColor('o!'), [1,1][n]),
+            #        alpha=[.7,.7][n], lw=3)
+            #df = df.loc[df.bin % bins == 0]
+            #ax.scatter(df[0], df[1], df[2], color=style.getColor('o!'),
+            #           s=50, depthshade=False, alpha=[.8,.8][n],
+            #           marker='<' if side == 'L' else '>')
+            #c=df.bin, cmap='rainbow', s=30)
+            #for _, df in fit.query('trialType == "p{}2Co!"'.format(side)).groupby('trialNo'):
+            #    ax.plot(df[0], df[1], df[2], c=style.getColor('o!'), alpha=[.15,.15][n],
+            #            lw=1)
+            for _, df in mfits.query('trialType=="p{}2Co!"'.format(side)).groupby('iteration'):
+                ax.plot(df[0], df[1], df[2], c=style.getColor('o!'), alpha=[.25,.25][n],
+                        lw=1)
+        
+        if 'o.' in phases:
+            #df = mfit.query('trialType == "p{}2Co."'.format(side))
+            #ax.plot(df[0], df[1], df[2],
+            #        c=sns.desaturate(style.getColor('o.'), [1,1][n]),
+            #        alpha=[.7,.7][n], lw=3)
+            #df = df.loc[df.bin % bins == 0]
+            #ax.scatter(df[0], df[1], df[2], color=style.getColor('o.'),
+            #           s=50, depthshade=False, alpha=[.8,.8][n],
+            #           marker='<' if side == 'L' else '>')
+            #c=df.bin, cmap='rainbow', s=30)
+            #for _, df in fit.query('trialType == "p{}2Co."'.format(side)).groupby('trialNo'):
+            #    ax.plot(df[0], df[1], df[2], c=style.getColor('o.'), alpha=[.15,.15][n],
+            #            lw=1)
+            for _, df in mfits.query('trialType=="p{}2Co."'.format(side)).groupby('iteration'):
+                ax.plot(df[0], df[1], df[2], c=style.getColor('o.'), alpha=[.25,.25][n],
+                        lw=1)
+
+        if 'r.' in phases:
+            #df = mfit.query('trialType == "p{}2Cr."'.format(side))
+            #ax.plot(df[0], df[1], df[2],
+            #        c=sns.desaturate(style.getColor('r.'), [1,1][n]),
+            #        alpha=[.7,.7][n], lw=3)
+            #df = df.loc[df.bin % bins == 0]
+            #ax.scatter(df[0], df[1], df[2], color=style.getColor('r.'),
+            #           s=50, depthshade=False, alpha=[.8,.8][n],
+            #           marker='<' if side == 'L' else '>')
+            #c=df.bin, cmap='rainbow', s=30)
+            #for _, df in fit.query('trialType == "p{}2Cr."'.format(side)).groupby('trialNo'):
+            #    ax.plot(df[0], df[1], df[2], c=style.getColor('r.'), alpha=[.15,.15][n],
+            #            lw=1)
+            for _, df in mfits.query('trialType=="p{}2Cr."'.format(side)).groupby('iteration'):
+                ax.plot(df[0], df[1], df[2], c=style.getColor('r.'), alpha=[.25,.25][n],
+                        lw=1)
+    
+    #ax.axis('off')
+    ax.view_init(azimouth, angle)
+    ax.set_title('{} {}'.format(azimouth, angle))
+    #plt.show()
+
+    
+plotSide3D('LR', 130, 35, phases=['r.','o.','o!'])
+#plt.axis('off')
+plt.show()
+
+#%%
 fig = plt.figure()
-ax = fig.add_subplot(111, projection='3d')
+ax = plt.gca()
+x,y = 1,2
+
+df = mfit.query('trialType == "pL2Co!"')
+ax.plot(df[x], df[y], c=style.getColor('o!'), alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='<')#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
+    ax.plot(df[x], df[y], c=style.getColor('o!'), alpha=.15)
+
+df = mfit.query('trialType == "pL2Co."')
+ax.plot(df[x], df[y], c=style.getColor('o.'),alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='<')#c=df.bin, cmap='rainbow', s=30)
+#for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
+#    ax.plot(df[x], df[y], c=style.getColor('o.'), alpha=.15)
+
+df = mfit.query('trialType == "pL2Cr."')
+ax.plot(df[x], df[y], c=style.getColor('r.'), alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='<')#c=df.bin, cmap='rainbow', s=30)
+for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
+    ax.plot(df[x], df[y], c=style.getColor('r.'), alpha=.15)
+
+#plt.show()
+
+#%%
+#fig = plt.figure()
+#ax = plt.gca()
+#x,y = 1,2
 
 df = mfit.query('trialType == "pR2Co!"')
-ax.plot(df[0], df[1], df[2], c='r',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+ax.plot(df[x], df[y], c=style.getColor('o!'),alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='>')#c=df.bin, cmap='rainbow', s=30)
 for _, df in fit.query('trialType == "pR2Co!"').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='r', alpha=.25)
+    ax.plot(df[x], df[y], c=style.getColor('o!'), alpha=.15)
 
 df = mfit.query('trialType == "pR2Co."')
-ax.plot(df[0], df[1], df[2], c='y',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+ax.plot(df[x], df[y], c=style.getColor('o.') ,alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='>')#c=df.bin, cmap='rainbow', s=30)
 for _, df in fit.query('trialType == "pR2Co."').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='y', alpha=.25)
+    ax.plot(df[x], df[y], c=style.getColor('o.'), alpha=.15)
 
 df = mfit.query('trialType == "pR2Cr."')
-ax.plot(df[0], df[1], df[2], c='g', alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
+ax.plot(df[x], df[y], c=style.getColor('r.'), alpha=.7, lw=2.5)
+df = df.loc[df.bin % 4 == 0]
+ax.scatter(df[x], df[y], c='k', s=30, marker='>')#c=df.bin, cmap='rainbow', s=30)
 for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='g', alpha=.25)
-
-plt.show()
+    ax.plot(df[x], df[y], c=style.getColor('r.'), alpha=.15)
+    
 
 #%%
 from mpl_toolkits.mplot3d import Axes3D
@@ -156,22 +382,22 @@ df = mfit.query('trialType == "pL2Co!"')
 ax.plot(df[0], df[1], df[2], c='r',alpha=.9, lw=2.5)
 df = df.loc[df.bin % 3 == 0]
 ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='r', alpha=.1)
+#for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
+#    ax.plot(df[0], df[1], df[2], c='r', alpha=.1)
 
 df = mfit.query('trialType == "pL2Co."')
 ax.plot(df[0], df[1], df[2], c='y',alpha=.9, lw=2.5)
 df = df.loc[df.bin % 3 == 0]
 ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='y', alpha=.1)
+#for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
+#    ax.plot(df[0], df[1], df[2], c='y', alpha=.1)
 
 df = mfit.query('trialType == "pL2Cr."')
 ax.plot(df[0], df[1], df[2], c='g', alpha=.9, lw=2.5)
 df = df.loc[df.bin % 3 == 0]
 ax.scatter(df[0], df[1], df[2], c='k', s=30, depthshade=False)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
-    ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
+#for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
+#    ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
 
 plt.show()
 
@@ -223,55 +449,3 @@ for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
     ax.plot(df[0], df[1], df[2], c='g', alpha=.1)
 
 plt.show()
-
-#%%
-fig = plt.figure()
-ax = plt.gca()
-
-df = mfit.query('trialType == "pL2Co!"')
-ax.plot(df[0], df[2], c='r',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Co!"').groupby('trialNo'):
-    ax.plot(df[0], df[2], c='r', alpha=.5)
-
-df = mfit.query('trialType == "pL2Co."')
-ax.plot(df[0], df[2], c='y',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Co."').groupby('trialNo'):
-    ax.plot(df[0], df[2], c='y', alpha=.5)
-
-df = mfit.query('trialType == "pL2Cr."')
-ax.plot(df[0], df[2], c='g', alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[2], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pL2Cr."').groupby('trialNo'):
-    ax.plot(df[0], df[2], c='g', alpha=.5)
-
-plt.show()
-
-#%%
-fig = plt.figure()
-ax = plt.gca()
-
-df = mfit.query('trialType == "pR2Co!"')
-ax.plot(df[0], df[1], c='r',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pR2Co!"').groupby('trialNo'):
-    ax.plot(df[0], df[1], c='r', alpha=.5)
-
-df = mfit.query('trialType == "pR2Co."')
-ax.plot(df[0], df[1], c='y',alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pR2Co."').groupby('trialNo'):
-    ax.plot(df[0], df[1], c='y', alpha=.5)
-
-df = mfit.query('trialType == "pR2Cr."')
-ax.plot(df[0], df[1], c='g', alpha=.9, lw=2.5)
-df = df.loc[df.bin % 3 == 0]
-ax.scatter(df[0], df[1], c='k', s=30)#c=df.bin, cmap='rainbow', s=30)
-for _, df in fit.query('trialType == "pR2Cr."').groupby('trialNo'):
-    ax.plot(df[0], df[1], c='g', alpha=.5)
