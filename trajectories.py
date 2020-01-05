@@ -132,28 +132,97 @@ def prepTrajectoryData(X, trials=None, shuffle=True, seed=None):
 
 
 #%%
-Ts = []
-for i in range(5):
-    Ts.append(prepTrajectoryData(
-                  X.query("trialType in ['pL2Cr.','pL2Co!']"), 
-                  shuffle=True, seed=i+20, trials=20))
-T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+def plot3D(train_fits, test_fits, azimuth, angle, lims=None, bins=4,
+           order=['r.','o.','o!']):
+    fig = plt.figure(figsize=(10,10))
+    ax = fig.add_subplot(111, projection='3d')
+    
+    for (tt,it,tn), df in test_fits.groupby(['trialType','iteration','trialNo']):
+        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
+                alpha=.08, lw=.8, zorder={'r.':3, 'o.':2, 'o!':1}[tt[-2:]])
+    
+    if not lims: 
+        ax.set_xlim(np.array(ax.get_xlim())*1.3)
+        ax.set_ylim(np.array(ax.get_ylim())*1.3)
+        ax.set_zlim(np.array(ax.get_zlim())*1.3)
+    else: 
+        ax.set_xlim(lims)
+        ax.set_ylim(lims)
+        ax.set_zlim(lims)
+#    lims = (ax.get_xlim()[0], ax.get_ylim()[0], ax.get_zlim()[0])
+    
+    meandf = train_fits.groupby(['trialType','bin']).mean().reset_index()
+    for tt, df in meandf.groupby('trialType'):
+        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
+                alpha=.6, lw=1.5, zorder={'r.':3, 'o.':2, 'o!':1}[tt[-2:]])
+#        ax.plot(df[0], df[1], lims[2], zdir='z', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+#        ax.plot(df[0], df[2], lims[1], zdir='y', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+#        ax.plot(df[1], df[2], lims[0], zdir='x', c=style.getColor(tt[-2:]),
+#                alpha=.6, lw=1.25)
+        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
+                   alpha=.6, s=15, lw=0, zorder={'r.':3, 'o.':2, 'o!':1}[tt[-2:]])
+#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=10, lw=0)
+        df = df.loc[df.bin % bins == 0]
+        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
+                   alpha=.8, s=50, lw=0, zorder={'r.':3, 'o.':2, 'o!':1}[tt[-2:]])
+#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
+#                   alpha=.6, s=30, lw=0)
+    
+    ax.view_init(azimuth, angle)
+    #ax.set_title('{} {}'.format(azimuth, angle))
+    ax.set_xticklabels(())
+    ax.set_yticklabels(())
+    ax.set_zticklabels(())
+    
+    return fig
+
+
+#%%
+T = prepTrajectoryData(X.query('trialType in ["pR2Cr.","pR2Co.","pR2Co!"]'),
+                       shuffle=True, seed=0, trials=999999)
 
 pca = PCA(3, whiten=True, svd_solver='full')
-#pca = FastICA(3, whiten=True, max_iter=10000)
-#pca = FactorAnalysis(3, max_iter=1000, svd_method='lapack')
 pca.fit(T)
+
+train_fits = pd.DataFrame(pca.transform(T), index=T.index).reset_index()
 
 Ts = []
 for i in range(5):
-    Ts.append(prepTrajectoryData(
-                  X, 
-                  shuffle=True, seed=i+20, trials=20))
+    Ts.append(prepTrajectoryData(X, shuffle=True, seed=i+1, trials=20))
 T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
 
-pca_trans = pca.transform(T)
-fits = pd.DataFrame(pca_trans, index=T.index).reset_index()
+test_fits = pd.DataFrame(pca.transform(T), index=T.index).reset_index()
 
+#%%
+fig = plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
+             290, 45, lims=(-3,3))
+fig.savefig('svg/right_trials_290_45.png', pad_inches=0, bbox_inches='tight')
+
+fig = plot3D(train_fits,
+             test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
+             195, 180, lims=(-3,3))
+fig.savefig('svg/right_trials_195_180.png', pad_inches=0, bbox_inches='tight')
+
+
+#%% more BS ########################################################################
+T = prepTrajectoryData(X.loc[['oprm1']], shuffle=True, trials=9999)
+T = T.groupby(['trialType','bin']).mean()
+pca = PCA(25, whiten=True, svd_solver='full')
+tsne = TSNE(3, method='exact', init='pca', n_iter=10000)
+pca_trans = pca.fit_transform(T)
+tsne_trans = tsne.fit_transform(pca_trans)
+fit = pd.DataFrame(tsne_trans, index=T.index)
 
 #%% try single session; can project real trials into space obtained from shuffled data
 genotype = 'oprm1'
@@ -187,68 +256,6 @@ T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
 pca_trans = pca.transform(T)
 iso_trans = iso.transform(pca_trans[:,:pca_dims])
 fits = pd.DataFrame(iso_trans, index=T.index).reset_index()
-
-
-#%%
-def plot3D(fits, azimuth, angle, xlims=None, ylims=None, zlims=None, bins=4):
-    fig = plt.figure(figsize=(10,10))
-    ax = fig.add_subplot(111, projection='3d')
-    
-    for (tt,it,tn), df in fits.groupby(['trialType','iteration','trialNo']):
-        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
-                alpha=.2, lw=.5)
-    
-    if not xlims: ax.set_xlim(np.array(ax.get_xlim())*1.3)
-    else: ax.set_xlim(np.array(xlims))
-    if not ylims: ax.set_ylim(np.array(ax.get_ylim())*1.3)
-    else: ax.set_ylim(ylims)
-    if not zlims: ax.set_zlim(np.array(ax.get_zlim())*1.3)
-    else: ax.set_zlim(zlims)
-#    lims = (ax.get_xlim()[0], ax.get_ylim()[0], ax.get_zlim()[0])
-    
-    meandf = fits.groupby(['trialType','bin']).mean().reset_index()
-    for tt, df in meandf.groupby('trialType'):
-        ax.plot(df[0], df[1], df[2], c=style.getColor(tt[-2:]),
-                alpha=.6, lw=1.25)
-#        ax.plot(df[0], df[1], lims[2], zdir='z', c=style.getColor(tt[-2:]),
-#                alpha=.6, lw=1.25)
-#        ax.plot(df[0], df[2], lims[1], zdir='y', c=style.getColor(tt[-2:]),
-#                alpha=.6, lw=1.25)
-#        ax.plot(df[1], df[2], lims[0], zdir='x', c=style.getColor(tt[-2:]),
-#                alpha=.6, lw=1.25)
-        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
-                   alpha=.6, s=10, lw=0)
-#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=10, lw=0)
-#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=10, lw=0)
-#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=10, lw=0)
-        df = df.loc[df.bin % bins == 0]
-        ax.scatter(df[0], df[1], df[2], color=style.getColor(tt[-2:]),
-                   alpha=.6, s=30, lw=0)
-#        ax.scatter(df[0], df[1], lims[2], zdir='z', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=30, lw=0)
-#        ax.scatter(df[0], df[2], lims[1], zdir='y', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=30, lw=0)
-#        ax.scatter(df[1], df[2], lims[0], zdir='x', color=style.getColor(tt[-2:]),
-#                   alpha=.6, s=30, lw=0)
-    
-    ax.view_init(azimuth, angle)
-    ax.set_title('{} {}'.format(azimuth, angle))
-    
-    plt.show()
-
-
-#%% more BS
-T = prepTrajectoryData(X.loc[['oprm1']], shuffle=True, trials=9999)
-T = T.groupby(['trialType','bin']).mean()
-pca = PCA(25, whiten=True, svd_solver='full')
-tsne = TSNE(3, method='exact', init='pca', n_iter=10000)
-pca_trans = pca.fit_transform(T)
-tsne_trans = tsne.fit_transform(pca_trans)
-fit = pd.DataFrame(tsne_trans, index=T.index)
-
 
 
 #%%
