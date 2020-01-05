@@ -104,7 +104,7 @@ del windows
 mean_rs = pd.read_pickle('actionAvgs_raster.pkl')
 
 #%%
-trialType = 'o.'
+trialType = 'r.'
 df = mean_rs.query('trialType == @trialType').copy().reset_index('trialType', drop=True)
 df = df.reset_index('action')
 if trialType.endswith('.'):
@@ -150,33 +150,64 @@ posCount.set_index(['action','bin'], inplace=True)
 posCount = posCount[['d1','a2a','oprm1']]
 
 #%%
+layout = figurefirst.FigureLayout(templateFolder / "2choiceIntro.svg")
+layout.make_mplfigures()
+
+#%%
 df = df.loc[idx.index]
 
-fig, axs = plt.subplots(2, 10, figsize=(5,5),
-                        gridspec_kw={'height_ratios':(.15, .85),
-                                     'hspace':0.02})
-
 barcol = [style.getColor(gt) for gt in posCount.columns]
-for p, action in enumerate(df.columns.levels[0]):
-    axs[0,p].bar(np.arange(-3,0), posCount.loc[action,0].values, color=barcol)
-    axs[0,p].bar(np.arange(1,4), posCount.loc[action,1].values, color=barcol)
-    axs[0,p].axvline(0, c='k', ls=':')
+no_bins = df['pL2C'].shape[1]
+for action in df.columns.levels[0]:
+    barAx = layout.axes['bar_{}'.format(action)]['axis']
+    barAx.bar(np.arange(-3,0), posCount.loc[action,0].values, color=barcol)
+    barAx.bar(np.arange(1,4), posCount.loc[action,1].values, color=barcol)
+    barAx.axvline(0, c='k', ls=':')
+    barAx.set_ylim((0,.2))
+    barAx.axis('off')
+    if action == 'dR2C':
+        barAx.axis('on')
+        barAx.set_xticks(())
+        sns.despine(bottom=True, left=True, right=False, ax=barAx,
+                    offset=1)
+        barAx.set_yticks((0,.1,.2))
+        barAx.set_yticklabels((0,10,20))
+        barAx.set_yticks((.05, .15), minor=True)
+        barAx.set_ylabel('% neurons')
+        barAx.yaxis.set_label_position('right')
+        barAx.yaxis.set_ticks_position('right')
     
-    axs[1,p].imshow(df.loc[:,action].values, aspect='auto', vmin=-1, vmax=1, cmap='RdBu_r')
-    axs[1,p].axvline(df.loc[:,action].shape[1] // 2 - 1 + .5, c='k', ls=':')
+    rasterAx = layout.axes['raster_{}'.format(action)]['axis']
+    img = rasterAx.imshow(df.loc[:,action].values, aspect='auto',
+                          vmin=-1, vmax=1, cmap='RdBu_r')
+    rasterAx.axvline(no_bins // 2 - .5, c='k', ls=':')
+    rasterAx.axis('off')
+    if action == 'pL2C':
+        rasterAx.axis('on')
+        sns.despine(left=True, bottom=True, ax=rasterAx)
+        rasterAx.set_xticks(())
+        rasterAx.set_yticks((0, len(df)-1))
+        rasterAx.set_yticklabels([1,len(df)])
+        rasterAx.set_ylabel('neuron', labelpad=-15)
+        rasterAx.tick_params(axis='y', length=0, pad=2)
+    if action in ['pC2L','pC2R']:
+        rasterAx.axis('on')
+        sns.despine(left=True, ax=rasterAx, offset=1)
+        rasterAx.set_yticks(())
+        rasterAx.set_xticks((-.5, no_bins // 2 - .5, no_bins - .5))
+        rasterAx.set_xticklabels((-no_bins // 2 * 50, 0, no_bins // 2 * 50))
     
-for ax in axs[0]:
-    ax.set_ylim((0,.2))
-    ax.axis('off')
-axs[0,0].axis('on')
-axs[0,0].set_xticks(())
-axs[0,0].set_yticks((0,.1,.2))
-axs[0,0].set_yticklabels((0,10,20))
-axs[0,0].set_yticks((.05,.15), minor=True)
-sns.despine(bottom=True, ax=axs[0,0])
-    
-for ax in axs[1]:
-    ax.axis('off')
-
-fig.savefig('svg/raster.svg', bbox_inches='tight', pad_inches=0)
-
+cax = layout.axes['raster_colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='vertical')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(.38, 1.032, '1', ha='center', va='bottom', fontdict={'fontsize':6},
+         transform=cax.transAxes)
+cax.text(.25, -.05, '-1', ha='center', va='top', fontdict={'fontsize':6},
+         transform=cax.transAxes)
+cax.text(3.45, .5, 'peak-normalized\naverage', ha='center', va='center', fontdict={'fontsize':7},
+         rotation=90, transform=cax.transAxes)
+        
+#%%
+layout.insert_figures('plots')
+layout.write_svg(outputFolder / "2choiceIntro.svg")
