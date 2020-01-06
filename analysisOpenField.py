@@ -10,6 +10,7 @@ import tqdm
 import multiprocessing
 import functools
 import pyximport; pyximport.install()
+import scipy.stats
 
 from utils import readSessions, particleFilter, segmentBehaviors
 from utils.cachedDataFrame import cachedDataFrame
@@ -421,6 +422,49 @@ def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
         
     return dist_df
 
+@cachedDataFrame("openFieldPopulationSpeedCorr.pkl")
+def populationSpeedCorr(endoDataPath):
+    filtered = filterAllOpenField(endoDataPath)
+    res = []
+    for sess in readSessions.findSessions(endoDataPath, task="openField"):
+        deconv = sess.readDeconvolvedTraces(zScore=True)
+        meanActivity = deconv.mean(axis=1)
+        if meanActivity.isna().any(): continue
+        speed = filtered.loc[str(sess)].speed
+        corr = scipy.stats.pearsonr(meanActivity, speed)[0]
+        shuffledCorr = scipy.stats.pearsonr(meanActivity, np.random.permutation(speed))[0]
+        res.append((sess.meta.genotype, sess.meta.animal, sess.meta.date, deconv.shape[1], corr))
+        res.append((sess.meta.genotype+"_shuffled", sess.meta.animal+"_shuffled",
+                    sess.meta.date+"_shuffled", deconv.shape[1], shuffledCorr))
+    return pd.DataFrame(res, columns=["genotype", "animal", "date", "noNeurons", "correlation"])
+
+@cachedDataFrame("openFieldPopulationIncreaseInMovement.pkl")
+def populationIncreaseInMovement(endoDataPath):
+    segments = segmentAllOpenField(endoDataPath)
+    res = []
+    for sess in readSessions.findSessions(endoDataPath, task="openField"):
+        deconv = sess.readDeconvolvedTraces(zScore=True)
+        meanActivity = deconv.mean(axis=1)
+        segs = segments.loc[str(sess)]
+        mask = np.full(len(deconv), False)
+        for r in segs[segs.behavior=='stationary'].itertuples():
+            mask[r.startFrame:r.stopFrame] = True
+        meanStationary = meanActivity[mask].mean()
+        meanMoving = meanActivity[np.logical_not(mask)].mean()
+        res.append((sess.meta.genotype, sess.meta.animal, sess.meta.date, deconv.shape[1],
+                    meanStationary, meanMoving))
+        
+        mask = np.full(len(deconv), False)
+        for r in segs[np.random.permutation(segs.behavior)=='stationary'].itertuples():
+            mask[r.startFrame:r.stopFrame] = True
+        meanStationary = meanActivity[mask].mean()
+        meanMoving = meanActivity[np.logical_not(mask)].mean()
+        res.append((sess.meta.genotype+"_shuffled", sess.meta.animal+"_shuffled", sess.meta.date+"_shuffled",
+                    deconv.shape[1], meanStationary, meanMoving))
+        #res.append((sess.meta.genotype+"_shuffled", sess.meta.animal+"_shuffled",
+        #            sess.meta.date+"_shuffled", deconv.shape[1], shuffledCorr))
+    return pd.DataFrame(res, columns=["genotype", "animal", "date", "noNeurons",
+                                      "meanStationary", "meanMoving"])
 #def get_centers(rois):
 #    # find pixel of maximum intensity in each mask; use as neuron center
 #    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),

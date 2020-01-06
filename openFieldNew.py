@@ -50,40 +50,24 @@ coords = analysisOpenField.getSmoothedOFTTracking(endoDataPath, example_sess['ge
 
 
 #%%
-ax = layout.axes['ex_path']['axis']
-coords['distance'] = np.sqrt(coords.x.diff()**2 + coords.y.diff()**2)
-start, end = 3200, 5600
-cdf = coords.loc[start:end].copy()
-cdf['distance'] = cdf.distance.cumsum().fillna(0)
 
-ax.plot(cdf.x, cdf.y, color='k', lw=0.5, zorder=0)
-timepoints = np.linspace(start, end, 5, endpoint=False, dtype=np.int)
-for i in np.arange(5):
-    x = coords.iloc[timepoints[i]].x
-    y = coords.iloc[timepoints[i]].y
-    circ = mpatches.Circle((x, y), 2, color='k', zorder=3)
+for i in np.arange(4):
+    ax = layout.axes['ex_path_{}'.format(i+1)]['axis']
+    start, end = 3200+i*400, 3200+(i+1)*400
+    cdf = coords.loc[start:end].copy()
+    ax.plot(cdf.x, cdf.y, color='k', lw=0.5, zorder=0)
+    for (actioNo, behavior), adf in cdf.groupby(['actionNo', 'behavior']):
+        ax.plot(adf.x, adf.y, c=style.getColor(behavior), lw=5, alpha=.43,
+                 zorder=2)
+    x = cdf.iloc[0].x
+    y = cdf.iloc[0].y
+    circ = mpatches.Circle((x, y), 4, color='k', zorder=3)
     ax.text(x,y,i+1,color="w", ha="center", va="center", fontsize=6)
     ax.add_patch(circ)
-'''
-for c in cdf.groupby(pd.cut(cdf.distance, 5)).last().dropna().itertuples():
-    x = c.x + 1.5 * np.cos(np.deg2rad(c.bodyDirection))
-    y = c.y + 1.5 * np.sin(np.deg2rad(c.bodyDirection))
-    w = mpatches.Wedge((x, y), 4, c.bodyDirection-180-22, c.bodyDirection-180+22,
-              facecolor='w', edgecolor='none', lw=2, alpha=1, zorder=1)
-    plt.gca().add_patch(w)
-    w = mpatches.Wedge((x, y), 4, c.bodyDirection-180-22, c.bodyDirection-180+22,
-              facecolor='none', edgecolor='k', lw=2, alpha=1, zorder=3)
-    plt.gca().add_patch(w)
-''' 
-    
-for (actioNo, behavior), adf in cdf.groupby(['actionNo', 'behavior']):
-    ax.plot(adf.x, adf.y, c=style.getColor(behavior), lw=5, alpha=.43,
-             zorder=2)
-
-ax.set_xticks(())
-ax.set_yticks(())
-ax.set_xlim(0,49)
-ax.set_ylim(0,49)
+    ax.set_xticks(())
+    ax.set_yticks(())
+    ax.set_xlim(0,49)
+    ax.set_ylim(0,49)
 
 best_neurons = ex_tunings.set_index("neuron").groupby("action").tuning.idxmax()
 order = ["running", "leftTurn", "rightTurn"]
@@ -111,9 +95,10 @@ cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
 cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
 cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
+start = 3200
 start = start / 20.0
 tpr = 24
-for r in np.arange(5):
+for r in np.arange(4):
     axt = layout.axes['ex_t{}'.format(r+1)]['axis']
     for behavior in order:
         max_neuron = best_neurons[behavior]
@@ -149,26 +134,6 @@ patches = [mpatches.Patch(color=style.getColor(b), label=t, alpha=.15)
                for b,t in [('running','running'),('leftTurn','left turn'),('rightTurn','right turn')]]
 axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02),
            loc='lower center')
-
-fvs = {gt: fancyViz.OpenFieldSchematicPlot(s, linewidth=mpl.rcParams['axes.linewidth']) for gt in ["d1", "a2a", "oprm1"]}
-for sess in readSessions.findSessions(endoDataPath, task='openField'):
-    traces = sess.readDeconvolvedTraces(zScore=True)
-    fvs[sess.meta.genotype].setSession(sess)
-    for n in traces.columns:
-        fvs[sess.meta.genotype].addTraceToBuffer(traces[n])
-for gt in fvs.keys():
-    ax = layout.axes['avg_{}'.format(gt)]['axis']
-    fvs[gt].drawBuffer(ax=ax)
-cax = layout.axes['colorbar_avg']['axis']
-cb = plt.colorbar(img, cax=cax, orientation='horizontal')
-#cax.xaxis.tick_top()
-#cax.tick_params(axis='both', which='both',length=0)
-cb.outline.set_visible(False)
-cax.set_axis_off()
-cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
-cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
-cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
-#%% map
 
 ax = layout.axes['tuning_fov']['axis']
 
@@ -239,216 +204,78 @@ for g in ['d1','a2a','oprm1']:
                     textprops={'color':'k'}, colors=[style.getColor(b) for b in gdata.index])
 
     ax.set_aspect('equal')
-    
-#%%
-gby = tuningData.groupby(["genotype", "animal", "date", "action"])
-df = pd.DataFrame({'nNeurons': gby.size(),
-                   'percTuned': gby.signp.mean()*100}).reset_index()
-order = ("leftTurn", "rightTurn", "running", "stationary")
-for gt, subset in df.groupby("genotype"):
-    ax = layout.axes['tunedFrac_'+gt]['axis']
-    sessionBarPlot.actionBarPlot(subset, "percTuned", "action", ax, style.getColor, 
-                                  weightCol="nNeurons", hueOrder=order, barAlpha=0.5)
-    ax.set_ylim(0,75)
-    if gt == "d1":
-        ax.set_ylabel("tuned neurons (%)")
-        ax.set_yticks([0,25,50,75])
-    else:
-        ax.set_yticks([])
-    ax.set_title(longGtNames[gt])
+
+
+def getOnAndOffset(s):
+    s = s[["startFrame", "stopFrame", "behavior"]]
+    s["nextBehavior"] = s.behavior.shift(-1)
+    s["prevBehavior"] = s.behavior.shift(1)
+    start = s.startFrame.iloc[0]
+    end = s.stopFrame.iloc[-1]
+    s = s.set_index("startFrame", drop=False).rename_axis(index="frame")
+    s = s.reindex(np.arange(start, end), method="ffill")
+    s["framesSinceStart"] = s.index - s.startFrame
+    s["framesTillEnd"] = s.stopFrame - s.index
+
+    onsetTimes = np.full(len(s), np.nan)
+    m = s.behavior=='stationary'
+    onsetTimes[m] = -s.framesTillEnd[m]
+    m = s.prevBehavior=='stationary'
+    onsetTimes[m] = s.framesSinceStart[m]
+
+    offsetTimes = np.full(len(s), np.nan)
+    m = s.nextBehavior=='stationary'
+    offsetTimes[m] = -s.framesTillEnd[m]
+    m = s.behavior=='stationary'
+    offsetTimes[m] = s.framesSinceStart[m]
+    return pd.DataFrame({'onsetTimes': onsetTimes, 'offsetTimes': offsetTimes}, s.index)
+
+segmented = analysisOpenField.segmentAllOpenField(endoDataPath)
+times = segmented.groupby(level=[0,1]).apply(getOnAndOffset).droplevel(1)
+onsets = []
+offsets = []
+genotypes = []
+for sess in readSessions.findSessions(endoDataPath, task="openField"):
+    deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+    genotypes.append(np.full(deconv.shape[1], sess.meta.genotype))
+    sessTimes = times.loc[str(sess)]
+    onsets.append(deconv.groupby(sessTimes.onsetTimes).mean().reindex(np.arange(-20,20)).T)
+    offsets.append(deconv.groupby(sessTimes.offsetTimes).mean().reindex(np.arange(-20,20)).T)
+genotypes = np.concatenate(genotypes)
+onsets = pd.concat(onsets)
+offsets = pd.concat(offsets)
+
+for fullDf, axName in [(onsets, "avgOnset"), (offsets, "avgOffset")]:
+    ax = layout.axes[axName]["axis"]
+    for gt, df in fullDf.groupby(genotypes):
+        m = df.mean(axis=0)
+        err = df.sem(axis=0)
+        ax.fill_between(m.index*0.05, m-err, m+err, color=style.getColor(gt), alpha=0.25)
+        ax.plot(m.index*0.05, m, color=style.getColor(gt))
+    ax.axvline(0, ls='--', c='k')
+    ax.set_ylim(-0.05, 0.08)
     sns.despine(ax=ax)
-'''
-
-#%% tuning counts (simple)
-hist_df = analysisTunings.getTunedNoHistData(tuningData)
-
-axs = {}
-for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
-    ax = layout.axes['no_tuned_'+g]['axis']
-    axs[g] = ax
-    
-    ax.scatter(analysisTunings.jitter(gdata.bin, .12), gdata.signp,
-               s=gdata.noNeurons/25, edgecolor=style.getColor(g),
-               facecolor='none', alpha=.8, zorder=0, clip_on=False,
-               lw=mpl.rcParams['axes.linewidth'])
-    
-    avg = gdata.groupby('bin').apply(analysisTunings.wAvg, 'signp', 'noNeurons')
-    sem = gdata.groupby('bin').apply(analysisTunings.bootstrap, 'signp', 'noNeurons')
-    ax.bar(avg.index, avg, yerr=sem, color=style.getColor(g),
-           lw=0, alpha=.3, zorder=1)
-    
-    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
-    ax.set_ylim((0,.5))
-    ax.set_yticks((0,.25,.5))
-    ax.set_yticklabels(())
-    ax.yaxis.set_minor_locator(MultipleLocator(.125))
-    ax.set_xlim((0.25,5.75))
-    ax.set_xticks((1,3,5))
-    ax.xaxis.set_minor_locator(FixedLocator((2,4)))
-    ax.set_xticklabels(['1','3','5+'])
-    sns.despine(ax=ax)
-    
-
-axs['d1'].set_yticklabels((0,25,50))
-axs['d1'].set_ylabel('neurons (%)')
-axs['a2a'].set_xlabel('number of actions')
+layout.axes["avgOffset"]["axis"].set_yticks([])
+layout.axes["avgOnset"]["axis"].set_title("movement\nonset (s)")
+layout.axes["avgOffset"]["axis"].set_title("movement\noffset (s)")
+layout.axes["avgOnset"]["axis"].set_ylabel("z-score")
 
 
-#%% TSNE
-tuningTsne = analysisTunings.getTSNEProjection(tuningData)
-
-#%%
-for g,gdata in tuningTsne.groupby('genotype'):
-    ax = layout.axes['tsne_'+g]['axis']
-    
-    ax.scatter(gdata[0], gdata[1],
-               c=gdata.action.str.slice(0,4).apply(style.getColor),
-               marker='.', alpha=.75, s=1.35, lw=0, clip_on=False)
-
-    ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
-    ax.invert_xaxis()
-    ax.set_aspect('equal')
-    ax.axis('off')
-
-ax = layout.axes['tsne_tuning']['axis']
-
-ax.scatter(tuningTsne[0], tuningTsne[1],
-           c=tuningTsne.action.str.slice(0,4).apply(style.getColor),
-           marker='.', alpha=.75, s=3, lw=0, clip_on=False)
-
-ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
-ax.invert_xaxis()
-ax.set_aspect('equal')
-ax.axis('off')
-
-
-#%% similar tuning == closer spatially?
-pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
-    
-#%%
-ax = layout.axes['dist_scatter']['axis']
-
-for g, gdata in pdists.groupby('genotype'):
-    ax.scatter(gdata.dist_shuffle, gdata.dist, s=gdata.noNeurons/25,
-               edgecolor=style.getColor(g), facecolor=style.getColor(g),
-               alpha=.4, lw=mpl.rcParams['axes.linewidth'])
-    
-avg = pdists.groupby('genotype').apply(analysisTunings.wAvg, 'dist', 'noNeurons')
-avg_s = pdists.groupby('genotype').apply(analysisTunings.wAvg, 'dist_shuffle', 'noNeurons')
-sem = pdists.groupby('genotype').apply(analysisTunings.bootstrap, 'dist', 'noNeurons')
-sem_s = pdists.groupby('genotype').apply(analysisTunings.bootstrap, 'dist_shuffle', 'noNeurons')
-
-for g in ['d1','a2a','oprm1']:
-    ax.errorbar(avg_s[g], avg[g], xerr=sem_s[g], yerr=sem[g],
-                color=style.getColor(g), fmt='s', markersize=3,
-                markeredgewidth=mpl.rcParams['axes.linewidth'],
-                markeredgecolor='k', ecolor='k',
-                label={'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
-
-ax.plot([25,75],[25,75], ls=':', color='k', alpha=.5, zorder=-1)    
-
-ax.set_xlim((25,75))
-ax.set_ylim((25,75))
-ax.set_xticks(np.arange(25,76,25))
-ax.set_yticks(np.arange(25,76,25))
-ax.set_aspect('equal')
-ax.set_xlabel('expected')
-ax.set_ylabel('observed')
-ax.text(50, 75, 'μm to nearest\ntuned neighbor', ha='center', va='center',
-        fontdict={'fontsize':7})
-ax.legend(loc='lower right', bbox_to_anchor=(1.1, .05))
-ax.set_aspect('equal')
+moveIncr = analysisOpenField.populationIncreaseInMovement(endoDataPath)
+moveIncr["diff"] = moveIncr.meanMoving - moveIncr.meanStationary
+ax = layout.axes["corrWithSpeed"]["axis"]
+order = ["d1", "d1_shuffled", "a2a", "a2a_shuffled", "oprm1", "oprm1_shuffled"]
+def colorFunc(l):
+    if l.endswith("_shuffled"): return 'k'
+    else: return style.getColor(l)
+sessionBarPlot.sessionBarPlot(moveIncr, "diff", ax, colorFunc, genotypeOrder=order,
+                              weightScale=0.05)
+ax.set_xticks([0.5, 2.5, 4.5])
+ax.set_xticklabels(["D1", "A2a", "Oprm1"])
+#ax.set_ylabel("$\langle S \rangle_{mov} - \langle S \rangle_{still}$")
+ax.set_ylabel("increase")
+ax.set_ylim(-0.03, 0.1)
 sns.despine(ax=ax)
-
-'''
-
-#%%
-speedTunings = analysisOpenField.calculateSpeedTuning(endoDataPath)
-speedTunings["genotype"] = speedTunings.sess.str.split("_").str[0]
-speedTunings["animal"] = speedTunings.sess.str.split("_").str[1]
-speedTunings["date"] = speedTunings.sess.str.split("_").str[2]
-speedTunings["speedTuned"] = speedTunings.pct > 0.995
-runTuned = (tuningData.query("action == 'running'").set_index(["animal", "date", "neuron"]).pct > 0.995).rename("runTuned")
-speedTunings = speedTunings.join(runTuned, on=["animal", "date", "neuron"])
-for subset in ("all", "runTuned"):
-    if subset == "all":
-        gby = speedTunings.groupby("sess")
-    else:
-        gby = speedTunings[speedTunings.runTuned].groupby("sess")
-    df = pd.DataFrame({'genotype': gby.genotype.first(),
-                       'animal': gby.animal.first(),
-                       'date': gby.date.first(),
-                       'nNeurons': gby.size(),
-                       'percTuned': gby.speedTuned.mean()*100})
-    ax = layout.axes['speedTunings_'+subset]['axis']
-    sessionBarPlot.sessionBarPlot(df, "percTuned", ax, style.getColor, weightCol="nNeurons")
-    ax.set_ylim(0,100)
-    ax.yaxis.set_minor_locator(MultipleLocator(25))
-    sns.despine(ax=ax)
-    if subset == 'all':
-        ax.set_title("all neurons", pad=2)
-        ax.set_xticks([])
-    else:
-        ax.set_title("tuned to running", pad=2)
-        ax.set_xticklabels(["D1", "A2A", "Oprm1"])
-
-#%%
-
-avgPerSpeed = analysisOpenField.avgActivityPerSpeed("data/endoData_2019.hdf")
-avgPerSpeed.drop(columns=[-1], inplace=True)
-avgPerSpeed -= avgPerSpeed[0][:,np.newaxis]
-meta = avgPerSpeed.index.to_frame()
-meta["genotype"], meta["animal"], meta["date"] = meta.session.str.split("_").str
-bins = np.array([-.00001, .1, 1, 2, 3, 5, 8, 10])
-xx = 0.5*(bins[1:]+bins[:-1])
-for gt in ("d1", "a2a", "oprm1"):
-    ax = layout.axes["activityPerSpeed_"+gt]["axis"]
-    subset = avgPerSpeed[meta.genotype==gt]
-    for (sess, nNeurons), r in subset.iterrows():
-        ax.plot(xx, r, color=style.getColor(gt), lw=nNeurons/400.0)
-    mean = [np.average(subset[col], weights=meta[meta.genotype==gt].noNeurons) for col in subset]
-    ax.plot(xx, mean, lw=1.8, color=style.getColor(gt))
-    ax.set_ylim(-0.01, 0.1)
-    sns.despine(ax=ax)
-    if gt=="a2a":
-        ax.set_ylabel('Δsd')
-    if gt=="oprm1":
-        ax.set_xticks((0,5,10))
-        ax.set_xlabel("velocity (cm/s)")
-    else:
-        ax.set_xticks([])
-    ax.text(0.5, 0.08, longGtNames[gt])#, color=style.getColor(gt))
-    #ax.set_title(gt)
-
-
-#%%
-ewindows = analysisOpenField.getEventWindows(endoDataPath, ["leftTurn", "rightTurn", "running"])
-ewindows.set_index(["animal", "date", "neuron", "label"], inplace=True)
-ewindows["tuned"] = tuningData.set_index(["animal", "date", "neuron", "action"]).pct>0.0995
-ewindows.reset_index(inplace=True)
-
-longerName = {'leftTurn': 'left turn', 'rightTurn': 'right turn', 'running': 'running'}
-
-for label in ("leftTurn", "rightTurn", "running"):
-    ax = layout.axes["onset_"+label]["axis"]
-    for gt in ("d1", "a2a", "oprm1"):
-        mask = np.logical_and(ewindows.genotype==gt, ewindows.label==label)
-        mask = np.logical_and(mask, ewindows.tuned)
-        ma = ewindows[mask].groupby(["animal", "date", "neuron"]).mean()["frameNo"]
-        m = ma.mean()
-        s = ma.sem()
-        ax.plot(np.linspace(-1,1,40), m, color=style.getColor(gt))
-        ax.fill_between(np.linspace(-1,1,40), m-s, m+s, color=style.getColor(gt), alpha=0.15)
-    ax.axvline(0, color='k', linestyle='--', lw=0.75)
-    ax.set_title(longerName[label] + ' tuned', pad=4)
-    ax.set_xlabel("time from\n"+longerName[label]+" onset (s)")
-    sns.despine(ax=ax)
-layout.axes["onset_leftTurn"]["axis"].set_ylabel("mean activity (z-score)")
-lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in ["d1", "a2a", "oprm1"]]
-layout.axes["onset_running"]["axis"].legend(lines, ["D1", "A2A", "Oprm1"], bbox_to_anchor=(1.05, 0.4, 0.2, 0.2))
-#layout.axes["onset_rightTurn"]["axis"].set_xlabel("time from onset (s)")
 
 #%%
 pdists = analysisOpenField.getPDistData(endoDataPath, tuningData)
@@ -521,27 +348,7 @@ plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
 sns.despine(ax=plt.gca())
 
 #%%
-decodingData = analysisOpenField.decodingConfusion(endoDataPath, segmentedBehavior)
-order = ["stationary", "running", "leftTurn", "rightTurn"]
-decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
-for gt, data in decodingData.groupby("genotype"):
-    weightedData = data.set_index(["true", "predicted"]).eval("occurencies * nNeurons")
-    weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
-    weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
-    ax = layout.axes["confusionMatrix_{}".format(gt)]["axis"]
-    yticks = [behaviorNames[b] for b in order] if gt == "oprm1" else False
-    sns.heatmap(weightedData[order].reindex(order), ax=ax, vmin=0, vmax=1, annot=True, fmt=".0%", cmap=cmocean.cm.amp,
-                cbar=False, xticklabels=[behaviorNames[b] for b in order],
-                yticklabels=yticks, annot_kws={'fontsize': 4.5},
-                linewidths=mpl.rcParams["axes.linewidth"])
-    ax.set_xlabel("predicted" if gt=="d1" else None)
-    ax.set_ylabel("truth" if gt=="oprm1" else None)
-    ax.set_title(genotypeNames[gt])
-    ax.set_ylim(4, 0)
-    ax.tick_params("both", length=0, pad=3)
-
-
-#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "openFieldNew.svg")
 print("Done")
+
