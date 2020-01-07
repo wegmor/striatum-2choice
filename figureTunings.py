@@ -13,12 +13,13 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MultipleLocator, FixedLocator
-from utils import readSessions, fancyViz
+from utils import readSessions, fancyViz, alluvialPlot
 from collections import defaultdict
 import pathlib
 import figurefirst
 import style
 import analysisTunings
+import analysisOpenField
 plt.ioff()
 
 
@@ -316,6 +317,81 @@ ax.legend(loc='lower right', bbox_to_anchor=(1.1, .05))
 ax.set_aspect('equal')
 sns.despine(ax=ax)
 
+
+#%%
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn'}
+
+## Panel J
+segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
+#segmentedBehavior = segmentedBehavior.set_index("session")
+openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
+
+twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
+
+for t in (twoChoiceTunings, openFieldTunings):
+    t['signp'] = t['pct'] > .995
+    t['signn'] = t['pct'] < .005
+    
+primaryTwoChoice = twoChoiceTunings.loc[twoChoiceTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+primaryTwoChoice.loc[~primaryTwoChoice.signp, 'action'] = 'none'
+primaryOpenField = openFieldTunings.loc[openFieldTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+primaryOpenField.loc[~primaryOpenField.signp, 'action'] = 'none'
+
+primaryPairs = primaryOpenField.join(primaryTwoChoice.set_index(["animal", "date", "neuron"]),
+                                     on=["animal", "date", "neuron"], rsuffix="_2choice", how="inner")
+primaryPairs = primaryPairs[["genotype", "animal", "date", "neuron", "action", "action_2choice"]]
+primaryPairs.rename(columns={'action': 'action_openField'}, inplace=True)
+
+order_openField = ["stationary", "running", "leftTurn", "rightTurn", "none"]
+order_twoChoice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
+                   "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr", "none"]
+primaryPairs.action_2choice = pd.Categorical(primaryPairs.action_2choice, order_twoChoice)
+primaryPairs.action_openField = pd.Categorical(primaryPairs.action_openField, order_openField)
+
+colormap = {a: style.getColor(a[:4]) for a in primaryPairs.action_2choice.unique()}
+colormap.update({a: style.getColor(a) for a in primaryPairs.action_openField.unique()})
+
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn'}
+
+for gt in ("d1", "a2a", "oprm1"):
+    ax = layout.axes['alluvial_{}'.format(gt)]['axis']
+    data = primaryPairs.query("genotype == '{}'".format(gt))
+    alluvialPlot.alluvialPlot(data, "action_openField", "action_2choice",
+                              colormap, ax, colorByRight=False, alpha=0.75)
+    ax.set_xlim(-0.2,1.2)
+    ax.axis("off")
+    ax.set_title(genotypeNames[gt])
+
+## Panel K
+examples = [
+    ('d1_5643_190201', 112),
+    ('a2a_5693_190131', 197),
+    ('oprm1_5308_190201', 86)
+]
+for i in range(3):
+    genotype, animal, date = examples[i][0].split("_")
+    twoChoiceSess = next(readSessions.findSessions(endoDataPath, animal=animal,
+                                                   date=date, task="2choice"))
+    openFieldSess = next(readSessions.findSessions(endoDataPath, animal=animal,
+                                                   date=date, task="openField"))
+    twoChoiceSignal = twoChoiceSess.readDeconvolvedTraces()[examples[i][1]]
+    twoChoiceSignal -= twoChoiceSignal.mean()
+    twoChoiceSignal /= twoChoiceSignal.std()
+    openFieldSignal = openFieldSess.readDeconvolvedTraces()[examples[i][1]]
+    openFieldSignal -= openFieldSignal.mean()
+    openFieldSignal /= openFieldSignal.std()
+    twoChoiceAx = layout.axes["ex_2choice_{}".format(i+1)]["axis"]
+    openFieldAx = layout.axes["ex_of_{}".format(i+1)]["axis"]
+    fv2choice = fancyViz.SchematicIntensityPlot(twoChoiceSess, linewidth=style.lw()*0.5,
+                                                smoothing=7, splitReturns=False)
+    img = fv2choice.draw(twoChoiceSignal, ax=twoChoiceAx)
+    fvof = fancyViz.OpenFieldSchematicPlot(openFieldSess, linewidth=style.lw()*0.5)
+    img = fvof.draw(openFieldSignal, ax=openFieldAx)
+    
 
 #%%
 layout.insert_figures('plots')
