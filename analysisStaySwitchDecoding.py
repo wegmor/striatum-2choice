@@ -46,6 +46,7 @@ def jitter(x, std):
 
 #%%
 def decodeStaySwitchSession(sess, selectedPhase):
+    print(str(sess)+' '+selectedPhase)
     def _prepareTrials(deconv, lfa, selectedPhase):
         avgSig = deconv.groupby(lfa.actionNo).mean()
         labels = lfa.groupby("actionNo").label.first()
@@ -219,7 +220,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
 
-                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C"):
+                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C", "dL2C", "dR2C"):
                         selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
                         fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
                         shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa, selectedLabels)
@@ -305,7 +306,7 @@ def predictStaySwitchAcrossDays(dataFile, alignmentFile):
                 toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
                 if len(toDeconv) != len(toLfa): continue
 
-                for baseLabel in ("mC2L", "mC2R", "pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C"):
+                for baseLabel in ("pC2L","pC2R","mC2L","mC2R","dL2C","dR2C","mL2C","mR2C"):
                     selectedLabels = [baseLabel+"r.", baseLabel+"r!", baseLabel+"o.", baseLabel+"o!"]
                     toX, toY = _prepareTrials(toDeconv, toLfa, selectedLabels)
 
@@ -382,8 +383,8 @@ def crossDecodeStaySwitch(dataFile):
         lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
         if len(deconv) != len(lfa): continue
         slfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
-        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-                                                  'pC2R','mC2R','mR2C']
+        selectedLabels = [base+trial for base in ['dL2C','mL2C','pC2L','mC2L',
+                                                  'dR2C','mR2C','pC2R','mC2R']
                                      for trial in ['r.','o!']]
     
         rXs, rYs = _prepareTrials(deconv, lfa, selectedLabels)
