@@ -58,7 +58,7 @@ else:
     P = pd.DataFrame() # action (probability) predictions
     C = pd.DataFrame() # svm coefficients
     
-    for action in ['mL2C','pC2L','mC2L','mR2C','pC2R','mC2R']:
+    for action in ['dL2C','mL2C','pC2L','mC2L','dR2C','mR2C','pC2R','mC2R']:
         (rm,rp,rc), (sm,sp,sc) = analysisStaySwitchDecoding.decodeStaySwitch(endoDataPath, action)
         
         for df in [rm,rp,rc,sm,sp,sc]:
@@ -90,20 +90,20 @@ else:
     logRegCoef.to_pickle(cachedDataPaths[1])
     logRegDF.to_pickle(cachedDataPaths[2])
     
-cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
-if cachedDataPath.is_file():
-    crossDecoding = pd.read_pickle(cachedDataPath)
-else:
-    crossDecoding, shuffleCross = (analysisStaySwitchDecoding
-                                       .crossDecodeStaySwitch(endoDataPath))
-    crossDecoding = crossDecoding.set_index(['genotype','animal','date',
-                                             'testAction','trainAction'])
-    shuffleCross = shuffleCross.set_index(['genotype','animal','date',
-                                           'testAction','trainAction'])
-    crossDecoding['accuracy_shuffle'] = shuffleCross.accuracy
-    crossDecoding = (crossDecoding[['noNeurons','accuracy','accuracy_shuffle']]
-                                  .reset_index())
-    crossDecoding.to_pickle(cachedDataPath)
+#cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
+#if cachedDataPath.is_file():
+#    crossDecoding = pd.read_pickle(cachedDataPath)
+#else:
+#    crossDecoding, shuffleCross = (analysisStaySwitchDecoding
+#                                       .crossDecodeStaySwitch(endoDataPath))
+#    crossDecoding = crossDecoding.set_index(['genotype','animal','date',
+#                                             'testAction','trainAction'])
+#    shuffleCross = shuffleCross.set_index(['genotype','animal','date',
+#                                           'testAction','trainAction'])
+#    crossDecoding['accuracy_shuffle'] = shuffleCross.accuracy
+#    crossDecoding = (crossDecoding[['noNeurons','accuracy','accuracy_shuffle']]
+#                                  .reset_index())
+#    crossDecoding.to_pickle(cachedDataPath)
     
 cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
 if cachedDataPath.is_file():
@@ -300,7 +300,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
 #    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
 
 
-order = ['mL2C','mC2L','pC2L','pC2R','mC2R','mR2C']
+order = ['mL2C','dL2C','mC2L','pC2L','pC2R','mC2R','dR2C','mR2C']
 tunings = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
 
 similarity = tunings.abs().unstack()[order].groupby('genotype').corr().stack()
@@ -341,8 +341,8 @@ for genotype in ("oprm1", "d1", "a2a"):
 #    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
 #        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
 #                color='k', fontsize=7)
-    ax.set_xlim((0,5))
-    ax.set_ylim((1,6))
+    ax.set_xlim((0,6))
+    ax.set_ylim((1,7))
     ax.axis('off')
       
     pal = [style.getColor(a) for a in order]
@@ -354,9 +354,9 @@ for genotype in ("oprm1", "d1", "a2a"):
                       cmap=mpl.colors.ListedColormap(list(pal)),
                       alpha=1, edgecolors='w', lw=.35)
         if orient=='h':
-            ax.set_xlim((0,5))
+            ax.set_xlim((0,6))
         else:
-            ax.set_ylim((1,6))
+            ax.set_ylim((1,7))
         ax.axis('off')
 
 cax = layout.axes['corr_colorbar']['axis']
