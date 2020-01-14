@@ -9,6 +9,9 @@ import pathlib
 import cmocean
 import tqdm
 import pims
+import moviepy.editor
+import moviepy.video.io
+import moviepy.video.io.bindings
 
 import analysisTunings
 import style
@@ -21,158 +24,165 @@ outputFolder = pathlib.Path("video")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
+
+class AnimalVideoClip(moviepy.editor.VideoClip): 
+    def __init__(self, basePath, session):
+        self.videoPath = basePath / sess.meta.video
+        self.baseVideo = pims.open(str(self.videoPath)+".avi")
+        
+        self.fps = self.baseVideo.frame_rate
+        self.baseHeight, self.baseWidth, _ = self.baseVideo.frame_shape
+        self.sess = session
+        self._setupFigure()
+        duration = self.baseVideo.get_metadata()["duration"]
+        make_frame = lambda t: self._makeFrame(int(np.round(self.fps*t)))
+        moviepy.editor.VideoClip.__init__(self, make_frame, False, duration=duration)
+
+    def _setupFigure(self):
+        tracking = sess.readTracking()
+        self.xCoords = self.baseWidth - tracking[[a for a in tracking.columns if a[1]=='x']].copy()
+        self.yCoords = tracking[[a for a in tracking.columns if a[1]=='y']].copy()
+        likelihood = tracking[[a for a in tracking.columns if a[1]=='likelihood']].copy()
+        self.xCoords[likelihood < 0.9] = np.nan
+        self.yCoords[likelihood < 0.9] = np.nan
+        self.xCoords[self.xCoords < 10] = np.nan
+        self.yCoords[self.yCoords < 10] = np.nan
+        lfa = sess.labelFrameActions()
+        self.dropCoordinates = pd.DataFrame({
+            'alpha': (1-lfa.actionProgress) * lfa.label.str.match("p[LR].+r"),
+            'x': 200 + 370*(lfa.label.str[1]=='R'),
+            'y': 70 - lfa.actionProgress * 100
+        })
+        self.mplFig = plt.figure(figsize=(self.baseHeight/100, self.baseWidth/100), dpi=100)
+        self.mplAx = self.mplFig.gca()
+        self.mplAx.axis("off")
+        self.mplFig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+        self.frameIm = self.mplAx.imshow(np.rot90(self.baseVideo.get_frame(0)))
+        self.markers, = self.mplAx.plot([], [], '.', ms=15, alpha=.75, color="C1")
+        self.bodyLine, = self.mplAx.plot([], [], 'C0', lw=3, alpha=0.5)
+        self.neckLine, = self.mplAx.plot([], [], 'C0', lw=3, alpha=0.5)
+        self.headLine, = self.mplAx.plot([], [], 'C0', lw=3, alpha=0.5)
+        for x, p in [(170, 'pL'), (350, 'pC'), (530, 'pR')]:
+            c = np.array(mpl.colors.to_rgb(style.getColor(p)))
+            c = 0.25*c + 0.75*np.ones_like(c)
+            rect = mpl.patches.Rectangle((x, 10), 60, 40, color=c)
+            self.mplAx.add_artist(rect)
+        self.drop = None
+        
+    def _makeFrame(self, i):
+        self.frameIm.set_data(np.rot90(self.baseVideo.get_frame(i)))
+        self.markers.set_data((self.yCoords.iloc[i], self.xCoords.iloc[i]))
+        self.bodyLine.set_data([(self.yCoords.iloc[i, 1], self.yCoords.iloc[i, 4]),
+                                (self.xCoords.iloc[i, 1], self.xCoords.iloc[i, 4])])
+        self.neckLine.set_data([(self.yCoords.iloc[i, 4], self.yCoords.iloc[i, 2:4].mean()),
+                                (self.xCoords.iloc[i, 4], self.xCoords.iloc[i, 2:4].mean())])
+        self.headLine.set_data([(self.yCoords.iloc[i, 2], self.yCoords.iloc[i, 3]),
+                                (self.xCoords.iloc[i, 2], self.xCoords.iloc[i, 3])])
+        if self.drop is not None: self.drop.remove()
+        self.drop = fancyViz.drawWaterDrop(self.mplAx, self.dropCoordinates[["x", "y"]].values[i],
+                                           -40, facecolor="C0", lw=1, zorder=20,
+                                           alpha=self.dropCoordinates.alpha.iloc[i])
+        return moviepy.video.io.bindings.mplfig_to_npimage(self.mplFig)
+
+class CalciumVideoClip(moviepy.editor.VideoClip):
+    def __init__(self, session, caVideoClip):
+        self.baseVideo = pims.open(str(caVideoClip))
+        self.fps = self.baseVideo.frame_rate
+        self.baseHeight, self.baseWidth, _ = self.baseVideo.frame_shape
+        self.sess = session
+        self._setupFigure()
+        duration = self.baseVideo.get_metadata()["duration"] - 1/self.fps
+        make_frame = lambda t: self._makeFrame(int(np.round(self.fps*t)))
+        moviepy.editor.VideoClip.__init__(self, make_frame, False, duration=duration)
     
+    def markNeurons(self, neuronIds, colors):
+        self.selectedNeurons = neuronIds
+        self.neuronColors = colors
+        roiPeaks = self.sess.readROIs().idxmax(axis=0)
+        for n, c in zip(neuronIds, colors):
+            x, y = roiPeaks[n]
+            x *= 2
+            y *= 2
+            self.mplAx.fill([y, y+20, y+10, y], [x, x-10, x-20, x], color=c)
+        
+    def _setupFigure(self):
+        self.mplFig = plt.figure(figsize=(self.baseWidth/100, self.baseHeight/100), dpi=100)
+        self.mplAx = self.mplFig.gca()
+        self.mplAx.axis("off")
+        self.mplFig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+        self.frameIm = self.mplAx.imshow(self.baseVideo.get_frame(0))
+        
+    def _makeFrame(self, i):
+        self.frameIm.set_data(self.baseVideo.get_frame(i))
+        return moviepy.video.io.bindings.mplfig_to_npimage(self.mplFig)
+
+
+class TraceVideoClip(moviepy.editor.VideoClip):
+    def __init__(self, session, selectedNeurons, colors, width, height, drawStart, drawStop):
+        self.sess = session
+        self._setupFigure(selectedNeurons, colors, width, height, drawStart, drawStop)
+        self.fps = 20
+        duration = len(self.deconvTraces) / self.fps
+        make_frame = lambda t: self._makeFrame(int(np.round(self.fps*t)))
+        moviepy.editor.VideoClip.__init__(self, make_frame, False, duration=duration)
+    
+    def _setupFigure(self, selectedNeurons, colors, width, height, drawStart, drawStop):
+        self.mplFig = plt.figure(figsize=(width/100, height/100), dpi=100)
+        self.mplAx = self.mplFig.gca()
+        self.mplAx.axis("off")
+        self.mplFig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
+        self.deconvTraces = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions()
+        labels = lfa.loc[drawStart:drawStop, ['label']]
+        rewards = labels.loc[labels.label.str.endswith('r').astype('int').diff()==1].index.values
+        for n,c in zip(selectedNeurons, colors):
+            self.mplAx.vlines(np.arange(drawStart, drawStop),
+                              0, self.deconvTraces.loc[drawStart:drawStop, n],
+                              lw=2.5, clip_on=False, color=c)
+        for l in ['pC','pR','pL']:
+            c = np.array(mpl.colors.to_rgb(style.getColor(l)))
+            c = 0.25*c + 0.75*np.ones_like(c)
+            self.mplAx.fill_between(labels.index.values, 11, -1,              
+                                    where=labels['label'].str.slice(0,2) == l,
+                                    color=c, lw=0)
+        for r in rewards:
+            fancyViz.drawWaterDrop(self.mplAx, np.array([r, 9.7]), np.array([4,1]),
+                                   facecolor='k')
+            self.mplAx.axvline(r, 0, .67, lw=.5, ls='--', color='k')
+        transAxes = self.mplAx.transAxes
+        self.mplAx.plot([0.5, 0.5], [0, 1], 'k', lw=2, zorder=101, transform=transAxes)
+        self.mplAx.plot([0.5], [1], 'k', marker="v", zorder=101, markersize=20, transform=transAxes)
+        self.mplAx.plot([0.5], [0], 'k', marker="^", zorder=101, markersize=20, transform=transAxes)
+        self.mplAx.fill([0.5, 0.5, 1.0, 1.0], [0, 1, 1, 0], "w", alpha=0.8, zorder=100, transform=transAxes)
+        self.mplAx.set_ylim((0,12))
+        self.mplAx.set_xlim((0, 20*60))
+        self.mplAx.axis('off')
+        self.mplAx.set_facecolor('white')
+    
+    def _makeFrame(self, i):
+        self.mplAx.set_xlim(i-300, i+300)
+        return moviepy.video.io.bindings.mplfig_to_npimage(self.mplFig)
+
+#%%
 ex_session = {'genotype': 'oprm1', 'animal': '5308',
               'date': '190131', 'task': '2choice'}
 sess = next(readSessions.findSessions(endoDataPath, **ex_session))
-
-animalVideoPath = pathlib.Path('/media/emil/mowe-inscopix/videos') / sess.meta.video
-animalVideo = pims.open(str(animalVideoPath)+".avi")
-
-
-tracking = sess.readTracking()
-xCoords = animalVideo.frame_shape[1] - tracking[[a for a in tracking.columns if a[1]=='x']].copy()
-yCoords = tracking[[a for a in tracking.columns if a[1]=='y']].copy()
-likelihood = tracking[[a for a in tracking.columns if a[1]=='likelihood']].copy()
-xCoords[likelihood < 0.9] = np.nan
-yCoords[likelihood < 0.9] = np.nan
-xCoords[xCoords < 10] = np.nan
-yCoords[yCoords < 10] = np.nan
-
-lfa = sess.labelFrameActions()
-
-fig = plt.figure(figsize=(7.50, 8.72), dpi=100)
-fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
-animalIm = plt.imshow(np.rot90(animalVideo.get_frame(0)))
-plt.axis("off")
-markers, = plt.plot(yCoords.iloc[0], xCoords.iloc[0], '.', ms=15, alpha=.75, color="C1")
-bodyLine, = plt.plot((yCoords.iloc[0, 1], yCoords.iloc[0, 4]),
-                     (xCoords.iloc[0, 1], xCoords.iloc[0, 4]), lw=3, alpha=0.5)
-neckLine, = plt.plot((yCoords.iloc[0, 4], yCoords.iloc[0, 2:4].mean()),
-                     (xCoords.iloc[0, 4], xCoords.iloc[0, 2:4].mean()), "C0", lw=3, alpha=0.5)
-headLine, = plt.plot((yCoords.iloc[0, 2], yCoords.iloc[0, 3]),
-                     (xCoords.iloc[0, 2], xCoords.iloc[0, 3]), "C0", lw=3, alpha=0.5)
-ax = plt.gca()
-for x, p in [(170, 'pL'), (350, 'pC'), (530, 'pR')]:
-    ax.add_artist(mpl.patches.Rectangle((x, 10), 60, 40, color=style.getColor(p)))
-    
-lfa["alpha"] = (1-lfa.actionProgress) * lfa.label.str.match("p[LR].+r")
-lfa["dropX"] = 200 + 370*(lfa.label.str[1]=='R')
-lfa["dropY"] = 70 - lfa.actionProgress * 100
-drop = None
-
-def animate(i):
-    global drop
-    animalIm.set_data(np.rot90(animalVideo.get_frame(i)))
-    markers.set_data((yCoords.iloc[i], xCoords.iloc[i]))
-    bodyLine.set_data([(yCoords.iloc[i, 1], yCoords.iloc[i, 4]),
-                       (xCoords.iloc[i, 1], xCoords.iloc[i, 4])])
-    neckLine.set_data([( yCoords.iloc[i, 4], yCoords.iloc[i, 2:4].mean()),
-                       (xCoords.iloc[i, 4], xCoords.iloc[i, 2:4].mean())])
-    headLine.set_data([(yCoords.iloc[i, 2], yCoords.iloc[i, 3]),
-                       (xCoords.iloc[i, 2], xCoords.iloc[i, 3])])
-    if drop is not None: drop.remove()
-    drop = fancyViz.drawWaterDrop(ax, lfa[["dropX", "dropY"]].values[i], -40,
-                                  facecolor="C0", lw=1, alpha=lfa.alpha.iloc[i], 
-                                  zorder=20)
-anim = mpl.animation.FuncAnimation(fig, animate, frames=tqdm.trange(12896, 12896+2400))
-anim.save(outputFolder / "behaviorFromFig3.mp4", fps=20, dpi=100)
-
-
-#%%
-roiPeaks = sess.readROIs().idxmax(axis=0)
-caHeight = 872
-caWidth = 600*(872/504)
-fig = plt.figure(figsize=(caWidth/100, caHeight/100), dpi=100)
-fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
-caVideo = pims.open("/home/emil/2choice/190131_oprm1_5308_example_dff_re.mp4")
-#F = np.array([caVideo.get_frame(i) for i in range(2400)]).mean(axis=0)
-caIm = plt.imshow(caVideo.get_frame(0))
-plt.axis("off")
+videoFolder = pathlib.Path('/media/emil/mowe-inscopix/videos')
+calciumFile = pathlib.Path("/home/emil/2choice/190131_oprm1_5308_example_dff_re.mp4")
 selectedNeurons = [106, 112, 0]
 colors = [style.getColor(t) for t in ['mC2R', 'pC2L','pL2C']]
-for n,c in zip(selectedNeurons, colors):
-    x, y = roiPeaks[n]
-    x *= 2
-    y *= 2
-    plt.fill([y, y+20, y+10, y], [x, x-10, x-20, x], color=c)
+startFrame = 12896
+stopFrame = startFrame + 2400 - 1
 
-def animateCa(i):
-    caIm.set_data((caVideo.get_frame(i)))
+animalClip = AnimalVideoClip(videoFolder, sess)
+calciumClip = CalciumVideoClip(sess, calciumFile)
+calciumClip.markNeurons(selectedNeurons, colors)
+calciumClip = calciumClip.resize(height=animalClip.h)
+traceClip = TraceVideoClip(sess, selectedNeurons, colors, animalClip.w + calciumClip.w, 132,
+                           startFrame-300, stopFrame+300).subclip(startFrame/20.0, stopFrame/20.0)
+animalClip = animalClip.set_pos((0, traceClip.h)).subclip(startFrame/20.0, stopFrame/20.0)
+calciumClip = calciumClip.set_pos((animalClip.w, traceClip.h))
 
-anim = mpl.animation.FuncAnimation(fig, animateCa, frames=tqdm.trange(2400))
-anim.save(outputFolder / "caBetterFromFig3.mp4", fps=20, dpi=100)
-
-#%%
-#caVideoPath = pathlib.Path('/media/emil/mowe-inscopix/calcium_videos/') / (str(sess) + ".nwb")
-#caVideoFile = h5py.File(caVideoPath, 'r')
-
-#def getCaFrame(caVideoFile, i):
-#    recordings = caVideoFile["analysis"]
-#    j = 0
-#    for recording in recordings:
-#        data = caVideoFile["analysis/{}/data".format(recording)]
-#        if i < j+len(data):
-#            return data[i-j]
-#        j += len(data)
-#    raise IndexError("Frame {} is larger than video length ({})".format(i, j))
-
-#%%
-fig = plt.figure(figsize=(17.88, 1.338), dpi=100)
-fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None)
-deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-start = 12896
-stop = start + 2400
-#Extend trace 15s in each direction
-start -= 300
-stop += 300
-labels = lfa.loc[start:stop, ['label']]
-rewards = labels.loc[labels.label.str.endswith('r').astype('int').diff()==1].index.values
-for n,c in zip(selectedNeurons, colors):
-    plt.vlines(np.arange(start, stop),
-               0, deconv.loc[start:stop, n],
-               lw=2.5, clip_on=False, color=c)
-for l in ['pC','pR','pL']:
-    plt.fill_between(labels.index.values, 11, -1,              
-                     where=labels['label'].str.slice(0,2) == l,
-                     color=style.getColor(l), lw=0, alpha=.25)
-for r in rewards:
-    fancyViz.drawWaterDrop(plt.gca(), np.array([r, 9.7]), np.array([4,1]),
-                           facecolor='k')
-    plt.axvline(r, 0, .67, lw=.5, ls='--', color='k')
-transAxes = plt.gca().transAxes
-plt.plot([0.5, 0.5], [0, 1], 'k', lw=2, zorder=101, transform=transAxes)
-plt.plot([0.5], [1], 'k', marker="v", zorder=101, markersize=20, transform=transAxes)
-plt.plot([0.5], [0], 'k', marker="^", zorder=101, markersize=20, transform=transAxes)
-plt.fill([0.5, 0.5, 1.0, 1.0], [0, 1, 1, 0], "w", alpha=0.9, zorder=100, transform=transAxes)
-plt.gca().set_ylim((0,12))
-plt.gca().set_xlim((start, start+20*60))
-plt.axis('off')
-def animateTrace(i):
-    plt.xlim(start+i, start+i+600)
-anim = mpl.animation.FuncAnimation(fig, animateTrace, frames=tqdm.trange(2400))
-anim.save(outputFolder / "traceFromFig3_v2.mp4", fps=20, dpi=100)
-
-
-#%%
-import moviepy.editor
-
-caClip = moviepy.editor.VideoFileClip(str(outputFolder / "caBetterFromFig3.mp4"))
-behaviorClip = moviepy.editor.VideoFileClip(str(outputFolder / "behaviorFromFig3.mp4"))
-traceClip = moviepy.editor.VideoFileClip(str(outputFolder / "traceFromFig3_v2.mp4"))
-
-compositeClip = moviepy.editor.CompositeVideoClip([traceClip,
-                                                   behaviorClip.set_pos((0,132)),
-                                                   caClip.set_pos((750,132))],
-                                                   size=(1788, 132+872))import moviepy.editor
-
-caClip = moviepy.editor.VideoFileClip(str(outputFolder / "caBetterFromFig3.mp4"))
-behaviorClip = moviepy.editor.VideoFileClip(str(outputFolder / "behaviorFromFig3.mp4"))
-traceClip = moviepy.editor.VideoFileClip(str(outputFolder / "traceFromFig3_v2.mp4"))
-
-compositeClip = moviepy.editor.CompositeVideoClip([traceClip,
-                                                   behaviorClip.set_pos((0,132)),
-                                                   caClip.set_pos((750,132))],
-                                                   size=(1788, 132+872))
-compositeClip.write_videofile(str(outputFolder / "fig3Combined.mp4"), fps=20, audio=False)
-compositeClip.write_videofile(str(outputFolder / "fig3Combined.mp4"), fps=20, audio=False)
+compositeClip = moviepy.editor.CompositeVideoClip([traceClip, animalClip, calciumClip],
+                                                   size=(traceClip.w, traceClip.h+animalClip.h))
+compositeClip.write_videofile(str(outputFolder / "fig3video.mp4"))
