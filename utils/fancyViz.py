@@ -806,7 +806,7 @@ def drawArcArrow(rad, start, stop, lw=0.5):
     plt.plot(xx, yy, 'k', lw=lw)
     drawArrowHead(plt.gca(), (xx[-12], yy[-12]), (xx[-1], yy[-1]), facecolor="k", edgecolor="k")
 
-def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75):
+def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0, lw=0.75, **kwargs):
     vertices = np.array([(-0.1,1.0), (-0.15,0.15), (-0.5,-0.2),
                          (-0.75,-0.5), (-0.75,-1), (0,-1),
                          (0.75,-1), (1, -1), (-0.1,1.0)])
@@ -814,7 +814,7 @@ def drawWaterDrop(ax, coords, size, cross=False, facecolor='skyblue', alpha=1.0,
              matplotlib.path.Path.CURVE3,
              matplotlib.path.Path.CURVE3]+[matplotlib.path.Path.CURVE4]*6
     path = matplotlib.path.Path(vertices*size + coords[np.newaxis, :], codes)
-    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=0, transform=ax.transData)
+    patch = matplotlib.patches.PathPatch(path, facecolor=facecolor, alpha=alpha, lw=0, transform=ax.transData, **kwargs)
     ax.add_patch(patch)
     if cross:
         ax.plot(coords[0]+size*np.array([-0.5,0.5]), coords[1]+size*np.array([-1,0.4]), c="red", lw=lw)
