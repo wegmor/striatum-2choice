@@ -52,7 +52,7 @@ def jitter(x, std):
 def _getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
-        traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
+        traces = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True) # frame no as index
         if on_shuffled:
             apf = s.shuffleFrameLabels(switch=False, reward='sidePorts',
                                        splitCenter=True)[0].reset_index(drop=True)
@@ -206,7 +206,7 @@ def getPDistVsCorrData(dataFilePath):
     dist_cc_df = pd.DataFrame()
     
     for s in readSessions.findSessions(dataFilePath, task='2choice'):    
-        deconv = s.readDeconvolvedTraces().reset_index(drop=True).iloc[:30*60*20]
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True).iloc[:30*60*20]
         # drop everything but top 20% biggest events
         #pct80 = np.nanpercentile(deconv[deconv != 0], 80, axis=0)
         #deconv = deconv[deconv >= pct80].fillna(0)
@@ -247,7 +247,7 @@ def getPDistVsCorrData(dataFilePath):
 def getTaskNoTaskData(dataFilePath):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
-        deconv = s.readDeconvolvedTraces(zScore=True) #, indicateBlocks=True)
+        deconv = s.readDeconvolvedTraces(rScore=True) #, indicateBlocks=True)
         D = deconv.mean(axis=1)
         L = s.labelFrameActions()
         #T = s.readTracking(inCm=True)
