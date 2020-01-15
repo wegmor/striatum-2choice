@@ -2817,9 +2817,9 @@
      id="base"
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
-     inkscape:current-layer="layer4"
-     inkscape:cx="407.49874"
-     inkscape:cy="820.50365"
+     inkscape:current-layer="layer2"
+     inkscape:cx="433.21303"
+     inkscape:cy="819.07508"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -2851,7 +2851,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -5637,7 +5637,7 @@
            sodipodi:role="line"
            style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
            x="137.31027"
-           y="143.43533">shuffled</tspan></text>
+           y="143.43533">shifted</tspan></text>
     </g>
     <g
        id="g21125"

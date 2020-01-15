@@ -72,11 +72,11 @@ class Session:
         if rScore:
             # 10 min zscore window
             window = 10*60*20
-            df = pd.concat([traces.iloc[:window//2+1],traces,traces.iloc[-(window//2+1):]])
-            df -= df.rolling(window, center=True).mean()
-            df /= df.rolling(window, center=True).std()
-            traces = df.iloc[window//2+1:-(window//2+1)]
-            traces = traces.replace({-np.inf: 0, np.inf: 0})
+            min_window = 4*60*20
+            traces -= traces.rolling(window, center=True, min_periods=min_window).mean()
+            # v shit neurons may have no signal for 10 minutes -> lots of nan
+            traces /= (traces.rolling(window, center=True, min_periods=min_window).std() + 10**-10)
+            traces = traces.replace({-np.inf: np.nan, np.inf: np.nan})
         return traces
     
     def readSensorValues(self, slim=True, onlyRecording=True, reindexFrameNo=True):
