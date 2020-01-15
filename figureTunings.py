@@ -50,7 +50,7 @@ ex_session = ('oprm1','5308','190131')
 s = next(readSessions.findSessions(endoDataPath, genotype=ex_session[0],
                                    animal=ex_session[1], date=ex_session[2],
                                    task='2choice'))
-traces = s.readDeconvolvedTraces(zScore=True)
+traces = s.readDeconvolvedTraces(rScore=True)
 lfa = s.labelFrameActions(reward='sidePorts').set_index(traces.index)
 actions = ['pC2L-','mC2R-','pL2Cr']
 tunings = tuningData.query("genotype == @ex_session[0] & animal == @ex_session[1] & "+
