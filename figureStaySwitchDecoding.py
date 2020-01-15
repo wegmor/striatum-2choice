@@ -77,18 +77,30 @@ else:
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
     C.to_pickle(cacheFolder / 'stsw_c.pkl')   
 
-cachedDataPaths = [cacheFolder / name for name in ['actionValues.pkl',
-                                                   'logRegCoefficients.pkl',
+cachedDataPaths = [cacheFolder / name for name in ['logRegCoefficients.pkl',
                                                    'logRegDF.pkl']]
 if np.all([path.is_file() for path in cachedDataPaths]):
-    actionValues = pd.read_pickle(cachedDataPaths[0])
-    logRegCoef = pd.read_pickle(cachedDataPaths[1])
-    logRegDF = pd.read_pickle(cachedDataPaths[2])
+    logRegCoef = pd.read_pickle(cachedDataPaths[0])
+    logRegDF = pd.read_pickle(cachedDataPaths[1])
 else:
-    actionValues, logRegCoef, logRegDF = analysisStaySwitchDecoding.getActionValues(endoDataPath)
-    actionValues.to_pickle(cachedDataPaths[0])
-    logRegCoef.to_pickle(cachedDataPaths[1])
-    logRegDF.to_pickle(cachedDataPaths[2])
+    logRegCoef, logRegDF = analysisStaySwitchDecoding.getAVCoefficients(endoDataPath)
+    logRegCoef.to_pickle(cachedDataPaths[0])
+    logRegDF.to_pickle(cachedDataPaths[1])
+    
+cachedDataPath = cacheFolder / 'actionValues.pkl'
+if cachedDataPath.is_file():
+    actionValues = pd.read_pickle(cachedDataPath)
+else:
+    actionValues = analysisStaySwitchDecoding.getActionValues(endoDataPath, logRegCoef)
+    actionValues.to_pickle(cachedDataPath)
+    
+cachedDataPath = cacheFolder / 'actionValues_shuffled.pkl'
+if cachedDataPath.is_file():
+    actionValues_shuffled = pd.read_pickle(cachedDataPath)
+else:
+    actionValues_shuffled = analysisStaySwitchDecoding.getActionValues(endoDataPath, logRegCoef,
+                                                                       on_shuffled=True)
+    actionValues_shuffled.to_pickle(cachedDataPath)
     
 #cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
 #if cachedDataPath.is_file():
@@ -117,6 +129,7 @@ if cachedDataPath.is_file():
     staySwitchAUC_shuffled = pd.read_pickle(cachedDataPath)
 else:
     staySwitchAUC_shuffled = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath,
+                                                                           n_shuffles=1,
                                                                            on_shuffled=True)
     staySwitchAUC_shuffled.to_pickle(cachedDataPath)
 
@@ -128,7 +141,7 @@ examples = [("5308", "190131", 292, "oprm1"),
 for p, (a, d, n, gt) in enumerate(examples):
     s = next(readSessions.findSessions(endoDataPath, genotype=gt,
                                        animal=a, date=d, task='2choice'))
-    traces = s.readDeconvolvedTraces(zScore=True)
+    traces = s.readDeconvolvedTraces(rScore=True)
     
     lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
     d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
@@ -588,21 +601,34 @@ axt.axis('off')
 
 ##%%
 def getCorr(ttdata):
-    corr = ttdata.groupby(['genotype','animal','date'])[['r.','absValue']].corr()
-    corr = pd.DataFrame(pd.Series(corr.unstack(-1)[('absValue','r.')],
+    corr = ttdata.groupby(['genotype','animal','date'])[['r.','value']].corr()
+    corr = pd.DataFrame(pd.Series(corr.unstack(-1)[('value','r.')],
                                   name='correlation'))
     corr['noNeurons'] = ttdata.groupby(['genotype','animal','date']).noNeurons.first()
     return corr
+
+def randomShiftValue(ttdata):
+    def shift(v):
+        v = pd.Series(np.roll(v, np.random.randint(10,30) * np.random.choice([-1,1])),
+                      index=v.index)
+        return v
     
+    ttdata = ttdata.copy()
+    ttdata['value'] = ttdata.groupby(['genotype','animal','date'])['value'].apply(shift).copy()
+    return ttdata
+    
+
 valueProbCorrs = pd.DataFrame()
 for tt, ttdata in data.groupby(data.label.str.slice(-2)):
     ttdata = ttdata.copy()
-    ttdata['absValue'] = ttdata.value.abs()
+    right_trials = ttdata.label.str.contains('R')
+    ttdata.loc[right_trials, 'value'] = ttdata.loc[right_trials, 'value'] * -1
     
     corr = getCorr(ttdata)
     
-    ttdata['absValue'] = np.random.permutation(ttdata.absValue)        
-    r_corr = getCorr(ttdata)
+    #ttdata['absValue'] = np.random.permutation(ttdata.absValue)
+    ttdata_vshifted = randomShiftValue(ttdata)
+    r_corr = getCorr(ttdata_vshifted)
 
     corr['rand_correlation'] = r_corr['correlation']
     corr['trialType'] = tt
@@ -645,7 +671,7 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
         ax.set_yticklabels(())
         ax.set_yticks((.25,), minor=True)
         if gt == 'a2a':
-            ax.set_ylabel('|action value| X certainty\ncorrelation')
+            ax.set_ylabel('action value* X certainty\ncorrelation')
             ax.set_yticklabels((.0,.5))
         sns.despine(ax=ax, bottom=True, trim=True)
     else:
