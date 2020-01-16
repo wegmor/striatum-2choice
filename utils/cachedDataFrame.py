@@ -22,7 +22,8 @@ def cachedDataFrame(filename):
                 data = pd.read_pickle(cachedDataPath)
             else:
                 data = fcn(*args, **kwargs)
-                data.to_pickle(cachedDataPath)
+                pd.to_pickle(data, cachedDataPath) # works universally
+                #data.to_pickle(cachedDataPath)
             return data
         return cachedDataFrameFunction
     return decorator
