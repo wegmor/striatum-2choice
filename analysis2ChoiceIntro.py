@@ -10,6 +10,7 @@ import numpy as np
 import pandas as pd
 from itertools import product
 from utils import readSessions
+from sklearn.decomposition import PCA
 from utils.cachedDataFrame import cachedDataFrame
 
 
@@ -183,7 +184,7 @@ def getActionWindows(sess, win_size=(8, 7), nan_actions=False,
     return windows
 
 @cachedDataFrame("introRasterAverages.pkl")
-def getRasterAverages(dataFile, smooth=True):
+def getRasterAverages(dataFile, smooth=False):
     rasterAvgs = pd.DataFrame()
     for sess in readSessions.findSessions(dataFile, task='2choice'):
         windows = getActionWindows(sess)
@@ -196,6 +197,7 @@ def getRasterAverages(dataFile, smooth=True):
         
         avgs = windows.groupby(['neuron','action','trialType']).mean()
         avgs = avgs.dropna(axis=1)
+        avgs = avgs.reset_index()
         
         for k,v in [('date',sess.meta.date),('animal',sess.meta.animal),
                     ('genotype',sess.meta.genotype)]:
@@ -266,26 +268,46 @@ def getTrajectoryData(dataFile):
     X = pd.concat(Xs, axis=0)
     return X
 
-
-def prepTrajectoryData(X, trials=None, shuffle=True, seed=None):
-    T = X.copy()
-    # shuffle trial numbers / neuron
-    if seed:
-        np.random.seed(seed)
-    if shuffle:
-        T['trialNo'] = (T.groupby(['trialType','genotype','animal','date','neuron'], as_index=False)
-                         .apply(lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
-                         .reset_index(0, drop=True))
-        T = T.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
-    # reformat, reduce to "complete" trials
-    T = T.unstack(['genotype','animal','date','neuron']).stack('bin')
-    T = T.loc[:,(T != np.inf).all()].dropna().copy()
-    # reduce to x trials per condition
-    if trials:
-        T = T.query('trialNo < @trials').copy()
-    # normalize matrix
-    T -= T.mean(axis=1).values[:,np.newaxis]
-    T /= T.std(axis=1).values[:,np.newaxis]
-    return T
-
+@cachedDataFrame("introTrajectoryFits.pkl")
+def getTrajectories(dataFile):
+    def _prepTrajectoryData(X, trials=None, shuffle=True, seed=None):
+        T = X.copy()
+        # shuffle trial numbers / neuron
+        if seed:
+            np.random.seed(seed)
+        if shuffle:
+            T['trialNo'] = (T.groupby(['trialType','genotype','animal','date','neuron'], as_index=False)
+                             .apply(lambda g: pd.Series(np.random.permutation(len(g)), index=g.index))
+                             .reset_index(0, drop=True))
+            T = T.reset_index('trialNo', drop=True).set_index('trialNo', append=True)
+        # reformat, reduce to "complete" trials
+        T = T.unstack(['genotype','animal','date','neuron']).stack('bin')
+        T = T.dropna().copy()
+        # reduce to x trials per condition
+        if trials:
+            T = T.query('trialNo < @trials').copy()
+        # normalize matrix
+        T -= T.mean(axis=1).values[:,np.newaxis]
+        T /= T.std(axis=1).values[:,np.newaxis]
+        return T
+    
+    X = getTrajectoryData(dataFile)
+    T = _prepTrajectoryData(X.query('trialType in ["pR2Cr.","pR2Co.","pR2Co!"]'),
+                            shuffle=True, seed=0, trials=None)
+    
+    pca = PCA(3, whiten=True, svd_solver='full')
+    pca.fit(T)
+    
+    train_fits = pd.DataFrame(pca.transform(T), index=T.index).reset_index()
+    
+    Ts = []
+    for i in range(5):
+        Ts.append(_prepTrajectoryData(X, shuffle=True, seed=i+1, trials=20))
+    T = pd.concat(Ts, keys=np.arange(len(Ts)), names=['iteration'])
+    
+    test_fits = pd.DataFrame(pca.transform(T), index=T.index).reset_index()
+    
+    fits = pd.concat([train_fits,test_fits], keys=['train','test'], sort=True)
+    
+    return fits
 

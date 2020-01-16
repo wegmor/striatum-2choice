@@ -190,7 +190,7 @@ def plot3D(train_fits, test_fits, azimuth, angle, lims=None, bins=4,
 
 #%%
 T = prepTrajectoryData(X.query('trialType in ["pR2Cr.","pR2Co.","pR2Co!"]'),
-                       shuffle=True, seed=0, trials=999999)
+                       shuffle=True, seed=0, trials=None)
 
 pca = PCA(3, whiten=True, svd_solver='full')
 pca.fit(T)
@@ -206,13 +206,13 @@ test_fits = pd.DataFrame(pca.transform(T), index=T.index).reset_index()
 
 #%%
 fig = plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
-             290, 45, lims=(-3,3))
-fig.savefig('svg/right_trials_290_45.png', pad_inches=0, bbox_inches='tight')
-
+             290, 135, lims=(-2.5,2.5), a1_offsets=[0,.3,0])
+#fig.savefig('svg/right_trials_290_45.png', pad_inches=0, bbox_inches='tight')
+#%%
 fig = plot3D(train_fits,
              test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
              195, 180, lims=(-3,3))
-fig.savefig('svg/right_trials_195_180.png', pad_inches=0, bbox_inches='tight')
+#fig.savefig('svg/right_trials_195_180.png', pad_inches=0, bbox_inches='tight')
 
 
 #%% more BS ########################################################################
