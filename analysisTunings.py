@@ -14,12 +14,12 @@ from utils import readSessions #, particleFilter
 from utils.cachedDataFrame import cachedDataFrame
 
 #%%
-def get_centers(rois):
-    # find pixel of maximum intensity in each mask; use as neuron center
-    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
-                                                  rois.shape[1:]))
-    centers = centers[::-1].T
-    return(centers)
+#def get_centers(rois):
+#    # find pixel of maximum intensity in each mask; use as neuron center
+#    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
+#                                                  rois.shape[1:]))
+#    centers = centers[::-1].T
+#    return(centers)
     
 def getActionAverages(traces, apf):
     keepLabels = ['pC2L-', 'mC2L-',
@@ -161,7 +161,7 @@ def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
     dist_df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
         # load ROI centers
-        roics = get_centers(s.readROIs().values)
+        roics = np.array(s.readROIs().idxmax(axis=0).tolist())
         # generate shuffled ROIs
         roics_shuffle = [np.random.permutation(roics) for _ in range(no_shuffles)]
         

@@ -141,8 +141,8 @@ df.loc[~df.signp, 'color'] = 'none'
 df['color'] = df.color.str.slice(0,4).apply(lambda c: np.array(style.getColor(c)))
 
 rois = s.readROIs()
+sel_cnts = np.array(rois.idxmax(axis=0).loc[sel_neurons].tolist())[:,::-1]
 rois = np.array([rois[n].unstack('x').values for n in rois])
-sel_cnts = analysisTunings.get_centers(rois)[sel_neurons]
 
 rs = []
 for roi, color in zip(rois, df.color.values):
@@ -220,16 +220,19 @@ cdict = defaultdict(lambda: np.array([1,1,1]),
                      in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
 cdict['pL2Cr'] = cdict['pL2C-']
 cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
-cdict['pL2Cd'] = np.append(cdict['pL2C-'], .7)
+cdict['dL2C-'] = np.append(cdict['pL2C-'], .7)
 cdict['pR2Cr'] = cdict['pR2C-']
 cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
-cdict['pR2Cd'] = np.append(cdict['pR2C-'], .7)
+cdict['dR2C-'] = np.append(cdict['pR2C-'], .7)
 cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
 
 for g in ['d1','a2a','oprm1']:
     ax = layout.axes['pie_{}'.format(g)]['axis']
 
-    gdata = maxdf.loc[g]   
+    gdata = maxdf.loc[g].loc[['mC2R-','mL2C-','mC2L-','mR2C-','none',
+                              'dL2C-','pL2Co','pL2Cr',
+                              'dR2C-','pR2Co','pR2Cr',
+                              'pC2L-','pC2R-',]]
     ws, ts = ax.pie(gdata.values.squeeze(), wedgeprops={'lw':0, 'edgecolor':'w'},
                     explode=[.1]*len(gdata),
                     textprops={'color':'k'}, colors=[cdict[a] for a in gdata.index])
