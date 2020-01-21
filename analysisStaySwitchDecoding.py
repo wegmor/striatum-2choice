@@ -16,6 +16,7 @@ import multiprocessing
 import functools
 import h5py
 import datetime
+from itertools import product
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -570,7 +571,7 @@ def getActionValues(dataFile, coefficients, on_shuffled=False):
 
 
 #%%
-def getWStayLSwitchAUC(dataFile, n_shuffles=100, on_shuffled=False): # shit is slower than hell
+def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False): # shit is slower than hell
     def _prepareTrials(deconv, lfa):
         trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
         labels = lfa.groupby("actionNo").label.first()
@@ -648,51 +649,100 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=100, on_shuffled=False): # shit is s
     return auc_df
 
 
-#%% TODO: omg this is some horrible code :D
-def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
-                                   shuffled=False):
-    C = (C.query('shuffled == @shuffled and genotype == @genotype and action == @action')
-          .set_index(['genotype','animal','date','action','neuron'])
-          .coefficient
-          .sort_index()
-          .copy())
+#%%
+def getStSwRasterData(dataFile, popdf, action, sort_ascending=False):
+    def _getPrevNextPhases(phase):
+        trial = ['pS2C','mS2C','pC2S','mC2S','dS2C']
+        side = 'L' if 'L' in phase else 'R'
+        phaseNo = np.argmax(np.array(trial) == phase[:-2].replace(side, 'S'))
+        if phase.endswith('.'):
+            trial = [p.replace('S', side)+phase[-2:] for p in trial]
+        if phase.endswith('!'):
+            if phaseNo == 1:
+                sides = ('L','R') if side == 'L' else ('R','L')
+            if phaseNo in [2,3]:
+                sides = ('R','L') if side == 'L' else ('L','R')
+            trial = [p.replace('S', sides[0])+phase[-2:] for p in trial[:2]] + \
+                    [p.replace('S', sides[1])+phase[-2:] for p in trial[2:]]
+        return trial[phaseNo-1:phaseNo+2]
+    
+    piles = {action+'r.': [], action+'o.': [], action+'o!': []}    
+    for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
+        sess = next(readSessions.findSessions(dataFile, genotype=genotype,
+                                              animal=animal, date=date,
+                                              task='2choice'))
+        lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+        
+        for p in piles.keys():
+            incl_phases = _getPrevNextPhases(p)
+            X = deconv.loc[lfa.label.isin(incl_phases)]
+            Y = lfa.loc[lfa.label.isin(incl_phases), ['label','actionProgress']]
+            avgActivity = X.groupby([Y.label,(Y.actionProgress*5).astype("int")/5.0]).mean().T
+            avgActivity = avgActivity[incl_phases]
+            piles[p].append(avgActivity)
+    
+    for p in piles.keys():
+        piles[p] = pd.concat(piles[p])
+        
+    stacked = pd.concat(list(piles.values()), keys=piles.keys(), axis=1).reset_index(drop=True)
+    sort_idx = []
+    for p in piles.keys():
+        #sort_idx.append(stacked[(p,p)].max(axis=1) > .5)
+        sort_idx.append(stacked[(p,p)].max(axis=1))
+    sort_idx = pd.concat(sort_idx, axis=1)
+    sort_idx = sort_idx.mean(axis=1)
+    #stacked = stacked.loc[sort_idx.sort_values([0,1,2], ascending=False).index]
+    stacked = stacked.loc[sort_idx.sort_values(ascending=sort_ascending).index]
+    
+    return stacked
 
-    # can't create a intensity plot without session data -> actually, looks like you can
-    s = next(readSessions.findSessions(dataFile, task='2choice'))
-    fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
-    fvSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
-    
-    for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
-        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
-        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
-        if len(deconv) != len(lfa): continue
-        
-        coefs = C.loc[(s.meta.genotype,s.meta.animal,s.meta.date,action)]
-    
-        trans = (deconv * coefs).sum(axis=1) # svm normalizes each session in some way
-#        trans -= trans.mean()
-        trans /= trans.std()
-        #print(trans.max())
-    
-        fvSt.setSession(s)
-        fvSt.setMask(lfa.label.str.endswith('r.'))
-        fvSt.addTraceToBuffer(trans)
-        fvSw.setSession(s)
-        fvSw.setMask(lfa.label.str.endswith('o!'))
-        fvSw.addTraceToBuffer(trans)
-    
-    stax, swax = axes[0], axes[1]
-    
-    fvSt.drawBuffer(ax=stax, cmap='RdYlGn') # drawing flushes buffer
-    img = fvSw.drawBuffer(ax=swax, cmap='RdYlGn')
-    
-    if cax:
-        cb = plt.colorbar(img, cax=cax)
-        cax.tick_params(axis='y', which='both',length=0)
-        cb.outline.set_visible(False)
-        
+
+#%% TODO: omg this is some horrible code :D
+#def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
+#                                   shuffled=False):
+#    C = (C.query('shuffled == @shuffled and genotype == @genotype and action == @action')
+#          .set_index(['genotype','animal','date','action','neuron'])
+#          .coefficient
+#          .sort_index()
+#          .copy())
+#
+#    # can't create a intensity plot without session data -> actually, looks like you can
+#    s = next(readSessions.findSessions(dataFile, task='2choice'))
+#    fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+#    fvSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+#    
+#    for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
+#        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+#        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
+#        if len(deconv) != len(lfa): continue
+#        
+#        coefs = C.loc[(s.meta.genotype,s.meta.animal,s.meta.date,action)]
+#    
+#        trans = (deconv * coefs).sum(axis=1) # svm normalizes each session in some way
+##        trans -= trans.mean()
+#        trans /= trans.std()
+#        #print(trans.max())
+#    
+#        fvSt.setSession(s)
+#        fvSt.setMask(lfa.label.str.endswith('r.'))
+#        fvSt.addTraceToBuffer(trans)
+#        fvSw.setSession(s)
+#        fvSw.setMask(lfa.label.str.endswith('o!'))
+#        fvSw.addTraceToBuffer(trans)
+#    
+#    stax, swax = axes[0], axes[1]
+#    
+#    fvSt.drawBuffer(ax=stax, cmap='RdYlGn') # drawing flushes buffer
+#    img = fvSw.drawBuffer(ax=swax, cmap='RdYlGn')
+#    
+#    if cax:
+#        cb = plt.colorbar(img, cax=cax)
+#        cax.tick_params(axis='y', which='both',length=0)
+#        cb.outline.set_visible(False)
+#        
 
 #%%
 def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,

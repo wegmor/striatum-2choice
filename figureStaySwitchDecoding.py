@@ -19,7 +19,8 @@ import figurefirst
 import style
 import analysisStaySwitchDecoding
 import cmocean
-from scipy.stats import ttest_1samp
+#from scipy.stats import ttest_1samp
+import scipy.stats
 #import statsmodels.formula.api as smf
 from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, fancyViz
@@ -121,7 +122,8 @@ cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
 if cachedDataPath.is_file():
     staySwitchAUC = pd.read_pickle(cachedDataPath)
 else:
-    staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
+    staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath,
+                                                                  n_shuffles=1000)
     staySwitchAUC.to_pickle(cachedDataPath)
     
 cachedDataPath = cacheFolder / 'staySwitchAUC_shuffled.pkl'
@@ -679,6 +681,73 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
     
 
 #%%
+action = 'mR2C'
+stay_aucs = staySwitchAUC.query('action == @action & pct > .995')
+switch_aucs = staySwitchAUC.query('action == @action & pct < .005')
+for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
+    stacked = analysisStaySwitchDecoding.getStSwRasterData(endoDataPath, aucs,
+                                                           action)
+    
+    raxs = [layout.axes['{}pop_raster_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
+    aaxs = [layout.axes['{}pop_avg_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
+    for i, p in enumerate([action+tt for tt in ('r.','o.','o!')]):
+        m = stacked[p].mean(axis=0)
+        sem = scipy.stats.sem(stacked[p], axis=0)
+        aaxs[i].fill_between(np.arange(15), m-sem, m+sem, alpha=0.5, lw=0,
+                             color=style.getColor(p[-2:]), clip_on=False)
+        aaxs[i].plot(m.values, color=style.getColor(p[-2:]), clip_on=False)
+        aaxs[i].set_ylim(0, .5)
+        aaxs[i].set_xlim(-.5, 14.5)
+        aaxs[i].hlines([0], -.5, 16, lw=mpl.rcParams['axes.linewidth'],
+                       color='lightgray', alpha=1, zorder=-99, ls=':', clip_on=False)
+        aaxs[i].vlines([4.5,9.5], -.15, .5, ls=':', color='k', alpha=1, 
+                       lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+        aaxs[i].axis('off')
+        
+        img = raxs[i].imshow(stacked[p], aspect="auto", interpolation="nearest",
+                             vmin=-.5, vmax=.5, cmap="RdYlBu_r")
+        raxs[i].axvline(4.5, ls=':', color='k', alpha=1, 
+                       lw=mpl.rcParams['axes.linewidth'])
+        raxs[i].axvline(9.5, ls=':', color='k', alpha=1,
+                        lw=mpl.rcParams['axes.linewidth'])
+        raxs[i].axis('off')
+        
+    aaxs[2].axis('on')
+    sns.despine(ax=aaxs[2], trim=True, left=True, right=False, bottom=True,
+                offset=1)
+    aaxs[2].set_ylabel("z-score")
+    aaxs[2].set_yticks((0,.5))
+    aaxs[2].set_yticks((.25,), minor=True)
+    aaxs[2].yaxis.set_label_position('right')
+    aaxs[2].yaxis.set_ticks_position('right')
+    aaxs[2].set_xticks(())
+    
+    raxs[2].axis('on')
+    sns.despine(ax=raxs[2], left=True, bottom=True)
+    raxs[2].set_ylabel("neuron", labelpad=-5)
+    raxs[2].set_yticks((0, len(stacked)-1))
+    raxs[2].set_yticklabels([1,len(stacked)])
+    raxs[2].yaxis.set_label_position('right')
+    raxs[2].yaxis.set_ticks_position('right')
+    raxs[2].tick_params(axis='y', length=0, pad=2)
+    raxs[2].set_xticks(())
+    
+    f8axs = [layout.axes['{}pop_f8_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
+    analysisStaySwitchDecoding.drawPopAverageFV(endoDataPath, aucs, f8axs,
+                                                saturation=.5)
+    
+    cax = layout.axes['{}pop_colorbar'.format(stsw)]['axis']
+    cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+    cb.outline.set_visible(False)
+    cax.set_axis_off()
+    cax.text(-.05, .3, -.5, ha='right', va='center', fontdict={'fontsize':6},
+             transform=cax.transAxes)
+    cax.text(1.05, .3, .5, ha='left', va='center', fontdict={'fontsize':6},
+             transform=cax.transAxes)
+    cax.text(0.5, -.1, 'z-score', ha='center', va='top', fontdict={'fontsize':6},
+             transform=cax.transAxes)
+
+
+#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
-
