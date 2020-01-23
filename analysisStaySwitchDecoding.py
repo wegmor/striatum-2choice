@@ -21,6 +21,7 @@ from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from utils import readSessions, fancyViz
+from utils.cachedDataFrame import cachedDataFrame
 import statsmodels.api as sm
 import style
 import sklearn.metrics
@@ -650,52 +651,103 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False): # shit is 
 
 
 #%%
-def getStSwRasterData(dataFile, popdf, action, sort_ascending=False):
-    def _getPrevNextPhases(phase):
-        trial = ['pS2C','mS2C','pC2S','mC2S','dS2C']
-        side = 'L' if 'L' in phase else 'R'
-        phaseNo = np.argmax(np.array(trial) == phase[:-2].replace(side, 'S'))
-        if phase.endswith('.'):
-            trial = [p.replace('S', side)+phase[-2:] for p in trial]
-        if phase.endswith('!'):
-            if phaseNo == 1:
-                sides = ('L','R') if side == 'L' else ('R','L')
-            if phaseNo in [2,3]:
-                sides = ('R','L') if side == 'L' else ('L','R')
-            trial = [p.replace('S', sides[0])+phase[-2:] for p in trial[:2]] + \
-                    [p.replace('S', sides[1])+phase[-2:] for p in trial[2:]]
-        return trial[phaseNo-1:phaseNo+2]
-    
-    piles = {action+'r.': [], action+'o.': [], action+'o!': []}    
+def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix=''):
+    @cachedDataFrame('stSwRasterData_{}-{}.pkl'.format(action, pkl_suffix))
+    def _getStSwRasterData():
+        def _getPrevNextPhases(phase):
+            trial = ['pS2C','mS2C','pC2S','mC2S','dS2C']
+            side = 'L' if 'L' in phase else 'R'
+            phaseNo = np.argmax(np.array(trial) == phase[:-2].replace(side, 'S'))
+            if phase.endswith('.'):
+                trial = [p.replace('S', side)+phase[-2:] for p in trial]
+            if phase.endswith('!'):
+                if phaseNo == 1:
+                    sides = ('L','R') if side == 'L' else ('R','L')
+                if phaseNo in [2,3]:
+                    sides = ('R','L') if side == 'L' else ('L','R')
+                trial = [p.replace('S', sides[0])+phase[-2:] for p in trial[:2]] + \
+                        [p.replace('S', sides[1])+phase[-2:] for p in trial[2:]]
+            return trial[phaseNo-1:phaseNo+2]
+        
+        piles = {action+'r.': [], action+'o.': [], action+'o!': []}    
+        for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
+            sess = next(readSessions.findSessions(dataFile, genotype=genotype,
+                                                  animal=animal, date=date,
+                                                  task='2choice'))
+            lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+            
+            for p in piles.keys():
+                incl_phases = _getPrevNextPhases(p)
+                X = deconv.loc[lfa.label.isin(incl_phases)]
+                Y = lfa.loc[lfa.label.isin(incl_phases), ['label','actionProgress']]
+                avgActivity = X.groupby([Y.label,(Y.actionProgress*5).astype("int")/5.0]).mean().T
+                avgActivity = avgActivity[incl_phases]
+                for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal),
+                            ('date',sess.meta.date)]:
+                    avgActivity.insert(0,k,v)
+                avgActivity.index.name = 'neuron'
+                avgActivity = avgActivity.reset_index().set_index(['genotype','animal','date','neuron'])
+                piles[p].append(avgActivity)
+        
+        for p in piles.keys():
+            piles[p] = pd.concat(piles[p])
+            
+        stacked = pd.concat(list(piles.values()), keys=piles.keys(), axis=1)
+        sort_idx = []
+        for p in piles.keys():
+            #sort_idx.append(stacked[(p,p)].max(axis=1) > .5)
+            sort_idx.append(stacked[(p,p)].mean(axis=1))#max(axis=1))
+        sort_idx = pd.concat(sort_idx, axis=1)
+        sort_idx = pd.DataFrame(sort_idx.mean(axis=1), columns=['mean'])
+        sort_idx['type'] = sort_idx.reset_index()['genotype'].values
+        if sort_ascending:
+            sort_idx['type'] = sort_idx.type.replace(dict(zip(['d1','a2a','oprm1'],np.arange(3))))
+        else:
+            sort_idx['type'] = sort_idx.type.replace(dict(zip(['d1','a2a','oprm1'],np.arange(3)[::-1])))
+        #stacked = stacked.loc[sort_idx.sort_values([0,1,2], ascending=False).index]
+        stacked = stacked.loc[sort_idx.sort_values(by=['type','mean'], 
+                                                   ascending=sort_ascending).index]
+        
+        return stacked
+    return _getStSwRasterData()
+
+
+#%%
+def getActivityCorrs(dataFile, popdf, actionValues, action):
+    corrs_df = pd.DataFrame()
     for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
         sess = next(readSessions.findSessions(dataFile, genotype=genotype,
                                               animal=animal, date=date,
                                               task='2choice'))
         lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
         deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+        avs = actionValues.query('genotype == @genotype & animal == @animal & date == @date').copy()
         
-        for p in piles.keys():
-            incl_phases = _getPrevNextPhases(p)
-            X = deconv.loc[lfa.label.isin(incl_phases)]
-            Y = lfa.loc[lfa.label.isin(incl_phases), ['label','actionProgress']]
-            avgActivity = X.groupby([Y.label,(Y.actionProgress*5).astype("int")/5.0]).mean().T
-            avgActivity = avgActivity[incl_phases]
-            piles[p].append(avgActivity)
-    
-    for p in piles.keys():
-        piles[p] = pd.concat(piles[p])
+        incl_labels = [action+tt for tt in ('r.','o.','o!')]
+        X = deconv.loc[lfa.label.isin(incl_labels)]
+        Y = lfa.loc[lfa.label.isin(incl_labels), ['label','actionNo','actionDuration']]
+        avs = avs.loc[avs.label.isin(incl_labels)].set_index(['label','actionNo'])
         
-    stacked = pd.concat(list(piles.values()), keys=piles.keys(), axis=1).reset_index(drop=True)
-    sort_idx = []
-    for p in piles.keys():
-        #sort_idx.append(stacked[(p,p)].max(axis=1) > .5)
-        sort_idx.append(stacked[(p,p)].max(axis=1))
-    sort_idx = pd.concat(sort_idx, axis=1)
-    sort_idx = sort_idx.mean(axis=1)
-    #stacked = stacked.loc[sort_idx.sort_values([0,1,2], ascending=False).index]
-    stacked = stacked.loc[sort_idx.sort_values(ascending=sort_ascending).index]
+        avgActivity = X.groupby([Y.label,Y.actionNo]).mean()
+        avgActivity.columns.name = 'neuron'
+        avgActivity = pd.DataFrame(avgActivity.stack(), columns=['activity'])
+        durations = Y.groupby(['label','actionNo'])[['actionDuration']].first()
+        avgActivity['duration'] = durations.actionDuration
+        avgActivity['value'] = avs.value
+        
+        activityCorrs = (avgActivity.groupby('neuron').corr()
+                                    .unstack()['activity'][['duration','value']])
+
+        for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal),
+                    ('date',sess.meta.date)]:
+            activityCorrs.insert(0,k,v)
+
+        activityCorrs = activityCorrs.reset_index().set_index(['genotype','animal','date','neuron'])
+        corrs_df = corrs_df.append(activityCorrs)
     
-    return stacked
+    return corrs_df
+
 
 
 #%% TODO: omg this is some horrible code :D
