@@ -421,14 +421,14 @@ ax.set_xticks((0,-7))
 ax.set_xlim((-7.35,0))
 ax.set_yticks([0, 1, 2, 3])
 ax.set_ylim((-.5, 3))
-ax.legend(bbox_to_anchor=(.05,1.05), loc='upper left')
+ax.legend(bbox_to_anchor=(.05,1.04), loc='upper left')
 ax.set_xlabel('trials back')
 ax.set_ylabel('coefficient')
 sns.despine(ax=ax)
 
 
 #%%
-def get_logit(df, dep='leftIn'):
+def get_logit(df, dep='rightIn'):
     logit = analysisStaySwitchDecoding.sm.Logit(df[dep], df[['value']])
     result = logit.fit(use_t=True, disp=False)
     stats = pd.DataFrame({'t':result.tvalues, 'p':result.pvalues, 'b':result.params})
@@ -443,9 +443,9 @@ def get_logit(df, dep='leftIn'):
 ax = layout.axes['log_reg_reg']['axis']
 df = logRegDF.copy()
 
-ax.set_xlim((-5, 5.6))
+ax.set_xlim((-5.6, 5))
 ax.set_xticks((-5,0,5))
-ax.set_ylim((-.0475, 1))
+ax.set_ylim((-.02, 1))
 ax.set_yticks((0,.5,1))
 ax.set_yticklabels((0,50,100))
 ax.xaxis.set_minor_locator(MultipleLocator(2.5))
@@ -460,10 +460,10 @@ pp = ax.plot(prediction.x, prediction.y, c='darkgray',
 bins = np.arange(-5.5,5.6)
 df['bins'] = pd.cut(df.value, bins=bins)
 # take bin mean per animal -> mean and sem per bin
-scatter_means = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').mean()
-scatter_sems = df.groupby(['animal','bins'])[['value','leftIn']].mean().groupby('bins').sem()
-eb = ax.errorbar(scatter_means['value'], scatter_means['leftIn'],
-                 yerr=scatter_sems['leftIn'], xerr=scatter_sems['value'],
+scatter_means = df.groupby(['animal','bins'])[['value','rightIn']].mean().groupby('bins').mean()
+scatter_sems = df.groupby(['animal','bins'])[['value','rightIn']].mean().groupby('bins').sem()
+eb = ax.errorbar(scatter_means['value'], scatter_means['rightIn'],
+                 yerr=scatter_sems['rightIn'], xerr=scatter_sems['value'],
                  fmt='.', c='darkgray', zorder=2, marker='.', 
                  markersize=2.5, clip_on=False)
 
@@ -473,8 +473,8 @@ hist = ax.bar(bins[:-1]+.5, stay_hist.switch['mean'],
               yerr=stay_hist.switch['sem'], color=style.getColor('switch'),
               alpha=.5, lw=0, width=.8, clip_on=False, zorder=99)
 
-ax.legend(handles=(eb, hist), labels=('left\nchoice','switch'),
-          bbox_to_anchor=(.6,1.16), loc='upper left')
+ax.legend(handles=(eb, hist), labels=('right\nchoice','switch'),
+          bbox_to_anchor=(.05,1.04), loc='upper left')
 ax.axvline(0, zorder=-99, ls=':', c='k', alpha=.35,
            lw=mpl.rcParams['axes.linewidth'])
 ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
@@ -482,7 +482,7 @@ ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
 ax.set_ylabel('% trials')
 ax.set_xlabel('action value')
 
-ax.invert_xaxis()
+#ax.invert_xaxis()
 sns.despine(ax=ax)
 
 
@@ -689,7 +689,7 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                                                            action, pkl_suffix=stsw)
     
     # add whitespace separator between genotypes -- total hack
-    sep_rows = stacked.shape[0] // 90
+    sep_rows = stacked.shape[0] // 70
     sep_cols = stacked.shape[1]+4
     sep = pd.DataFrame(np.array([np.nan]*(sep_cols*sep_rows)).reshape((sep_rows,sep_cols)))
     sep.set_index([0,1,2,3], inplace=True)
@@ -707,9 +707,9 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                 aspect='auto', interpolation='nearest')
     ccax.axis('off')
     
-    raxs = [layout.axes['{}pop_raster_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
-    aaxs = [layout.axes['{}pop_avg_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
-    for i, p in enumerate([action+tt for tt in ('r.','o.','o!')]):
+    raxs = [layout.axes['{}pop_raster_{}'.format(stsw, tt)]['axis'] for tt in ('o!','o.','r.')]
+    aaxs = [layout.axes['{}pop_avg_{}'.format(stsw, tt)]['axis'] for tt in ('o!','o.','r.')]
+    for i, p in enumerate([action+tt for tt in ('o!','o.','r.')]):
         for gt, gdata in stacked[p].groupby('genotype'):
             m = gdata.mean(axis=0)
             sem = gdata.sem(axis=0)
@@ -721,7 +721,7 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
         aaxs[i].set_ylim(0, .5)
         aaxs[i].set_xlim(-.5, 14.5)
         aaxs[i].hlines([0], -.5, 16, lw=mpl.rcParams['axes.linewidth'],
-                       color='lightgray', alpha=1, zorder=-99, ls=':', clip_on=False)
+                       color='k', alpha=.5, zorder=-99, ls=':', clip_on=False)
         aaxs[i].vlines([4.5,9.5], -.18, .5, ls=':', color='k', alpha=1, 
                        lw=mpl.rcParams['axes.linewidth'], clip_on=False,
                        zorder=-99)
@@ -735,44 +735,44 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                         lw=mpl.rcParams['axes.linewidth'])
         raxs[i].axis('off')
         
-    aaxs[2].axis('on')
-    sns.despine(ax=aaxs[2], trim=True, left=True, right=False, bottom=True,
+    aaxs[0].axis('on')
+    sns.despine(ax=aaxs[0], trim=True, left=False, right=True, bottom=True,
                 offset=1)
-    aaxs[2].set_ylabel("z-score")
-    aaxs[2].set_yticks((0,.5))
-    aaxs[2].set_yticks((.25,), minor=True)
-    aaxs[2].yaxis.set_label_position('right')
-    aaxs[2].yaxis.set_ticks_position('right')
-    aaxs[2].set_xticks(())
+    aaxs[0].set_ylabel("z-score")
+    aaxs[0].set_yticks((0,.5))
+    aaxs[0].set_yticks((.25,), minor=True)
+    #aaxs[2].yaxis.set_label_position('right')
+    #aaxs[2].yaxis.set_ticks_position('right')
+    aaxs[0].set_xticks(())
     
-    raxs[2].axis('on')
-    sns.despine(ax=raxs[2], left=True, bottom=True)
+    raxs[0].axis('on')
+    sns.despine(ax=raxs[0], left=True, bottom=True)
 #    raxs[2].set_ylabel("neuron", labelpad=-5)
 #    raxs[2].set_yticks((0, len(stacked)-1))
 #    raxs[2].set_yticklabels([1,len(aucs)])
-    ylims = raxs[2].get_ylim()
+    ylims = raxs[0].get_ylim()
     gtorder = ['d1','a2a','oprm1']
     yticks = (stacked.groupby('genotype').size().loc[gtorder[:-1]].cumsum().values + 
               [sep_rows,2*sep_rows])
     yticks = (np.array([0] + list(yticks)) +
               stacked.groupby('genotype').size().loc[gtorder].values // 2)
-    raxs[2].set_yticks(yticks-1)
-    raxs[2].set_yticklabels(['{}\n({})'.format(gt,n) for (n,gt) in 
+    raxs[0].set_yticks(yticks-1)
+    raxs[0].set_yticklabels(['{}\n({})'.format(gt,n) for (n,gt) in 
                                  zip(stacked.groupby('genotype').size().loc[gtorder].values,
                                      ['D1','A2A','Oprm1'])],
                             rotation=0, va='center', ha='center')
-    raxs[2].set_ylim(ylims) # somehow not having a 0 tick crops the image!
-    raxs[2].yaxis.set_label_position('right')
-    raxs[2].yaxis.set_ticks_position('right')
-    raxs[2].tick_params(axis='y', length=0, pad=10)
-    [tick.set_color(style.getColor(gt)) for (tick,gt) in zip(raxs[2].get_yticklabels(),
+    raxs[0].set_ylim(ylims) # somehow not having a 0 tick crops the image!
+#    raxs[2].yaxis.set_label_position('right')
+#    raxs[2].yaxis.set_ticks_position('right')
+    raxs[0].tick_params(axis='y', length=0, pad=13)
+    [tick.set_color(style.getColor(gt)) for (tick,gt) in zip(raxs[0].get_yticklabels(),
                                                              gtorder)]
-    raxs[2].set_xticks(())
+    raxs[0].set_xticks(())
     
-    f8axs = [layout.axes['{}pop_f8_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
-    [ax.axis('off') for ax in f8axs]
-    analysisStaySwitchDecoding.drawPopAverageFV(endoDataPath, aucs, f8axs,
-                                                saturation=.5)
+#    f8axs = [layout.axes['{}pop_f8_{}'.format(stsw, tt)]['axis'] for tt in ('r.','o.','o!')]
+#    [ax.axis('off') for ax in f8axs]
+#    analysisStaySwitchDecoding.drawPopAverageFV(endoDataPath, aucs, f8axs,
+#                                                saturation=.5)
     
     cax = layout.axes['{}pop_colorbar'.format(stsw)]['axis']
     cb = plt.colorbar(img, cax=cax, orientation='horizontal')
@@ -782,63 +782,140 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
              transform=cax.transAxes)
     cax.text(1.05, .3, .5, ha='left', va='center', fontdict={'fontsize':6},
              transform=cax.transAxes)
-    cax.text(0.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
+    cax.text(0.5, -.1, 'z-score', ha='center', va='top', fontdict={'fontsize':6},
              transform=cax.transAxes)
+
+
+for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
+    actionMeans = analysisStaySwitchDecoding.getActionMeans(endoDataPath, aucs,
+                                                            actionValues, action,
+                                                            pkl_suffix=stsw)
+    actionMeans.set_index(['genotype','animal','date','neuron'], inplace=True)
+
+    actionMeans['bin'] = pd.cut(actionMeans.value * (1 if 'R' in action else -1),
+                                [-10,0,1,2,3,4,10])
     
+    # v per neuron bin-average activity and value
+    means = actionMeans.groupby(['genotype','animal','neuron','bin'])[['activity','value']].mean()
+    # v per genotype
+    means = means.groupby(['genotype','bin']).agg(['mean','sem'])
+    
+    ax = layout.axes['{}pop_av_sd_reg'.format(stsw)]['axis']
+    for gt, data in means.groupby('genotype'):
+        eb = ax.errorbar(data['value','mean'], data['activity','mean'],
+                         yerr=data['activity','sem'], xerr=data['value','sem'],
+                         marker='o', markersize=1, color=style.getColor(gt),
+                         lw=.5, clip_on=False)
+        for lines in eb.lines[2]:
+            lines.set_clip_on(False)
+        ax.fill_between(data['value','mean'], data['activity','mean']-data['activity','sem'],
+                                              data['activity','mean']+data['activity','sem'],
+                        color=style.getColor(gt), lw=0, alpha=.35, label=gt, clip_on=False)
+        
+    ax.axhline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_ylim((-.2,.5))
+    ax.set_yticks((0,.5))
+    ax.set_yticks((.25,), minor=True)
+    ax.set_xlim((-1,5) if 'R' in action else (-5,1))
+    ax.set_xticks((0,5) if 'R' in action else (-5,0))
+    #ax.set_xticks(np.arange(-1,6) if 'L' in action else np.arange(-5,2), minor=True)
+    ax.set_xticks((2.5,) if 'R' in action else (-2.5,), minor=True)
+    ax.set_ylabel('z-score')
+    ax.set_xlabel('action value')
+    #ax.legend(loc=(1,.65))
+    sns.despine(ax=ax, trim=False)
+    
+    # correlation plots
+    ax = layout.axes['{}pop_corrs'.format(stsw)]['axis']
+    
+    corrs_df = (actionMeans.groupby(['genotype','animal','date','neuron'])
+                           [['activity','duration','value']].corr().unstack())
+    mean_corrs = corrs_df.groupby(['genotype','animal','date']).agg(['mean','size'])
+
+    ax.scatter(mean_corrs[('activity','duration','mean')], mean_corrs[('activity','value','mean')],
+                          s=mean_corrs[('activity','duration','size')]/5,
+                          facecolors=mean_corrs.reset_index().genotype.apply(style.getColor),
+                          lw=.35, alpha=.45, clip_on=False)
+    
+    ax.axhline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_aspect('equal')
+    ax.set_ylabel('r(activity, value)')
+    ax.set_xlabel('r(activity, duration)')
+    if stsw == 'switch':
+        ax.set_xlim((-.3,.3))
+        ax.set_ylim((-.5,.1))
+        ax.set_xticks((-.2,0,.2))
+        ax.set_yticks((0,-.2,-.4))
+        sns.despine(ax=ax, trim=False) # trim=True is buggy -> repeatedly setting ticks
+        ax.set_xticks((-.2,0,.2))
+        ax.set_yticks((0,-.2,-.4))
+    if stsw == 'stay':
+        ax.set_xlim((-.3,.3))
+        ax.set_ylim((-.1,.5))
+        ax.set_xticks((-.2,0,.2))
+        ax.set_yticks((0,.2,.4))
+        sns.despine(ax=ax, trim=False)
+        ax.set_xticks((-.2,0,.2))
+        ax.set_yticks((0,.2,.4))
+
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecoding.svg")
 
-#%%
-action_aucs = staySwitchAUC.query('action == @action').copy()
-action_aucs['stay'] = action_aucs.pct > .995
-action_aucs['switch'] = action_aucs.pct < .005
 
-sign_sess_frac = pd.DataFrame(action_aucs.groupby(['genotype','animal','date'])[['stay']].sum())
-sign_sess_frac['switch'] = action_aucs.groupby(['genotype','animal','date']).switch.sum()
-sign_sess_frac['noNeurons'] = action_aucs.groupby(['genotype','animal','date']).size()
-sign_sess_frac.loc[:,['stay','switch']] = (sign_sess_frac[['stay','switch']] / 
-                                           sign_sess_frac.noNeurons.values[:,np.newaxis])
-sign_sess_frac.reset_index(inplace=True)
-
-for tuning in ['stay','switch']:
-    fig = plt.figure(figsize=(1,1))
-    ax = plt.gca()
-    sessionBarPlot.sessionBarPlot(sign_sess_frac, tuning, ax, style.getColor,
-                                  weightScale=.02)
-    ax.set_ylim((0,.4))
-    ax.set_yticks((0,.2,.4))
-    ax.set_yticks((.1, .3), minor=True)
-    ax.set_yticklabels((ax.get_yticks()*100).astype('int'))
-    sns.despine(ax=ax)
-    plt.show()
+#%%##############################################################################
+#action_aucs = staySwitchAUC.query('action == @action').copy()
+#action_aucs['stay'] = action_aucs.pct > .995
+#action_aucs['switch'] = action_aucs.pct < .005
+#
+#sign_sess_frac = pd.DataFrame(action_aucs.groupby(['genotype','animal','date'])[['stay']].sum())
+#sign_sess_frac['switch'] = action_aucs.groupby(['genotype','animal','date']).switch.sum()
+#sign_sess_frac['noNeurons'] = action_aucs.groupby(['genotype','animal','date']).size()
+#sign_sess_frac.loc[:,['stay','switch']] = (sign_sess_frac[['stay','switch']] / 
+#                                           sign_sess_frac.noNeurons.values[:,np.newaxis])
+#sign_sess_frac.reset_index(inplace=True)
+#
+#for tuning in ['stay','switch']:
+#    fig = plt.figure(figsize=(1,1))
+#    ax = plt.gca()
+#    sessionBarPlot.sessionBarPlot(sign_sess_frac, tuning, ax, style.getColor,
+#                                  weightScale=.02)
+#    ax.set_ylim((0,.4))
+#    ax.set_yticks((0,.2,.4))
+#    ax.set_yticks((.1, .3), minor=True)
+#    ax.set_yticklabels((ax.get_yticks()*100).astype('int'))
+#    sns.despine(ax=ax)
+#    plt.show()
     
     
 #%%
-stay_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, stay_aucs,
-                                                         actionValues, action)
-switch_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, switch_aucs,
-                                                           actionValues, action)
-corrs = pd.concat([stay_corrs,switch_corrs], axis=0, keys=['stay','switch'], names=['tuning'])
-
-#%%
-corrs['diff'] = corrs.value.abs() - corrs.duration.abs()
-corrs.reset_index(inplace=True)
-
-#%%
-fig = plt.figure(figsize=(1,1.5))
-ax = plt.gca()
-vs = sns.violinplot(x='genotype', y='diff', data=corrs, order=['d1','a2a','oprm1'],
-                    palette=[style.getColor(g) for g in ['d1','a2a','oprm1']], inner='box',
-                    linewidth=.5, ax=ax, scale='area')
-plt.setp(vs.axes.collections, alpha=.5, linewidth=0)
-ax.axhline(0, ls=':', c='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
-ax.set_ylabel('|R(value)| - |R(duration)|')
-ax.set_xlabel('')
-ax.set_xticks(())
-sns.despine(ax=ax, trim=True, bottom=True)
-fig.savefig('svg/stsw_tuned_value-velo_corrs.svg', bbox_inches='tight', pad_inches=.1)
-plt.show()
+#stay_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, stay_aucs,
+#                                                         actionValues, action)
+#switch_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, switch_aucs,
+#                                                           actionValues, action)
+#corrs = pd.concat([stay_corrs,switch_corrs], axis=0, keys=['stay','switch'], names=['tuning'])
+#
+##%%
+#corrs['diff'] = corrs.value.abs() - corrs.duration.abs()
+#corrs.reset_index(inplace=True)
+#
+##%%
+#fig = plt.figure(figsize=(1,1.5))
+#ax = plt.gca()
+#vs = sns.violinplot(x='genotype', y='diff', data=corrs, order=['d1','a2a','oprm1'],
+#                    palette=[style.getColor(g) for g in ['d1','a2a','oprm1']], inner='box',
+#                    linewidth=.5, ax=ax, scale='area')
+#plt.setp(vs.axes.collections, alpha=.5, linewidth=0)
+#ax.axhline(0, ls=':', c='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
+#ax.set_ylabel('|R(value)| - |R(duration)|')
+#ax.set_xlabel('')
+#ax.set_xticks(())
+#sns.despine(ax=ax, trim=True, bottom=True)
+#fig.savefig('svg/stsw_tuned_value-velo_corrs.svg', bbox_inches='tight', pad_inches=.1)
+#plt.show()
 
 
 #%%
@@ -871,7 +948,3 @@ plt.show()
 #fig.savefig('svg/duration_value_corrs.svg', bbox_inches='tight', pad_inches=.1)
 #plt.show()
 
-
-#%%
-layout.insert_figures('plots')
-layout.write_svg(outputFolder / "staySwitchDecoding.svg")

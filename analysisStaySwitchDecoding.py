@@ -429,9 +429,9 @@ def getRegressionVars(sensorValues, trials_back=7):
     df['leftEx'] = df.leftEx.astype('int')
     df['rightEx'] = df.rightEx.astype('int')
     
-    # get Y & N (Y=1 if left and rewarded, -1 if right and rewarded)
-    df['Y0'] = df.reward * (df.leftEx - df.rightEx)
-    df['N0'] = ~df.reward * (df.leftEx - df.rightEx) # ~ requires bool!
+    # get Y & N (Y=1 if right and rewarded, -1 if left and rewarded)
+    df['Y0'] = df.reward * (df.rightEx - df.leftEx)
+    df['N0'] = ~df.reward * (df.rightEx - df.leftEx) # ~ requires bool!
 
 
     df['intercept'] = 1.0
@@ -467,7 +467,7 @@ def getAVCoefficients(dataFile):
     for (genotype, animal), df in regression_df.groupby(['genotype','animal']):
         df = df.copy()
         df['intercept'] = 1.0         
-        logit = sm.Logit(df.leftIn, df[reg_vars])
+        logit = sm.Logit(df.rightIn, df[reg_vars])
         result = logit.fit(use_t=True, disp=False)
         
         coef = result.params
@@ -714,40 +714,45 @@ def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix=
 
 
 #%%
-def getActivityCorrs(dataFile, popdf, actionValues, action):
-    corrs_df = pd.DataFrame()
-    for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
-        sess = next(readSessions.findSessions(dataFile, genotype=genotype,
-                                              animal=animal, date=date,
-                                              task='2choice'))
-        lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
-        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
-        avs = actionValues.query('genotype == @genotype & animal == @animal & date == @date').copy()
-        
-        incl_labels = [action+tt for tt in ('r.','o.','o!')]
-        X = deconv.loc[lfa.label.isin(incl_labels)]
-        Y = lfa.loc[lfa.label.isin(incl_labels), ['label','actionNo','actionDuration']]
-        avs = avs.loc[avs.label.isin(incl_labels)].set_index(['label','actionNo'])
-        
-        avgActivity = X.groupby([Y.label,Y.actionNo]).mean()
-        avgActivity.columns.name = 'neuron'
-        avgActivity = pd.DataFrame(avgActivity.stack(), columns=['activity'])
-        durations = Y.groupby(['label','actionNo'])[['actionDuration']].first()
-        avgActivity['duration'] = durations.actionDuration
-        avgActivity['value'] = avs.value
-        
-        activityCorrs = (avgActivity.groupby('neuron').corr()
-                                    .unstack()['activity'][['duration','value']])
-
-        for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal),
-                    ('date',sess.meta.date)]:
-            activityCorrs.insert(0,k,v)
-
-        activityCorrs = activityCorrs.reset_index().set_index(['genotype','animal','date','neuron'])
-        corrs_df = corrs_df.append(activityCorrs)
+def getActionMeans(dataFile, popdf, actionValues, action, pkl_suffix=''):
+    @cachedDataFrame('actionMeans_{}-{}.pkl'.format(action, pkl_suffix))
+    def _getActionMeans():
+        actionMeans = pd.DataFrame()
+        for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
+            sess = next(readSessions.findSessions(dataFile, genotype=genotype,
+                                                  animal=animal, date=date,
+                                                  task='2choice'))
+            lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+            avs = actionValues.query('genotype == @genotype & animal == @animal & date == @date').copy()
+            
+            incl_labels = [action+tt for tt in ('r.','o.','o!')]
+            X = deconv.loc[lfa.label.isin(incl_labels)]
+            Y = lfa.loc[lfa.label.isin(incl_labels), ['label','actionNo','actionDuration']]
+            avs = avs.loc[avs.label.isin(incl_labels)].set_index(['label','actionNo'])
+            
+            avgActivity = X.groupby([Y.label,Y.actionNo]).mean()
+            avgActivity.columns.name = 'neuron'
+            avgActivity = pd.DataFrame(avgActivity.stack(), columns=['activity'])
+            durations = Y.groupby(['label','actionNo'])[['actionDuration']].first()
+            avgActivity['duration'] = durations.actionDuration
+            avgActivity['value'] = avs.value
     
-    return corrs_df
+            for k,v in [('date',sess.meta.date),('animal',sess.meta.animal),
+                        ('genotype',sess.meta.genotype)]:
+                avgActivity.insert(0,k,v)
+    
+            actionMeans = actionMeans.append(avgActivity.reset_index(), ignore_index=True)
+        return actionMeans
+    return _getActionMeans()
 
+
+#def getActivityCorrs(dataFile, popdf, actionValues, action):
+#    actionMeans = getActionMeans(dataFile, popdf, actionValues, action)
+#    corrs_df = (actionMeans.groupby(['genotype','animal','date','neuron'])
+#                           [['activity','duration','value']].corr()
+#                           .unstack())
+#    return corrs_df
 
 
 #%% TODO: omg this is some horrible code :D
