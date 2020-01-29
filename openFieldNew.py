@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MultipleLocator, FixedLocator
-from utils import readSessions, fancyViz, sessionBarPlot
+from utils import readSessions, fancyViz, sessionBarPlot, roiPlot
 from collections import defaultdict
 import pathlib
 import figurefirst
@@ -36,21 +36,60 @@ tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 
 #%%
-ex_session = ('oprm1','5308','190224')
-s = next(readSessions.findSessions(endoDataPath, genotype=ex_session[0],
-                                   animal=ex_session[1], date=ex_session[2],
-                                   task='openField'))
-traces = s.readDeconvolvedTraces(zScore=True)
-ex_tunings = tuningData.query("genotype=='{}' & animal=='{}' & date=='{}'".format(*ex_session))
-
 example_sess = {'genotype':'oprm1', 'animal':'5308', 'date':'190224'}
-#example_sess = {'genotype':'oprm1', 'animal':'5703', 'date':'190201'}
-coords = analysisOpenField.getSmoothedOFTTracking(endoDataPath, example_sess['genotype'],
-                                example_sess['animal'], example_sess['date'])
+sess = next(readSessions.findSessions(endoDataPath, task='openField', **example_sess))
+traces = sess.readDeconvolvedTraces(zScore=True)
+queryStr = " & ".join(["{}=='{}'".format(*v) for v in example_sess.items()])
+ex_tunings = tuningData.query(queryStr)
 
+caTraces = sess.readCaTraces()
+caTraces -= caTraces.min(axis=0)
+caTraces /= caTraces.std(axis=0)
 
 #%%
+#_, axs = plt.subplots(1,2, dpi=300, figsize=(3, 1.4), gridspec_kw={'width_ratios': [1.9, 1.2]})
+#traceExampleNeurons = [212, 194, 222, 13, 42]
+traceExampleNeurons = [194, 166, 142, 13, 6]
+#traceExampleNeurons = np.random.choice(rois.shape[1], 10, replace=False)
 
+ax = layout.axes['ex_fov']['axis']
+rois = sess.readROIs()
+#colors = np.tile(style.getColor("none"), (rois.shape[1], 1)).astype(np.float)
+colors = np.full((rois.shape[1], 3), 0.75)
+for i, n in enumerate(traceExampleNeurons):
+    colors[n, :] = mpl.colors.to_rgb("C{}".format(i))    
+roiPlot.roiPlot(rois, colors, ax)
+ymax, xmax = rois[0].unstack().shape
+ax.plot([40, 120], [ymax, ymax], 'k', lw=mpl.rcParams['axes.linewidth'])
+ax.text(80, ymax+3, "200μm", ha="center", va="top", fontsize=6)
+ax.set_xlim((0, xmax))
+ax.set_ylim((ymax, 0))
+ax.axis("equal")
+ax.axis('off')
+
+ax = layout.axes['ex_deconv']['axis']
+
+#ax = plt.gca()
+timeslice = slice(1050, 1250)
+
+for i, n in enumerate(traceExampleNeurons):
+    color = 'C{}'.format(i)
+    bottom = traces[n].iloc[timeslice].min()
+    ax.vlines(traces.index[timeslice], 12*i+bottom, 12*i+traces[n].iloc[timeslice],
+              color=color, lw=.5)
+    ax.plot(caTraces[n].iloc[timeslice] + 12*i, color=color, lw=1, alpha=0.5)
+    #ax.plot(caTraces[n].iloc[timeslice] + 12*i, color='k', lw=.5)
+    #ax.text(975*0.05, 15*i, str(n), ha="right", va="bottom", fontsize=6)
+starttime = timeslice.start / 20.0
+ax.plot(starttime + np.array([1.5, -0.5, -0.5]), [60, 60, 60-6],
+        'k', lw=mpl.rcParams['axes.linewidth'])
+ax.text(starttime-0.65, 60-3, '6sd', ha='right', va='center', fontsize=6)
+ax.text(starttime+0.5, 60.5, '2s', ha='center', va='bottom', fontsize=6)
+ax.axis("off")
+#plt.show()
+
+#%%
+coords = analysisOpenField.getSmoothedOFTTracking(endoDataPath, **example_sess)
 ax = layout.axes['ex_path']['axis']
 start, end = 3200, 3200+2400
 cdf = coords.loc[start:end].copy()
@@ -75,7 +114,7 @@ for p, behavior in enumerate(order):
     trace = traces[max_neuron]
     
     axfv = layout.axes['ex_{}'.format(p+1)]['axis']
-    fv = fancyViz.OpenFieldSchematicPlot(s, linewidth=mpl.rcParams['axes.linewidth'])
+    fv = fancyViz.OpenFieldSchematicPlot(sess, linewidth=mpl.rcParams['axes.linewidth'])
     img = fv.draw(trace, ax=axfv)
     
     axbg = layout.axes['ex_{}_bg'.format(p+1)]['axis']
@@ -135,33 +174,13 @@ patches = [mpatches.Patch(color=style.getColor(b), label=t, alpha=.15)
 axt.legend(handles=patches, ncol=4, mode='expand', bbox_to_anchor=(0,1.02,1,1.02),
            loc='lower center')
 
+#%%
 ax = layout.axes['tuning_fov']['axis']
-
-df = ex_tunings.loc[ex_tunings.groupby('neuron').tuning.idxmax()].copy()
-df['color'] = df.action
-df.loc[~df.signp, 'color'] = 'none'
-df['color'] = df.color.apply(lambda c: np.array(style.getColor(c)))
-
-rois = s.readROIs()
-rois = np.array([rois[n].unstack('x').values for n in rois])
-#sel_cnts = analysisTunings.get_centers(rois)[sel_neurons]
-
-rs = []
-for roi, color in zip(rois, df.color.values):
-    roi /= roi.max()
-    roi = roi**1.5
-    roi = np.clip(roi-.1, 0, .85)
-    roi /= roi.max()
-    r = np.array([(roi > 0).astype('int')]*3) * color[:, np.newaxis, np.newaxis]
-    r = np.concatenate([r, roi[np.newaxis]], axis=0)
-    rs.append(r.transpose((1,2,0)))    
-rs = np.array(rs)
-
-for img in rs:
-    ax.imshow(img)
-#ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k', facecolor='none', 
-#           s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
-
+df = ex_tunings.loc[ex_tunings.groupby('neuron').tuning.idxmax()]
+colors = df.action.copy()
+colors[~df.signp] = 'none'
+colors = np.array([style.getColor(c) for c in colors])
+roiPlot.roiPlot(sess.readROIs(), colors, ax)
 ax.axis('off')
 
 
