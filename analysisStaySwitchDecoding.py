@@ -753,6 +753,30 @@ def getActionMeans(dataFile, popdf, actionValues, action, pkl_suffix=''):
 #                           [['activity','duration','value']].corr()
 #                           .unstack())
 #    return corrs_df
+    
+
+#%%
+def getTunedNoHistData(tuningData):
+    count_df = (tuningData.groupby(['genotype','animal','date','neuron'])[['sign']]
+                          .sum().astype('int').copy())
+    
+    hist_df = pd.DataFrame()
+    for (g,a,d), data in count_df.groupby(['genotype','animal','date']):
+        signHist = pd.Series(dict(zip(np.arange(13), 
+                                       np.bincount(data.sign, minlength=13))))
+        df = pd.DataFrame({'sign':signHist})
+        df.index.name = 'count'
+        df['genotype'], df['animal'], df['date'] = g, a, d
+        hist_df = hist_df.append(df.reset_index().set_index(['genotype','animal','date','count']))
+    
+    hist_df = hist_df.reset_index('count')
+    hist_df['bin'] = pd.cut(hist_df['count'], bins=[-.5,.5,1.5,2.5,3.5,4.5,13]).cat.codes
+    hist_df = (hist_df.groupby(['genotype','animal','date','bin'])[['sign']].sum()
+                      .reset_index('bin'))
+    hist_df['noNeurons'] = count_df.groupby(['genotype','animal','date']).size()
+    hist_df['sign'] /= hist_df.noNeurons
+    
+    return hist_df
 
 
 #%% TODO: omg this is some horrible code :D

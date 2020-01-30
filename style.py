@@ -44,7 +44,7 @@ def set_context():
                 'font.sans-serif': ['Arial'],
                 'mathtext.default': 'regular',
                 'patch.force_edgecolor': False,
-                'hatch.linewidth': .5,
+                'hatch.linewidth': .35,
                 'svg.fonttype': 'none',
                 'savefig.dpi': 300})
     

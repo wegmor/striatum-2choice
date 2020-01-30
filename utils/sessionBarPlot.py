@@ -11,15 +11,19 @@ def bootstrapSEM(values, weights, iterations=1000):
 
 def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="animal",
                    dateCol="date", weightCol="noNeurons", weightScale=0.1,
-                   genotypeOrder=("d1","a2a","oprm1"), barAlpha=0.3):
+                   genotypeOrder=("d1","a2a","oprm1"), barAlpha=0.3, orientation='vertical'):
 
     genotypeMeans = df.groupby(genotypeCol).apply(lambda df: np.average(df[yCol], weights=df[weightCol]))
     genotypeSEMs = df.groupby(genotypeCol).apply(lambda df: bootstrapSEM(df[yCol], weights=df[weightCol]))
     genotypeMeans = genotypeMeans.loc[list(genotypeOrder)]
     genotypeSEMs = genotypeSEMs.loc[list(genotypeOrder)]
     barColors = [colorFunc(gt) for gt in genotypeMeans.index]
-    ax.bar(np.arange(len(genotypeOrder)), genotypeMeans, 0.9, color=barColors,
-           alpha=barAlpha, yerr=genotypeSEMs, clip_on=False)
+    if orientation == 'vertical':
+        ax.bar(np.arange(len(genotypeOrder)), genotypeMeans, 0.9, color=barColors,
+               alpha=barAlpha, yerr=genotypeSEMs, clip_on=False)
+    else:
+        ax.barh(np.arange(len(genotypeOrder)), genotypeMeans, 0.9, color=barColors,
+                alpha=barAlpha, xerr=genotypeSEMs, clip_on=False)
 
     perAnimal = df.sort_values(dateCol).drop_duplicates(animalCol)
     cumCount = perAnimal.groupby(genotypeCol).cumcount()
@@ -29,7 +33,13 @@ def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="a
     xCoord = pd.Series(xCoord, perAnimal[animalCol]).reindex(df[animalCol])
     xCoord.index = df.index
     c = [colorFunc(gt) for gt in df[genotypeCol]]
-    ax.scatter(xCoord, df[yCol], df[weightCol]*weightScale, edgecolors=c, facecolor="none",
-               clip_on=False, lw=.5)
-    ax.set_xticks(np.arange(len(genotypeOrder)))
-    ax.set_xticklabels(genotypeOrder)
+    if orientation == 'vertical':
+        ax.scatter(xCoord, df[yCol], df[weightCol]*weightScale, edgecolors=c, facecolor="none",
+                   clip_on=False, lw=.5)
+        ax.set_xticks(np.arange(len(genotypeOrder)))
+        ax.set_xticklabels(genotypeOrder)
+    else:
+        ax.scatter(df[yCol], xCoord, df[weightCol]*weightScale, edgecolors=c, facecolor='none',
+                   clip_on=False, lw=.5)
+        ax.set_yticks(np.arange(len(genotypeOrder)))
+        ax.set_yticklabels(genotypeOrder)
