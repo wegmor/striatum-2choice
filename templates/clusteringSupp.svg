@@ -24,8 +24,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="1668.7497"
-     inkscape:cy="-1026.9329"
+     inkscape:cx="196.49945"
+     inkscape:cy="862.08919"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -44,7 +44,7 @@
      inkscape:window-width="1853"
      inkscape:window-x="1987"
      inkscape:window-y="27"
-     inkscape:zoom="0.12374369"
+     inkscape:zoom="0.70000002"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -2981,5 +2981,105 @@
        id="path10128"
        d="m 196.85,20.247294 c -77.80844,0 -77.36678,0 -77.36678,0"
        style="fill:none;stroke:#000000;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <rect
+       height="11.125199"
+       id="rect17536"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.6887967;stroke:none;stroke-width:0.06576688;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.125199"
+       x="18.977901"
+       y="144.49522">
+      <figurefirst:axis
+         figurefirst:name="tsne_d1" />
+    </rect>
+    <rect
+       height="11.125199"
+       id="rect17536-36"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.6887967;stroke:none;stroke-width:0.06576691;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.125199"
+       x="30.632092"
+       y="144.49522">
+      <figurefirst:axis
+         figurefirst:name="tsne_a2a" />
+    </rect>
+    <rect
+       height="11.125199"
+       id="rect17536-7"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.6887967;stroke:none;stroke-width:0.06576691;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="11.125199"
+       x="42.28627"
+       y="144.49522">
+      <figurefirst:axis
+         figurefirst:name="tsne_oprm1" />
+    </rect>
+    <rect
+       height="24.186089"
+       id="rect17536-7-5"
+       style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:0.6887967;stroke:none;stroke-width:0.14297673;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+       width="24.186089"
+       x="24.101742"
+       y="120.37528">
+      <figurefirst:axis
+         figurefirst:name="tsne_tuning" />
+    </rect>
+    <text
+       id="text17532"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="18.777407"
+       xml:space="preserve"
+       y="123.28208"><tspan
+         style="stroke-width:0.26458332"
+         sodipodi:role="line"
+         id="tspan147252"
+         x="18.777407"
+         y="123.28208">J</tspan></text>
+    <text
+       id="text24293-3"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="23.092846"
+       xml:space="preserve"
+       y="157.86079"><tspan
+         id="tspan24291-5"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="23.092846"
+         y="157.86079">D1</tspan></text>
+    <text
+       id="text24297-6"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="33.859051"
+       xml:space="preserve"
+       y="157.86079"><tspan
+         id="tspan24295-2"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="33.859051"
+         y="157.86079">A2A</tspan></text>
+    <text
+       id="text24301-9"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="43.71077"
+       xml:space="preserve"
+       y="157.88489"><tspan
+         id="tspan24299-1"
+         sodipodi:role="line"
+         style="stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="43.71077"
+         y="157.88489">Oprm1</tspan></text>
+    <text
+       id="text1267"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;line-height:1;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+       x="22.664959"
+       xml:space="preserve"
+       y="141.46768"><tspan
+         id="tspan1265"
+         sodipodi:role="line"
+         style="text-align:start;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="22.664959"
+         y="141.46768">all</tspan><tspan
+         id="tspan4586"
+         sodipodi:role="line"
+         style="text-align:start;text-anchor:start;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
+         x="22.664959"
+         y="143.93713">neurons</tspan></text>
   </g>
 </svg>

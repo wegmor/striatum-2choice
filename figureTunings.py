@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MultipleLocator, FixedLocator
-from utils import readSessions, fancyViz, alluvialPlot
+from utils import readSessions, fancyViz, alluvialPlot, roiPlot
 from collections import defaultdict
 import pathlib
 import figurefirst
@@ -131,6 +131,20 @@ axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02
 
 #%% map
 ax = layout.axes['tuning_fov']['axis']
+df = tunings.loc[tunings.groupby('neuron').tuning.idxmax()]
+colors = df.action.copy()
+colors[~df.signp] = 'none'
+colors = np.array([style.getColor(c[:4]) for c in colors])
+rois = s.readROIs()
+roiPlot.roiPlot(rois, colors, ax)
+
+sel_cnts = np.array(list(rois[sel_neurons].idxmax(axis=0)))
+ax.scatter(sel_cnts[:,1], sel_cnts[:,0], marker='o', edgecolor='k', facecolor='none', 
+           s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
+
+ax.axis('off')
+'''
+ax = layout.axes['tuning_fov']['axis']
 
 df = tunings.loc[tunings.groupby('neuron').tuning.idxmax()].copy()
 df['color'] = df.action
@@ -158,7 +172,7 @@ ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k', facecolor='n
            s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
 
 ax.axis('off')
-
+'''
 
 #%%
 ax = layout.axes['tuning_hist1']['axis']
@@ -213,7 +227,38 @@ for g in ['d1','a2a','oprm1']:
 
     ax.set_aspect('equal')
 
-
+#%%
+phaseRasterData = analysisTunings.getPhaseRasterData(endoDataPath)
+for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
+    mean = df.mean(axis=0)
+    sem = df.sem(axis=0)
+    ax = layout.axes['psth_'+action[:4]]['axis']
+    ax.fill_between(mean.index, mean-sem, mean+sem,
+                    color=style.getColor(genotype), alpha=0.2)
+    ax.plot(mean, color=style.getColor(genotype))
+    if genotype == "oprm1":
+        ax.set_xlim(0, 15)
+        ax.set_ylim(-0.1, 0.5)
+        ax.set_xticks([])
+        if action == "mC2L-" or action == "mL2C-":
+            ax.set_yticks((-0.1, 0.5))
+            ax.set_yticks(np.arange(0, 0.5, 0.1), minor=True)
+            ax.set_ylabel("z-score", labelpad=-7)
+        else:
+            ax.set_yticks([])
+            ax.set_yticks(np.arange(-0.1, 0.51, 0.1), minor=True)
+        if action =="mL2C-" or action == "mR2C-":
+            ax.set_xlabel("scaled time")
+        ax.axvspan(0, 5, color=style.getColor("p"+action[1]), alpha=0.2)
+        ax.axvspan(10, 15, color=style.getColor("p"+action[3]), alpha=0.2)
+        ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
+        ax.axhspan(0.5, 0.53, color=style.getColor(action[:4]), clip_on=False)
+        sns.despine(ax=ax)
+genotypeOrder = ("d1", "a2a", "oprm1")
+lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
+labels = ["D1", "A2A", "Oprm1"]
+layout.axes["psth_mC2L"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.2,
+                                            bbox_to_anchor=(0.85, 1.2, 1, 0.1)) 
 #%% tuning counts (simple)
 hist_df = analysisTunings.getTunedNoHistData(tuningData)
 
@@ -250,6 +295,7 @@ axs['a2a'].set_xlabel('number of actions')
 
 
 #%% TSNE
+'''
 tuningTsne = analysisTunings.getTSNEProjection(tuningData)
 
 #%%
@@ -277,7 +323,7 @@ ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
 ax.invert_xaxis()
 ax.set_aspect('equal')
 ax.axis('off')
-
+'''
 
 #%% similar tuning == closer spatially?
 pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
@@ -313,7 +359,8 @@ ax.set_xlabel('expected')
 ax.set_ylabel('observed')
 ax.text(50, 75, 'μm to nearest\ntuned neighbor', ha='center', va='center',
         fontdict={'fontsize':7})
-ax.legend(loc='lower right', bbox_to_anchor=(1.1, .05))
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles[-3:], labels[-3:], loc='lower right', bbox_to_anchor=(1.1, .05))
 ax.set_aspect('equal')
 sns.despine(ax=ax)
 
@@ -355,16 +402,32 @@ colormap.update({a: style.getColor(a) for a in primaryPairs.action_openField.uni
 
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
-                 'rightTurn': 'right turn'}
+                 'rightTurn': 'right turn', 'none': 'untuned'}
+phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
+              'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
+              'pR2C': 'right port', 'none': 'untuned'}
 
 for gt in ("d1", "a2a", "oprm1"):
     ax = layout.axes['alluvial_{}'.format(gt)]['axis']
     data = primaryPairs.query("genotype == '{}'".format(gt))
-    alluvialPlot.alluvialPlot(data, "action_openField", "action_2choice",
-                              colormap, ax, colorByRight=False, alpha=0.75)
+    leftY, rightY = alluvialPlot.alluvialPlot(data, "action_openField",
+                                              "action_2choice", colormap, ax, 
+                                              colorByRight=False, alpha=0.75)
     ax.set_xlim(-0.2,1.2)
     ax.axis("off")
     ax.set_title(genotypeNames[gt])
+    if gt=="d1":
+        ticks = leftY.groupby(level=0).agg({'lower': np.min, 'higher': np.max}).mean(axis=1)
+        for label, y in ticks.items():
+            ax.text(-0.25, y, behaviorNames[label], ha="right", va="center",
+                    color=style.getColor(label))
+    if gt=="oprm1":
+        newLabels = rightY.index.get_level_values(1).str[:4]
+        newLabels = newLabels.str.replace('pC2.', 'pC')
+        ticks = rightY.groupby(newLabels).agg({'lower': np.min, 'higher': np.max}).mean(axis=1)
+        for label, y in ticks.items():
+            ax.text(1.25, y, phaseNames[label], ha="left", va="center",
+                    color=style.getColor(label))
 
 ## Panel K
 examples = [
@@ -391,7 +454,14 @@ for i in range(3):
     img = fv2choice.draw(twoChoiceSignal, ax=twoChoiceAx)
     fvof = fancyViz.OpenFieldSchematicPlot(openFieldSess, linewidth=style.lw()*0.5)
     img = fvof.draw(openFieldSignal, ax=openFieldAx)
-    
+    openFieldAx.set_title(genotypeNames[genotype] + " example", loc="left", pad=-4)
+cax = layout.axes['second_colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 #%%
 layout.insert_figures('plots')

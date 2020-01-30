@@ -60,3 +60,4 @@ def alluvialPlot(data, leftSide, rightSide, colormap, ax, alpha=0.4, tilt=0.5, c
                           fill=True, lw=0, alpha=alpha))
             ax.add_artist(Rectangle((1, rs[0]), 0.2, rs[1]-rs[0], color=colormap[ind[1]],
                           fill=True, lw=0, alpha=alpha))
+    return leftY, rightY

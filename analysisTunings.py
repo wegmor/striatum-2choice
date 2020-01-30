@@ -10,7 +10,7 @@ import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
 from scipy.spatial.distance import pdist, squareform
-from utils import readSessions, particleFilter
+from utils import readSessions, particleFilter, windowUtils
 from utils.cachedDataFrame import cachedDataFrame
 
 #%%
@@ -272,3 +272,27 @@ def getTaskNoTaskData(dataFilePath):
         
     return df
 
+@cachedDataFrame('phaseRasterData.pkl')
+def getPhaseRasterData(dataFile):
+    tuningData = getTuningData().set_index(["action", "animal", "date", "neuron"])
+    allTunedNeurons = (tuningData.pct > 0.995).sort_index()
+    res = []
+    for sess in readSessions.findSessions(dataFile, task="2choice"):
+        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        lfa = sess.labelFrameActions(reward="sidePorts")
+        if len(deconv) != len(lfa):
+            continue
+        for action in ("mC2L-", "mC2R-", "mL2C-", "mR2C-"):
+            key = (action, sess.meta.animal, sess.meta.date)
+            tunedNeurons = allTunedNeurons.loc[key]
+            if not tunedNeurons.any():
+                continue
+            bins = windowUtils.binAroundAction(lfa, action).bin
+            raster = deconv.loc[:, tunedNeurons].groupby(bins).mean().T
+            raster["action"] = action
+            raster["genotype"] = sess.meta.genotype
+            raster["animal"] = sess.meta.animal
+            raster["date"] = sess.meta.date
+            raster = raster.set_index(["action", "genotype", "animal", "date", raster.index.rename("neuron")])
+            res.append(raster)
+    return pd.concat(res, axis=0).sort_index()
