@@ -760,7 +760,7 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
     ax.set_ylim((0,1))
     ax.set_xlim((-5,5))
     ax.set_xticks((-5,0,5))
-    ax.invert_xaxis()
+    #ax.invert_xaxis()
     if gt == 'a2a':
         ax.set_xlabel('action value')
     ax.set_yticks((0,.5,1))
