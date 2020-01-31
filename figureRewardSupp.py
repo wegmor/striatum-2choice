@@ -26,6 +26,7 @@ style.set_context()
 
 endoDataPath = pathlib.Path("data") / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
+cacheFolder =  pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
@@ -160,6 +161,7 @@ for gt in ['d1','a2a','oprm1']:
         
         ax.axvline(-.5, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
         ax.axvline(6.5, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(0, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
         
         ax.fill_between(np.arange(26),
                         df.loc[0,'mean'][:26]+df.loc[0,'sem'][:26],
@@ -203,76 +205,76 @@ layout.write_svg(outputFolder / "rewardSupp.svg")
 
 
 #%%
-cachedDataPaths = [cacheFolder / name for name in ['actionValues.pkl',
-                                                   'logRegCoefficients.pkl',
-                                                   'logRegDF.pkl']]
-if np.all([path.is_file() for path in cachedDataPaths]):
-    actionValues = pd.read_pickle(cachedDataPaths[0])
-    logRegCoef = pd.read_pickle(cachedDataPaths[1])
-    logRegDF = pd.read_pickle(cachedDataPaths[2])
-else:
-    actionValues, logRegCoef, logRegDF = analysisStaySwitchDecoding.getActionValues(endoDataPath)
-    actionValues.to_pickle(cachedDataPaths[0])
-    logRegCoef.to_pickle(cachedDataPaths[1])
-    logRegDF.to_pickle(cachedDataPaths[2])
-    
-#%%
-from utils import readSessions
-#%%
-lt_by_av = pd.DataFrame()
-rt_by_av = pd.DataFrame()
-for (genotype, animal, date), ts in tuningData.groupby(['genotype','animal','date']):
-    ts.set_index(['neuron','action'], inplace=True)
-    ts = ts[['signp','signn']].unstack('action') # 1 row/neuron; 1 column/tuning
-   
-    s = next(readSessions.findSessions(endoDataPath, genotype=genotype, animal=animal,
-                                       date=date, task='2choice'))
-    
-    lfa = s.labelFrameActions(reward='fullTrial', switch=True)
-    deconv = s.readDeconvolvedTraces(zScore=True)
-    deconv.index = lfa.set_index(['actionNo','label']).index
-    deconv = deconv.query("label in ['pL2Cr.','pR2Cr.']").copy()
-
-    av = actionValues.set_index(['genotype','animal','date','actionNo','label'])
-    av = av.loc[genotype, animal, date].query("label in ['pL2Cr.','pR2Cr.']").copy()
-    av['value'] = (av.value / 2).round().dropna()
-    
-    deconv['value'] = av['value']
-    deconv = deconv.dropna()
-    deconv.set_index('value', append=True, inplace=True)
-    means = deconv.groupby(['actionNo','label','value']).mean()
-    means = means.groupby(['label','value']).mean()
-
-    lt_means = means.iloc[:,(ts['signp','pL2Cr'] & ~ts['signp','pL2Co']).values]
-    if not lt_means.empty:
-        lt_means = lt_means.stack().reset_index().rename(columns={'level_2':'neuron', 0:'avg'})
-        for k,v in [('genotype',genotype), ('animal',animal), ('date',date)]:
-            lt_means.insert(0,k,v)
-        lt_by_av = lt_by_av.append(lt_means, ignore_index=True)
-        
-    rt_means = means.iloc[:,(ts['signp','pR2Cr'] & ~ts['signp','pR2Co']).values]
-    if not rt_means.empty:
-        rt_means = rt_means.stack().reset_index().rename(columns={'level_2':'neuron', 0:'avg'})
-        for k,v in [('genotype',genotype), ('animal',animal), ('date',date)]:
-            rt_means.insert(0,k,v)
-        rt_by_av = rt_by_av.append(rt_means, ignore_index=True)
-
-
-#%%
-by_av = (pd.concat([lt_by_av,rt_by_av], keys=['left','right'], names=['tuning'])
-           .reset_index('tuning').reset_index(drop=True))
-by_av = (by_av.groupby(['genotype','tuning','label','value']).avg.agg(['mean','sem'])
-              .reset_index())
-
-for (gt,label), gtl_df in by_av.groupby(['genotype','label']):
-    plt.figure()
-    plt.title('{} {}'.format(gt, label))
-    for tuning, t_df in gtl_df.groupby('tuning'):
-        plt.errorbar(t_df.value, t_df['mean'], yerr=t_df['sem'], label=tuning)
-    plt.legend()
-    plt.xlim((-5.5,5))
-    plt.ylim((-.1,.3))
-    plt.axhline(0, ls=':', c='k', alpha=.5)
-    plt.axvline(0, ls=':', c='k', alpha=.5)
-    plt.show()
-    
+#cachedDataPaths = [cacheFolder / name for name in ['actionValues.pkl',
+#                                                   'logRegCoefficients.pkl',
+#                                                   'logRegDF.pkl']]
+#if np.all([path.is_file() for path in cachedDataPaths]):
+#    actionValues = pd.read_pickle(cachedDataPaths[0])
+#    logRegCoef = pd.read_pickle(cachedDataPaths[1])
+#    logRegDF = pd.read_pickle(cachedDataPaths[2])
+#else:
+#    actionValues, logRegCoef, logRegDF = analysisStaySwitchDecoding.getActionValues(endoDataPath)
+#    actionValues.to_pickle(cachedDataPaths[0])
+#    logRegCoef.to_pickle(cachedDataPaths[1])
+#    logRegDF.to_pickle(cachedDataPaths[2])
+#    
+##%%
+#from utils import readSessions
+##%%
+#lt_by_av = pd.DataFrame()
+#rt_by_av = pd.DataFrame()
+#for (genotype, animal, date), ts in tuningData.groupby(['genotype','animal','date']):
+#    ts.set_index(['neuron','action'], inplace=True)
+#    ts = ts[['signp','signn']].unstack('action') # 1 row/neuron; 1 column/tuning
+#   
+#    s = next(readSessions.findSessions(endoDataPath, genotype=genotype, animal=animal,
+#                                       date=date, task='2choice'))
+#    
+#    lfa = s.labelFrameActions(reward='fullTrial', switch=True)
+#    deconv = s.readDeconvolvedTraces(zScore=True)
+#    deconv.index = lfa.set_index(['actionNo','label']).index
+#    deconv = deconv.query("label in ['pL2Cr.','pR2Cr.']").copy()
+#
+#    av = actionValues.set_index(['genotype','animal','date','actionNo','label'])
+#    av = av.loc[genotype, animal, date].query("label in ['pL2Cr.','pR2Cr.']").copy()
+#    av['value'] = (av.value / 2).round().dropna()
+#    
+#    deconv['value'] = av['value']
+#    deconv = deconv.dropna()
+#    deconv.set_index('value', append=True, inplace=True)
+#    means = deconv.groupby(['actionNo','label','value']).mean()
+#    means = means.groupby(['label','value']).mean()
+#
+#    lt_means = means.iloc[:,(ts['signp','pL2Cr'] & ~ts['signp','pL2Co']).values]
+#    if not lt_means.empty:
+#        lt_means = lt_means.stack().reset_index().rename(columns={'level_2':'neuron', 0:'avg'})
+#        for k,v in [('genotype',genotype), ('animal',animal), ('date',date)]:
+#            lt_means.insert(0,k,v)
+#        lt_by_av = lt_by_av.append(lt_means, ignore_index=True)
+#        
+#    rt_means = means.iloc[:,(ts['signp','pR2Cr'] & ~ts['signp','pR2Co']).values]
+#    if not rt_means.empty:
+#        rt_means = rt_means.stack().reset_index().rename(columns={'level_2':'neuron', 0:'avg'})
+#        for k,v in [('genotype',genotype), ('animal',animal), ('date',date)]:
+#            rt_means.insert(0,k,v)
+#        rt_by_av = rt_by_av.append(rt_means, ignore_index=True)
+#
+#
+##%%
+#by_av = (pd.concat([lt_by_av,rt_by_av], keys=['left','right'], names=['tuning'])
+#           .reset_index('tuning').reset_index(drop=True))
+#by_av = (by_av.groupby(['genotype','tuning','label','value']).avg.agg(['mean','sem'])
+#              .reset_index())
+#
+#for (gt,label), gtl_df in by_av.groupby(['genotype','label']):
+#    plt.figure()
+#    plt.title('{} {}'.format(gt, label))
+#    for tuning, t_df in gtl_df.groupby('tuning'):
+#        plt.errorbar(t_df.value, t_df['mean'], yerr=t_df['sem'], label=tuning)
+#    plt.legend()
+#    plt.xlim((-5.5,5))
+#    plt.ylim((-.1,.3))
+#    plt.axhline(0, ls=':', c='k', alpha=.5)
+#    plt.axvline(0, ls=':', c='k', alpha=.5)
+#    plt.show()
+#    

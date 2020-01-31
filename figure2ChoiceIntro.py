@@ -295,7 +295,7 @@ for action in df.columns.levels[0]:
     
     rasterAx = layout.axes['raster_{}'.format(action)]['axis']
     img = rasterAx.imshow(df.loc[:,action].values, aspect='auto',
-                          vmin=-1, vmax=1, cmap='RdBu_r')
+                          vmin=-1, vmax=1, cmap='RdBu_r', interpolation='nearest')
     rasterAx.axvline(no_bins // 2 - .5, c='k', ls=':')
     rasterAx.axis('off')
     if action == 'pL2C':

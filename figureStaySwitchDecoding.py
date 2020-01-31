@@ -869,7 +869,7 @@ for tt, ttdata in data.groupby(data.label.str.slice(-2)):
     valueProbCorrs = valueProbCorrs.append(corr)
 
 
-for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
+for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
                                   .groupby(['genotype','trialType'])):
     ax = layout.axes['{}_{}_corr'.format(gt,tt)]['axis']
     
@@ -903,7 +903,7 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["o.","r."]')
         ax.set_yticklabels(())
         ax.set_yticks((.25,), minor=True)
         if gt == 'a2a':
-            ax.set_ylabel('r(action value*, certainty')
+            ax.set_ylabel('r(action value*, certainty)')
             ax.set_yticklabels((.0,.5))
         sns.despine(ax=ax, bottom=True, trim=True)
     else:
