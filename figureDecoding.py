@@ -1,7 +1,7 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-#import scipy.stats
+import scipy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import h5py
@@ -63,8 +63,9 @@ plt.fill_between(savg.index, savg-ssem, savg+ssem, lw=0,
                  color=style.getColor('shuffled'), alpha=.2, zorder=-99)
 
 order = ("d1", "a2a", "oprm1")
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
 meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g), 
-                                label={'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
+                                label=genotypeNames[g])
                    for g in order]
 shuffleHandle = mpl.lines.Line2D([], [], color=style.getColor("shuffled"),
                                  label='shuffled')
@@ -94,6 +95,7 @@ decodingData = analysisDecoding.decodingConfusion(endoDataPath)
     
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
 
+cmap = mpl.cm.RdYlGn
 for gt, data in decodingData.groupby("genotype"):
     #gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
     weightedData = data.set_index(["true", "predicted"]).eval("occurences * nNeurons")
@@ -103,7 +105,7 @@ for gt, data in decodingData.groupby("genotype"):
     
     #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
     #cmap = sns.light_palette(style.getColor(gt), 1024, as_cmap=True)
-    cmap = cmocean.cm.algae_r
+    #cmap = cmocean.cm.algae_r
     labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
@@ -173,16 +175,18 @@ for d, drois in enumerate((d1_rois, d2_rois)):
         rs_bg.append(roi)
     img_bg = np.array(rs_bg).max(axis=0)
 
-    ax = layout.axes['alignment_example_d{}'.format(d+1)]['axis']    
-    ax.imshow(img_bg, cmap='bone_r', alpha=.5, aspect='auto')
+    ax = layout.axes['alignment_example_d{}'.format(d+1)]['axis']
+    base = ax.transData
+    rot = mpl.transforms.Affine2D().rotate_deg(-45)
+    ax.imshow(img_bg, cmap='bone_r', vmin=0, vmax=1, alpha=.5, aspect='auto', transform=rot+base)
+    ax.axis("equal")
+    ax.set_xlim((100, 325))
+    ax.set_ylim((160, -170))
     for img in rs:
-        ax.imshow(img, aspect='auto')
-        
-    ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k', facecolor='none', 
-               s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
-    
-    #ax.set_xlim((20,320))
-    #ax.set_ylim((230,0))
+        ax.imshow(img, aspect='auto', transform=rot+base)
+    ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k',
+               facecolor='none', s=10, alpha=1, lw=mpl.rcParams['axes.linewidth'],
+               transform=rot+base)
     ax.axis('off')
 
 
@@ -245,6 +249,7 @@ td = (toDate - fromDate).dt.days
 decodingAcrossDays["dayDifference"] = td
 
 selection = decodingAcrossDays.query("fromTask=='2choice' & toTask=='2choice'")
+'''
 for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
     g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
                   .groupby(["animal", "fromDate", "toDate"]))
@@ -315,6 +320,7 @@ legend_elements = [mpl.lines.Line2D([0], [0], marker='v', color='k', label='neur
                   ]
 axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
 axt.axis('off')
+'''
 
 ## Panel E
 for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
@@ -348,18 +354,21 @@ for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     
     plt.ylim(0,1)
     plt.xlim(-0.25, 1.25)
-    xlab = ("1-3 days\nlater", "4-13 days\nlater", "14+ days\nlater")
-    plt.xticks((0,1), ("Same\nday", xlab[i]))
+    #xlab = ("1-3 days later", "4-13 days later", "14+ days later")
+    #plt.xticks((0,1), ("same day", xlab[i]), rotation=90)
+    plt.xticks([])
+    plt.title(("1-3", "4-13", "14+")[i] + "\ndays", pad=6, fontsize=6)
     if i==0:
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
-        plt.ylabel("Decoding accuracy (%)")
+        plt.ylabel("decoding accuracy (%)")
     else:
-        plt.yticks(np.linspace(0,1,5), [""]*5)
-    sns.despine(ax=plt.gca())
-axt = layout.axes['decodingAcrossDays_legend']['axis']
-legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=g) for g in ("d1", "a2a", "oprm1", "shuffled")]
-axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
-axt.axis('off')
+        plt.yticks([])#np.linspace(0,1,5), [""]*5)
+    plt.axhline(0, color='k', lw=0.5, alpha=0.5, ls=":")
+    sns.despine(ax=plt.gca(), left=(i!=0), bottom=True)
+axt = layout.axes['decodingAcrossDays_2']['axis']
+genotypeNames["shuffled"] = "shuffled"
+legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=genotypeNames[g]) for g in ("d1", "a2a", "oprm1", "shuffled")]
+axt.legend(handles=legend_elements, loc=(-0.6, -0.3), ncol=2)
     
     
 #%%
