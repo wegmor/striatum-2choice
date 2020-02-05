@@ -138,7 +138,10 @@ else:
 
 #%% Example neurons
 examples = [("5308", "190131", 292, "oprm1"),
-            ("5643", "190114", 178, "d1")]
+            #("5464", "190205", 10, "oprm1")]
+            #("5703", "190130", 130, "oprm1")]
+            #("5703", "190130", 100, "oprm1")]
+            ("5703", "190130", 28, "oprm1")]
 
 for p, (a, d, n, gt) in enumerate(examples):
     s = next(readSessions.findSessions(endoDataPath, genotype=gt,
