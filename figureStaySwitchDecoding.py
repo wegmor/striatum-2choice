@@ -284,7 +284,7 @@ df['sign'] = (df.pct > .995) | (df.pct < .005)
 
 # only keep max tuning for each neuron
 maxdf = (df.loc[df.groupby(['genotype','animal','date','neuron'])
-                  .tuning.apply(lambda t: t.abs().idxmax())])
+                  .auc.apply(lambda t: t.abs().idxmax())])
 # inidcate whether stay or switch tuned
 maxdf.loc[maxdf.tuning.apply(np.sign) == 1, 'action'] += 'r.'
 maxdf.loc[maxdf.tuning.apply(np.sign) == -1, 'action'] += 'o!'
@@ -360,7 +360,7 @@ for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
 
 axs['d1'].set_yticklabels((0,25,50))
 axs['d1'].set_ylabel('neurons (%)')
-axs['a2a'].set_xlabel('number of actions')
+axs['a2a'].set_xlabel('number of phases')
 
 
 #%% plot coefficients for pooled data
@@ -768,8 +768,8 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
         ax.set_xlabel('action value')
     ax.set_yticks((0,.5,1))
     if gt == 'd1':
-        #ax.set_yticklabels((0,50,100))
-        ax.set_yticklabels((-100, 0, 100))
+        ax.set_yticklabels((0,50,100))
+        #ax.set_yticklabels((-100, 0, 100))
         #ax.set_ylabel('SVM prediction\nP(win-stay)')
         #ax.set_ylabel('certainty')
     else:
@@ -906,7 +906,7 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
         ax.set_yticklabels(())
         ax.set_yticks((.25,), minor=True)
         if gt == 'a2a':
-            ax.set_ylabel('r(action value*, certainty)')
+            ax.set_ylabel('r(action value*, P(win-stay))')
             ax.set_yticklabels((.0,.5))
         sns.despine(ax=ax, bottom=True, trim=True)
     else:

@@ -272,7 +272,7 @@ for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
 
 axs['d1'].set_yticklabels((0,25,50))
 axs['d1'].set_ylabel('neurons (%)')
-axs['a2a'].set_xlabel('number of actions')
+axs['a2a'].set_xlabel('number of phases')
 
 
 #%% TSNE
