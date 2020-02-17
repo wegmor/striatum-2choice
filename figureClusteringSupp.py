@@ -291,6 +291,38 @@ sns.despine(ax=plt.gca(), bottom=True, left=False, trim=False)
 plt.ylim(0,80)
 plt.ylabel("Distance")
 plt.title("agglomerative clustering of pooled mean\npopulation activity in all task phases", pad=6)
+
+#%% TSNE - moved here from tuning figure
+'''
+tuningTsne = analysisTunings.getTSNEProjection(tuningData)
+
+#%%
+for g,gdata in tuningTsne.groupby('genotype'):
+    ax = layout.axes['tsne_'+g]['axis']
+    
+    ax.scatter(gdata[0], gdata[1],
+               c=gdata.action.str.slice(0,4).apply(style.getColor),
+               marker='.', alpha=.75, s=1.35, lw=0, clip_on=False)
+
+    ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
+    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
+    ax.invert_xaxis()
+    ax.set_aspect('equal')
+    ax.axis('off')
+
+ax = layout.axes['tsne_tuning']['axis']
+
+ax.scatter(tuningTsne[0], tuningTsne[1],
+           c=tuningTsne.action.str.slice(0,4).apply(style.getColor),
+           marker='.', alpha=.75, s=3, lw=0, clip_on=False)
+
+ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
+ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
+ax.invert_xaxis()
+ax.set_aspect('equal')
+ax.axis('off')
+'''
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "clusteringSupp.svg")

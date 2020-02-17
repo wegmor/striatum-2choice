@@ -288,42 +288,9 @@ for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
     ax.set_xticklabels(['1','3','5+'])
     sns.despine(ax=ax)
     
-
 axs['d1'].set_yticklabels((0,25,50))
 axs['d1'].set_ylabel('neurons (%)')
 axs['a2a'].set_xlabel('number of actions')
-
-
-#%% TSNE
-'''
-tuningTsne = analysisTunings.getTSNEProjection(tuningData)
-
-#%%
-for g,gdata in tuningTsne.groupby('genotype'):
-    ax = layout.axes['tsne_'+g]['axis']
-    
-    ax.scatter(gdata[0], gdata[1],
-               c=gdata.action.str.slice(0,4).apply(style.getColor),
-               marker='.', alpha=.75, s=1.35, lw=0, clip_on=False)
-
-    ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-    ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
-    ax.invert_xaxis()
-    ax.set_aspect('equal')
-    ax.axis('off')
-
-ax = layout.axes['tsne_tuning']['axis']
-
-ax.scatter(tuningTsne[0], tuningTsne[1],
-           c=tuningTsne.action.str.slice(0,4).apply(style.getColor),
-           marker='.', alpha=.75, s=3, lw=0, clip_on=False)
-
-ax.set_xlim((tuningTsne[0].min(), tuningTsne[0].max()))
-ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
-ax.invert_xaxis()
-ax.set_aspect('equal')
-ax.axis('off')
-'''
 
 #%% similar tuning == closer spatially?
 pdists = analysisTunings.getPDistData(endoDataPath, tuningData)
