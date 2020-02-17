@@ -632,7 +632,8 @@ class OpenFieldSchematicPlot(IntensityPlot):
         self.linewidth = linewidth
         self.mask = slice(None, None) #No mask, use all values
         self.clearBuffer()
-        self.setSession(session)
+        if session is not None:
+            self.setSession(session)
     
     def clearBuffer(self):
         self.valueCanvas = np.zeros((151, 300), np.float64)
