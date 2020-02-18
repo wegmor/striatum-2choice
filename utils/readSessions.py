@@ -269,14 +269,17 @@ class Session:
         frameLabels["actionFrame"] = (frameLabels.actionDuration * frameLabels.actionProgress).astype(np.int64)
         
         actions = frameLabels.reset_index().groupby('actionNo').first()
-#        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')  # doesn't match 'd!'
-#                                                                  # if animal doesn't wait for o/r,
-#                                                                  # switch is not counted. BUG!
-        switch_idx = actions.label.str.contains('d[RL]2.[or]?[\.!]?') & (actions.label.shift(-1).str.endswith('!') == True)
+        switch_idx = ((actions.label.shift(1).str.contains('d[RL]2.[or]?[\.!]?') == True) 
+                       & actions.label.str.endswith('!'))
         switchFrames = actions.loc[switch_idx, 'frame'].values
         frameLabels.loc[switchFrames, 'switch'] = 1
         frameLabels['switch'] = frameLabels.switch.fillna(0).cumsum()
-
+        
+        # test if every second block is a left/right block (thus, blocks alternate)
+        if not len(np.unique(frameLabels.groupby('switch').first().label.str.contains('^.L')
+                                        .astype('int').values[1::2])) == 1:
+            print('/!\ left and right blocks do not appear to alternate!')
+        
         sidx1_orig = frameLabels.switch.unique()[::2]
         sidx1_shuffle = sidx1_orig.copy()
         sidx2_orig = frameLabels.switch.unique()[1::2]
