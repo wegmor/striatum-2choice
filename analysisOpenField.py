@@ -74,7 +74,7 @@ def _testRealAndShuffled(i, realX, realY, shuffledX, shuffledY, nNeurons):
 
 def _prepareTrials(deconv, behaviors, minDuration=20):
     avgSig = deconv.groupby(behaviors.actionNo).mean()
-    labels = behaviors.groupby("actionNo").behavior.first()
+    labels = behaviors.groupby("actionNo").first().behavior
     duration = behaviors.groupby("actionNo").size()
     validTrials = np.logical_and(avgSig.notna().all(axis=1), duration >= minDuration)
     X = avgSig[validTrials]
@@ -82,12 +82,13 @@ def _prepareTrials(deconv, behaviors, minDuration=20):
     return X, Y
 
 @cachedDataFrame("openFieldDecodingWithIncreasingNumberOfNeurons.pkl")
-def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
+def decodeWithIncreasingNumberOfNeurons(dataFile):
+    allBehaviors = segmentAllOpenField(dataFile)
     nShufflesPerNeuronNum = 20
     with multiprocessing.Pool(5) as pool:
         res = []
         for sess in readSessions.findSessions(dataFile, task="openField"):
-            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
             behaviors = allBehaviors.loc[str(sess)].reset_index()
             behaviors = behaviors.set_index("startFrame", drop=True)[["actionNo", "behavior"]]
             behaviors = behaviors.reindex(np.arange(len(deconv)), method="ffill")
@@ -106,11 +107,13 @@ def decodeWithIncreasingNumberOfNeurons(dataFile, allBehaviors):
     return pd.DataFrame(res, columns=["session", "task", "nNeurons", "i", "realAccuracy", "shuffledAccuracy"])
 
 @cachedDataFrame("openFieldDecodingConfusion.pkl")
-def decodingConfusion(dataFile, allBehaviors):
+def decodingConfusion(dataFile):
+    allBehaviors = segmentAllOpenField(dataFile)
     confMats = []
     for sess in readSessions.findSessions(dataFile, task="openField"):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-        behaviors = allBehaviors.loc[str(sess)].set_index("startFrame", drop=True)[["actionNo", "behavior"]]
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+        behaviors = allBehaviors.loc[str(sess)].reset_index()
+        behaviors = behaviors.set_index("startFrame", drop=True)[["actionNo", "behavior"]]
         behaviors = behaviors.reindex(np.arange(len(deconv)), method="ffill")
         realX, realY = _prepareTrials(deconv, behaviors)
         for i in tqdm.trange(5, desc=str(sess)):
@@ -161,7 +164,7 @@ def getTuningData(dataFilePath, no_shuffles=1000):
     allBehaviors = segmentAllOpenField(dataFilePath)
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='openField'):
-        traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
+        traces = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True) # frame no as index
         behaviors = allBehaviors.loc[str(s)].reset_index()
         behaviors = behaviors.set_index("startFrame", drop=False)[["actionNo", "behavior"]]
         behaviors = behaviors.reindex(np.arange(len(traces)), method="ffill")
@@ -249,7 +252,7 @@ def decodeWallAngle(dataFilePath):
         wall_xx = np.cos(wallAngle)*minWallDist
         wall_yy = np.sin(wallAngle)*minWallDist
 
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         
         #Select good frames to use
         mask = minWallDist < 5 #Head closer than 5 cm to the wall
@@ -281,7 +284,7 @@ def calculateSpeedTuning(dataFilePath, nShuffles=1000):
     behaviors = segmentAllOpenField(dataFilePath)
     allDfs = []
     for sess in readSessions.findSessions(dataFilePath, task="openField"):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         tracking = sess.readTracking(inCm=True)
         if len(deconv) != len(tracking): continue
         coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
@@ -330,7 +333,7 @@ def avgActivityPerSpeed(dataFilePath):
     per_session = []
     meta = []
     for sess in readSessions.findSessions(dataFilePath, task="openField"):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         tracking = sess.readTracking(inCm=True)
         speed = all_filtered.loc[str(sess)].reset_index().speed*20
         speed_bin = pd.cut(speed, bins).cat.codes.astype("int")
@@ -346,7 +349,7 @@ def getEventWindows(endoDataPath, events, win_size=(20, 19)):
     segmented = segmentAllOpenField(endoDataPath)
     windows = pd.DataFrame()
     for s in readSessions.findSessions(endoDataPath, task='openField'):
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         thisSegmented = segmented.loc[str(s)].copy()
         thisSegmented.index = thisSegmented.index.droplevel(0)
         lastFrame = thisSegmented.stopFrame.iloc[-1]
@@ -427,7 +430,7 @@ def populationSpeedCorr(endoDataPath):
     filtered = filterAllOpenField(endoDataPath)
     res = []
     for sess in readSessions.findSessions(endoDataPath, task="openField"):
-        deconv = sess.readDeconvolvedTraces(zScore=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True)
         meanActivity = deconv.mean(axis=1)
         if meanActivity.isna().any(): continue
         speed = filtered.loc[str(sess)].speed
@@ -443,7 +446,7 @@ def populationIncreaseInMovement(endoDataPath):
     segments = segmentAllOpenField(endoDataPath)
     res = []
     for sess in readSessions.findSessions(endoDataPath, task="openField"):
-        deconv = sess.readDeconvolvedTraces(zScore=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True)
         meanActivity = deconv.mean(axis=1)
         segs = segments.loc[str(sess)]
         mask = np.full(len(deconv), False)

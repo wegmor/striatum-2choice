@@ -7,7 +7,6 @@ import matplotlib as mpl
 import matplotlib.patches as mpatches
 from matplotlib.ticker import MultipleLocator, FixedLocator
 from utils import readSessions, fancyViz, sessionBarPlot, roiPlot
-from collections import defaultdict
 import pathlib
 import figurefirst
 import style
@@ -41,7 +40,7 @@ tuningData['signn'] = tuningData['pct'] < .005
 #%%
 exampleSessParams = {'genotype':'oprm1', 'animal':'5308', 'date':'190224'}
 exampleSess = next(readSessions.findSessions(endoDataPath, task='openField', **exampleSessParams))
-traces = exampleSess.readDeconvolvedTraces(zScore=True)
+traces = exampleSess.readDeconvolvedTraces(rScore=True)
 queryStr = " & ".join(["{}=='{}'".format(*v) for v in exampleSessParams.items()])
 ex_tunings = tuningData.query(queryStr)
 
@@ -113,7 +112,7 @@ onsets = []
 offsets = []
 genotypes = []
 for sess in readSessions.findSessions(endoDataPath, task="openField"):
-    deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+    deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
     genotypes.append(np.full(deconv.shape[1], sess.meta.genotype))
     sessTimes = times.loc[str(sess)]
     onsets.append(deconv.groupby(sessTimes.onsetTimes).mean().reindex(np.arange(-20,20)).T)
@@ -348,7 +347,7 @@ sns.despine(ax=ax)
 
 #%% Decoding
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
-decodingData = analysisOpenField.decodeWithIncreasingNumberOfNeurons(endoDataPath, segmentedBehavior)
+decodingData = analysisOpenField.decodeWithIncreasingNumberOfNeurons(endoDataPath)
 decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
 
 ax = layout.axes["decodeWithIncreasingNumberOfNeurons"]["axis"]
@@ -380,7 +379,7 @@ ax.set_title("SVM decoding of behavior", pad=12)
 sns.despine(ax=ax)
 
 #%% Confusion matrices
-decodingData = analysisOpenField.decodingConfusion(endoDataPath, segmentedBehavior)
+decodingData = analysisOpenField.decodingConfusion(endoDataPath)
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
 colorMap = mpl.colors.ListedColormap([style.getColor(b) for b in behaviorOrder])
 for gt, data in decodingData.groupby("genotype"):
