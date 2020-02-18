@@ -14,9 +14,11 @@ cdef enum:
     fullTrial=3
 
 cdef enum:
-    delay=0
+    #delay=0
+    none=0
     omission=1
     rewarded=2
+
     
 cdef tuple _findPrevEntry(cnp.int_t[:,:] beams, Py_ssize_t i):
     while i>0:
@@ -123,6 +125,7 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
     cdef cnp.int_t[:] inPort = np.zeros(T, np.int)
     cdef cnp.int_t[:] lastEvent = np.zeros(T, np.int), nextEvent = np.zeros(T, np.int)
     cdef cnp.int_t[:] reward = np.zeros(T, np.int)
+    cdef cnp.int_t[:] delay = np.zeros(T, np.int)
     cdef cnp.int_t[:] lastChoice = np.zeros(T, np.int), nextChoice = np.zeros(T, np.int)
     
     cdef object labels = np.zeros(T, object)
@@ -152,22 +155,40 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
             if includeRewards == fullTrial:
                 reward[i] = reward[i-1]
             else:
-                reward[i] = delay
+                reward[i] = none #delay
         elif inPort[i] == left or inPort[i] == right:
-            if rewardNo[i] > rewardNo[i-1]:
+            if inPort[i-1] == -1:
+                reward[i] = reward[i-1]
+                delay[i] = 1
+            elif rewardNo[i] > rewardNo[i-1]:
                 reward[i] = rewarded
-                if includeRewards > 0:
+                delay[i] = 0
+                #if includeRewards > 0:
+                lastEvent[i] = i
+            elif i-lastEvent[i]>=7 and delay[i-1] == 1: #reward[i-1] == 0:
+                if i+5 < T:
+                    if rewardNo[i+5] == rewardNo[i]:
+                        reward[i] = omission
+                        delay[i] = 0
+                        #if includeRewards > 0:
+                        lastEvent[i] = i
+                    else:
+                        reward[i] = reward[i-1]
+                        delay[i] = delay[i-1]
+                else:
+                    reward[i] = omission
+                    delay[i] = 0
                     lastEvent[i] = i
-            elif i-lastEvent[i]>=7 and reward[i-1] == 0:
-                reward[i] = omission
-                if includeRewards > 0:
-                    lastEvent[i] = i
-            elif inPort[i-1] == -1:
-                reward[i] = delay
+#            elif inPort[i-1] == -1:
+#                reward[i] = delay
             else:
                 reward[i] = reward[i-1]
-        elif reward[i-1] == delay and inPort[i] == -1 and (fromPort[i] == left or fromPort[i] == right):
+                delay[i] = delay[i-1]
+#        elif reward[i-1] == delay and inPort[i] == -1 and (fromPort[i] == left or fromPort[i] == right):
+#            reward[i] = omission
+        elif delay[i-1] == 1 and inPort[i] == -1:
             reward[i] = omission
+            delay[i] = 0
         else:
             reward[i] = reward[i-1]
         if inPort[i-1] == -1 and (inPort[i] == left or inPort[i] == right):
@@ -180,7 +201,7 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
     nextEvent[T-1] = T-1
     nextChoice[T-1] = -1
     for i in range(T-2, -1, -1):
-        if inPort[i] == inPort[i+1] and (reward[i] == reward[i+1] or includeRewards==0):
+        if inPort[i] == inPort[i+1] and (delay[i] == delay[i+1]): #(reward[i] == reward[i+1] or includeRewards==0):
             nextEvent[i] = nextEvent[i+1]
         else:
             nextEvent[i] = i
@@ -201,6 +222,8 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
                 labels[i] = "m"
             else:
                 labels[i] = "u"
+        elif delay[i] == 1:
+            labels[i] = "d"
         else:
             labels[i] = "p"
         labels[i] += portCodes[fromPort[i]+1]
@@ -210,19 +233,23 @@ cdef tuple _labelFrameActions(cnp.int_t[:,:] beams, cnp.int_t[:] rewardNo,
             labels[i] += portCodes[toPort[i]+1]
             
         if includeRewards == sidePorts:
-            if inPort[i] == left or inPort[i] == right:
-                labels[i] += "dor"[reward[i]]
+            if (inPort[i] == left or inPort[i] == right) and delay[i] == 0:
+                labels[i] += "-or"[reward[i]]
             else:
                 labels[i] += "-"
                 
         elif includeRewards == returns or includeRewards == fullTrial:
-            if inPort[i] == -1 or inPort[i] == center:
-                labels[i] += "-or"[reward[i]]
-            else:
-                labels[i] += "dor"[reward[i]]
+            #if inPort[i] == -1 or inPort[i] == center or delay[i] == 1:
+            labels[i] += "-or"[reward[i]]
+            #else:
+            #    labels[i] += "-or"[reward[i]]
                 
         if includeSwitches:
-            if nextChoice[i] == lastChoice[i] or nextChoice[i] == -1:
+            if delay[i] == 1:
+                labels[i] += labels[i-1][-1]
+            elif lastChoice[i] == -1 or nextChoice[i] == -1:
+                labels[i] += "-"
+            elif nextChoice[i] == lastChoice[i]:
                 labels[i] += "."
             else:
                 labels[i] += "!"

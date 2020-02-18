@@ -48,7 +48,7 @@ else:
     P = pd.DataFrame() # action (probability) predictions
     C = pd.DataFrame() # svm coefficients
     
-    for action in ['mL2C','pC2L','mC2L','mR2C','pC2R','mC2R']:
+    for action in ['dL2C','mL2C','pC2L','mC2L','dR2C','mR2C','pC2R','mC2R']:
         (rm,rp,rc), (sm,sp,sc) = analysisStaySwitchDecoding.decodeStaySwitch(endoDataPath, action)
         
         for df in [rm,rp,rc,sm,sp,sc]:
@@ -65,7 +65,7 @@ else:
     
     M.to_pickle(cacheFolder / 'stsw_m.pkl')
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
-    C.to_pickle(cacheFolder / 'stsw_c.pkl')   
+    C.to_pickle(cacheFolder / 'stsw_c.pkl')  
 
 cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
 if cachedDataPath.is_file():
@@ -81,18 +81,22 @@ else:
     decodingAcrossDays = analysisStaySwitchDecoding.decodeStaySwitchAcrossDays(endoDataPath, alignmentDataPath)
     decodingAcrossDays.to_pickle(cachedDataPath)
 
-cachedDataPaths = [cacheFolder / name for name in ['actionValues.pkl',
-                                                   'logRegCoefficients.pkl',
+cachedDataPaths = [cacheFolder / name for name in ['logRegCoefficients.pkl',
                                                    'logRegDF.pkl']]
 if np.all([path.is_file() for path in cachedDataPaths]):
-    actionValues = pd.read_pickle(cachedDataPaths[0])
-    logRegCoef = pd.read_pickle(cachedDataPaths[1])
-    logRegDF = pd.read_pickle(cachedDataPaths[2])
+    logRegCoef = pd.read_pickle(cachedDataPaths[0])
+    logRegDF = pd.read_pickle(cachedDataPaths[1])
 else:
-    actionValues, logRegCoef, logRegDF = analysisStaySwitchDecoding.getActionValues(endoDataPath)
-    actionValues.to_pickle(cachedDataPaths[0])
-    logRegCoef.to_pickle(cachedDataPaths[1])
-    logRegDF.to_pickle(cachedDataPaths[2])
+    logRegCoef, logRegDF = analysisStaySwitchDecoding.getAVCoefficients(endoDataPath)
+    logRegCoef.to_pickle(cachedDataPaths[0])
+    logRegDF.to_pickle(cachedDataPaths[1])
+    
+cachedDataPath = cacheFolder / 'actionValues.pkl'
+if cachedDataPath.is_file():
+    actionValues = pd.read_pickle(cachedDataPath)
+else:
+    actionValues = analysisStaySwitchDecoding.getActionValues(endoDataPath, logRegCoef)
+    actionValues.to_pickle(cachedDataPath)
     
     
 #%%
@@ -105,6 +109,8 @@ palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1']}
 
 # plot histograms
 for a, adata in staySwitchAUC.groupby('action'):
+    # TODO: fix this
+    if a.startswith('d') or a.startswith('pL2C') or a.startswith('pR2C'): continue
     ax = layout.axes['{}_auc_kde'.format(a)]['axis']
     
     for gt, agdata in adata.groupby('genotype'):
@@ -167,6 +173,7 @@ for genotype in ['d1','a2a','oprm1']:
     df = staySwitchAUC.query('genotype == @genotype & sign in [1,-1]').copy()
     
     for action, pop_df in df.groupby('action'):
+        if action.startswith('d') or action.startswith('pL2C') or action.startswith('pR2C'): continue
         axs = [layout.axes['{}_{}_avg'.format(genotype,action+tt)]['axis']
                    for tt in ['r.','o.','o!']]
         cax = layout.axes['colorbar']['axis']
@@ -192,6 +199,7 @@ layout.make_mplfigures()
 df = P.loc[P.label.str.contains('r\.$|o!$') & (P.shuffled == False)].copy()
 
 for action, acc_df in df.groupby('action'):
+    if action.startswith('d') or action.startswith('pL2C') or action.startswith('pR2C'): continue
     acc_df = acc_df.copy()
     acc_df['trialType'] = acc_df.label.str.slice(-2)
     acc_groupby = acc_df.groupby(['duration','genotype','animal','date','noNeurons'])
@@ -408,6 +416,16 @@ def getCorr(data):
     corr['noNeurons'] = data.groupby(['genotype','animal','date']).noNeurons.first()
     return corr
 
+def randomShiftValue(data):
+    def shift(v):
+        v = pd.Series(np.roll(v, np.random.randint(10,30) * np.random.choice([-1,1])),
+                      index=v.index)
+        return v
+    
+    data = data.copy()
+    data['value'] = data.groupby(['genotype','animal','date'])['value'].apply(shift).copy()
+    return data
+
 
 prob_value_df = (P.set_index(['shuffled','genotype','animal','date','label','actionNo'])
                   .loc[False, ['action','o!','r.','noNeurons']])
@@ -536,8 +554,9 @@ for actions in (['mL2C','mR2C'],['pC2L','pC2R'],['mC2L','mC2R']):
         
         corr = getCorr(ldata)
         
-        ldata['value'] = np.random.permutation(ldata.value)        
-        r_corr = getCorr(ldata)
+        #ldata['value'] = np.random.permutation(ldata.value)  
+        ldata_vshifted = randomShiftValue(ldata)
+        r_corr = getCorr(ldata_vshifted)
     
         corr['rand_correlation'] = r_corr['correlation']
         corr['label'] = label

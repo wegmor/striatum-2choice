@@ -53,7 +53,7 @@ class Session:
         '''
         return self.readTraces("caTraces", fillDropped, indicateBlocks)
     
-    def readDeconvolvedTraces(self, zScore=False, fillDropped=True, indicateBlocks=False):
+    def readDeconvolvedTraces(self, zScore=False, rScore=False, fillDropped=True, indicateBlocks=False):
         '''Read all deconvolved traces from this session. Deconvolved traces are
         a guess of the "true" activity of the neuron.
 
@@ -69,6 +69,14 @@ class Session:
         if zScore:
             traces -= traces.mean(axis=0)
             traces /= traces.std(axis=0)
+        if rScore:
+            # 10 min zscore window
+            window = 10*60*20
+            min_window = 4*60*20
+            traces -= traces.rolling(window, center=True, min_periods=min_window).mean()
+            # v shit neurons may have no signal for 10 minutes -> lots of nan
+            traces /= (traces.rolling(window, center=True, min_periods=min_window).std() + 10**-10)
+            traces = traces.replace({-np.inf: np.nan, np.inf: np.nan})
         return traces
     
     def readSensorValues(self, slim=True, onlyRecording=True, reindexFrameNo=True):
@@ -253,12 +261,8 @@ class Session:
             tracking = tracking.iloc[:-cutTrackingShort[str(self)]]
         return tracking
     
-<<<<<<< HEAD:readSessions.py
-    def shuffleFrameLabels(self, n=1, switch=True, reward='sidePorts', splitCenter=True):
-=======
     def shuffleFrameLabels(self, n=1, switch=True, reward='sidePorts',
                            splitCenter=True):
->>>>>>> newAlignmentFigure:utils/readSessions.py
         frameLabels = self.labelFrameActions(reward=reward, splitCenter=splitCenter,
                                              switch=True)
         frameLabels.index.name = 'frame'
@@ -268,7 +272,7 @@ class Session:
 #        switch_idx = actions.label.str.contains('p[RL]2.[or]?!')  # doesn't match 'd!'
 #                                                                  # if animal doesn't wait for o/r,
 #                                                                  # switch is not counted. BUG!
-        switch_idx = actions.label.str.contains('p[RL]2.d?!')
+        switch_idx = actions.label.str.contains('d[RL]2.[or]?[\.!]?') & (action.label.shift(-1).str.endswith('!') == True)
         switchFrames = actions.loc[switch_idx, 'frame'].values
         frameLabels.loc[switchFrames, 'switch'] = 1
         frameLabels['switch'] = frameLabels.switch.fillna(0).cumsum()

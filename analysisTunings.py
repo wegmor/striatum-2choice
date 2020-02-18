@@ -10,22 +10,22 @@ import numpy as np
 import pandas as pd
 from sklearn.manifold import TSNE
 from scipy.spatial.distance import pdist, squareform
-from utils import readSessions, particleFilter, windowUtils
+from utils import readSessions, windowUtils
 from utils.cachedDataFrame import cachedDataFrame
 
 #%%
-def get_centers(rois):
-    # find pixel of maximum intensity in each mask; use as neuron center
-    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
-                                                  rois.shape[1:]))
-    centers = centers[::-1].T
-    return(centers)
+#def get_centers(rois):
+#    # find pixel of maximum intensity in each mask; use as neuron center
+#    centers = np.array(np.unravel_index(np.array([np.argmax(roi) for roi in rois]),
+#                                                  rois.shape[1:]))
+#    centers = centers[::-1].T
+#    return(centers)
     
 def getActionAverages(traces, apf):
     keepLabels = ['pC2L-', 'mC2L-',
                   'pC2R-', 'mC2R-',
-                  'pL2Cd', 'pL2Co', 'pL2Cr', 'mL2C-',
-                  'pR2Cd', 'pR2Co', 'pR2Cr', 'mR2C-']
+                  'dL2C-', 'pL2Co', 'pL2Cr', 'mL2C-',
+                  'dR2C-', 'pR2Co', 'pR2Cr', 'mR2C-']
     apf = apf.loc[apf.label.isin(keepLabels)].copy()
     apf['label'] = apf.label.astype('str')
     actionAvg = traces.loc[apf.index].groupby([apf.label,apf.actionNo]).mean().dropna()
@@ -49,13 +49,16 @@ def jitter(x, std):
     
     
 #%%
-@cachedDataFrame("actionTunings.pkl")
-def getTuningData(dataFilePath, no_shuffles=1000):
+def _getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=False):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
-        traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
-        apf = s.labelFrameActions(switch=False, reward='sidePorts',
-                                  splitCenter=True).reset_index(drop=True)
+        traces = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True) # frame no as index
+        if on_shuffled:
+            apf = s.shuffleFrameLabels(switch=False, reward='sidePorts',
+                                       splitCenter=True)[0].reset_index(drop=True)
+        else:
+            apf = s.labelFrameActions(switch=False, reward='sidePorts',
+                                      splitCenter=True).reset_index(drop=True)
         
         # TODO: fix remaining recordings with dropped frames
         if traces.shape[0] != apf.shape[0]:
@@ -95,6 +98,16 @@ def getTuningData(dataFilePath, no_shuffles=1000):
                 
                 df = df.append(pd.Series(ndict), ignore_index=True)
         
+    return df
+
+@cachedDataFrame("actionTunings.pkl")
+def getTuningData(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=False)
+    return df
+
+@cachedDataFrame("actionTunings_shuffled.pkl")
+def getTuningData_shuffled(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=True)
     return df
 
 
@@ -148,7 +161,7 @@ def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
     dist_df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
         # load ROI centers
-        roics = get_centers(s.readROIs().values)
+        roics = np.array(s.readROIs().idxmax(axis=0).tolist())
         # generate shuffled ROIs
         roics_shuffle = [np.random.permutation(roics) for _ in range(no_shuffles)]
         
@@ -193,7 +206,7 @@ def getPDistVsCorrData(dataFilePath):
     dist_cc_df = pd.DataFrame()
     
     for s in readSessions.findSessions(dataFilePath, task='2choice'):    
-        deconv = s.readDeconvolvedTraces().reset_index(drop=True).iloc[:30*60*20]
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True).iloc[:30*60*20]
         # drop everything but top 20% biggest events
         #pct80 = np.nanpercentile(deconv[deconv != 0], 80, axis=0)
         #deconv = deconv[deconv >= pct80].fillna(0)
@@ -234,7 +247,7 @@ def getPDistVsCorrData(dataFilePath):
 def getTaskNoTaskData(dataFilePath):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='2choice'):
-        deconv = s.readDeconvolvedTraces(zScore=True) #, indicateBlocks=True)
+        deconv = s.readDeconvolvedTraces(rScore=True) #, indicateBlocks=True)
         D = deconv.mean(axis=1)
         L = s.labelFrameActions()
         #T = s.readTracking(inCm=True)

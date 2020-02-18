@@ -16,8 +16,8 @@ def set_context():
                 'patch.linewidth': .5,
                 'xtick.major.width': .5,
                 'ytick.major.width': .5,
-                'xtick.minor.width': .35,
-                'ytick.minor.width': .35,
+                'xtick.minor.width': .5,
+                'ytick.minor.width': .5,
                 'xtick.major.size': 2.5,
                 'ytick.major.size': 2.5,
                 'xtick.minor.size': 1.5,
@@ -44,7 +44,7 @@ def set_context():
                 'font.sans-serif': ['Arial'],
                 'mathtext.default': 'regular',
                 'patch.force_edgecolor': False,
-                'hatch.linewidth': .5,
+                'hatch.linewidth': .35,
                 'svg.fonttype': 'none',
                 'savefig.dpi': 300})
     
@@ -57,11 +57,13 @@ def getColor(key):
 
     cdict['pL'] = sns.color_palette()[9]
     cdict['pL2C'] = cdict['pL']
+    cdict['dL2C'] = cdict['pL']
 #    cdict['pL2Cr'] = cdict['pL']
 #    cdict['pL2Cd'] = tuple(list(cdict['pL']) + [.66])
 #    cdict['pL2Co'] = tuple(list(cdict['pL']) + [.38])
     cdict['pR'] = sns.color_palette()[1]
     cdict['pR2C'] = cdict['pR']
+    cdict['dR2C'] = cdict['pR']
 #    cdict['pR2Cr'] = cdict['pR']
 #    cdict['pR2Cd'] = tuple(list(cdict['pR']) + [.66])
 #    cdict['pR2Co'] = tuple(list(cdict['pR']) + [.38])

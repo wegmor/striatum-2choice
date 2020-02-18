@@ -16,13 +16,15 @@ import multiprocessing
 import functools
 import h5py
 import datetime
+from itertools import product
 from scipy.stats import ttest_ind
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 from utils import readSessions, fancyViz
+from utils.cachedDataFrame import cachedDataFrame
 import statsmodels.api as sm
 import style
-from sklearn.metrics import roc_curve, auc
+import sklearn.metrics
 
 style.set_context()
 plt.ioff()
@@ -46,6 +48,7 @@ def jitter(x, std):
 
 #%%
 def decodeStaySwitchSession(sess, selectedPhase):
+    print(str(sess)+' '+selectedPhase)
     def _prepareTrials(deconv, lfa, selectedPhase):
         avgSig = deconv.groupby(lfa.actionNo).mean()
         labels = lfa.groupby("actionNo").label.first()
@@ -141,7 +144,7 @@ def decodeStaySwitchSession(sess, selectedPhase):
         
         return M, P, C
         
-    deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+    deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
     lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
     if len(deconv) != len(lfa): 
         raise Exception('trace has fewer frames than behavior data!')
@@ -198,6 +201,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
         validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
         X = avgSig[validTrials]
         Y = labels[validTrials]
+        #print([(l,(Y == l).sum()) for l in Y.unique()])
         return X, Y
    
     def _dateDiff(fromDate, toDate):
@@ -214,12 +218,12 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                     fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
                     fromTask = fromSess.meta.task
                     if fromTask != "2choice": continue
-                    fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                    fromDeconv = fromSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                     fromLfa = fromSess.labelFrameActions(reward="fullTrial", switch=True)
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
 
-                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C"):
+                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C", "dL2C", "dR2C"):
                         selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
                         fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
                         shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa, selectedLabels)
@@ -230,7 +234,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                             toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
                             toTask = toSess.meta.task
                             if toTask != "2choice": continue
-                            toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                            toDeconv = toSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                             toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
                             if len(toDeconv) != len(toLfa): continue
 
@@ -250,6 +254,97 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
              "toTask", "label" ,"nNeurons", "nTrialsFrom", "nTrialsTo", "i",
              "sameDayScore",  "nextDayScore", "sameDayShuffled", "nextDayShuffled"]
     return pd.DataFrame(acrossDaysResult, columns=columns)
+
+
+#%%
+def predictStaySwitchAcrossDays(dataFile, alignmentFile):
+    def _prepareTrials(deconv, lfa, selectedLabels):
+        avgSig = deconv.groupby(lfa.actionNo).mean()
+        labels = lfa.groupby("actionNo").label.first()
+        validTrials = np.logical_and(avgSig.notna().all(axis=1), labels.isin(selectedLabels))
+        X = avgSig[validTrials]
+        Y = labels[validTrials]
+        return X, Y
+   
+    def _dateDiff(fromDate, toDate):
+        fromDate = datetime.datetime.strptime(fromDate, "%y%m%d")
+        toDate = datetime.datetime.strptime(toDate, "%y%m%d")
+        return (toDate-fromDate).days
+    
+    def _predictNextDay(realX, realY, nextX, nextY):
+        svm = sklearn.svm.SVC(kernel="linear", probability=True,
+                              class_weight='balanced').fit(realX, realY)
+        probabilities = pd.DataFrame(svm.predict_proba(nextX), index=nextX.index,
+                                     columns=[c[-2:] for c in svm.classes_])
+        probabilities['label'] = nextY
+        return probabilities.reset_index()
+    
+    alignmentStore = h5py.File(alignmentFile, "r")
+    P = pd.DataFrame()
+
+    # load sessions meta data, reduce to imaged sessions of animals that performed FA
+    meta = pd.read_hdf(dataFile, 'meta')
+    meta = meta.loc[(meta.caRecordings.str.len() != 0) &
+                    (meta.task.isin(['2choice','forcedAlternation','2choiceAgain'])) &
+                    (meta.animal.isin(meta.query('task == "forcedAlternation"').animal.unique()))
+                   ].copy()
+    # sort index by date
+    meta['date_fmt'] = pd.to_datetime(meta.date, yearfirst=True)
+    meta = meta.set_index(['genotype','animal','date_fmt']).sort_index()
+    # count recording sessions backwards from last -1 to first
+    meta['noRecSessions'] = meta.groupby(['genotype','animal']).size()
+    meta['recSession'] = np.concatenate([np.arange(-n,0) for n in 
+                                         meta.groupby(['genotype','animal']).noRecSessions.first()])
+    meta = meta.reset_index().set_index(['genotype','animal','date'])['recSession']
+        
+    for genotype in alignmentStore["data"]:
+        for animal in alignmentStore["data/{}".format(genotype)]:
+            if animal not in meta.reset_index().animal.unique(): continue
+            for toDate in alignmentStore["data/{}/{}".format(genotype, animal)]:
+                toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
+                toTask = toSess.meta.task
+                if toTask not in ["forcedAlternation","2choiceAgain"]: continue
+                if meta.loc[genotype, animal, toDate] not in [-4,-3,-2,-1]: continue
+                toDeconv = toSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+                toLfa = toSess.labelFrameActions(reward="fullTrial", switch=True)
+                if len(toDeconv) != len(toLfa): continue
+
+                for baseLabel in ("pC2L","pC2R","mC2L","mC2R","dL2C","dR2C","mL2C","mR2C"):
+                    selectedLabels = [baseLabel+"r.", baseLabel+"r!", baseLabel+"o.", baseLabel+"o!"]
+                    toX, toY = _prepareTrials(toDeconv, toLfa, selectedLabels)
+
+                    for fromDate in alignmentStore["data/{}/{}/{}".format(genotype, animal, toDate)]:
+                        match = alignmentStore["data/{}/{}/{}/{}/match".format(genotype, animal,
+                                                                               fromDate, toDate)][()]
+
+                        fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
+                        fromTask = fromSess.meta.task
+                        if fromTask != "2choice": continue
+                        if meta.loc[genotype, animal, fromDate] not in [-7,-6,-5]: continue
+                        fromDeconv = fromSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+                        fromLfa = fromSess.labelFrameActions(reward="fullTrial", switch=True)
+                        if len(fromDeconv) != len(fromLfa): continue
+
+                        #if _dateDiff(fromDate, toDate) <= 7: continue
+                        selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
+                        fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
+
+                        desc = "{} to {} ({})".format(fromSess, toDate, baseLabel)
+                        print(desc)
+                        probabilities = _predictNextDay(realX=fromX[match[:,0]], realY=fromY,
+                                                        nextX=toX[match[:,1]], nextY=toY)
+                        for k,v in [('fromDate', fromDate),
+                                    ('toDate', toDate),
+                                    ('fromTask', fromTask),
+                                    ('toTask', toTask),
+                                    ('fromRecSession', meta.loc[genotype, animal, fromDate]),
+                                    ('toRecSession', meta.loc[genotype, animal, toDate]),
+                                    ('animal', animal),
+                                    ('genotype', genotype),
+                                    ('noNeurons', match.shape[0])]:
+                            probabilities.insert(0, k, v)
+                        P = P.append(probabilities, ignore_index=True)
+    return P
       
 
 #%%
@@ -287,12 +382,12 @@ def crossDecodeStaySwitch(dataFile):
     shuffledCrossDecode = pd.DataFrame()
     realCrossDecode = pd.DataFrame()
     for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
         if len(deconv) != len(lfa): continue
         slfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
-        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-                                                  'pC2R','mC2R','mR2C']
+        selectedLabels = [base+trial for base in ['dL2C','mL2C','pC2L','mC2L',
+                                                  'dR2C','mR2C','pC2R','mC2R']
                                      for trial in ['r.','o!']]
     
         rXs, rYs = _prepareTrials(deconv, lfa, selectedLabels)
@@ -334,9 +429,9 @@ def getRegressionVars(sensorValues, trials_back=7):
     df['leftEx'] = df.leftEx.astype('int')
     df['rightEx'] = df.rightEx.astype('int')
     
-    # get Y & N (Y=1 if left and rewarded, -1 if right and rewarded)
-    df['Y0'] = df.reward * (df.leftEx - df.rightEx)
-    df['N0'] = ~df.reward * (df.leftEx - df.rightEx) # ~ requires bool!
+    # get Y & N (Y=1 if right and rewarded, -1 if left and rewarded)
+    df['Y0'] = df.reward * (df.rightEx - df.leftEx)
+    df['N0'] = ~df.reward * (df.rightEx - df.leftEx) # ~ requires bool!
 
 
     df['intercept'] = 1.0
@@ -350,6 +445,7 @@ def getRegressionVars(sensorValues, trials_back=7):
     # Y1 should be outcome of last trial, i.e. before leaving side-port last;
     # without v, Y0 is that outcome
     df['sideExNo'] -= 1
+    # v drops index!
     sv = sv.merge(df[['sideExNo','switch',*reg_vars]], how='left', on='sideExNo')
     return sv[['leftIn','rightIn','switch',*reg_vars]].copy(), reg_vars
     
@@ -371,7 +467,7 @@ def getAVCoefficients(dataFile):
     for (genotype, animal), df in regression_df.groupby(['genotype','animal']):
         df = df.copy()
         df['intercept'] = 1.0         
-        logit = sm.Logit(df.leftIn, df[reg_vars])
+        logit = sm.Logit(df.rightIn, df[reg_vars])
         result = logit.fit(use_t=True, disp=False)
         
         coef = result.params
@@ -388,14 +484,23 @@ def getAVCoefficients(dataFile):
     return coefficients, regression_df
 
 
-def getActionValues(dataFile):
-    coefficients, regression_df = getAVCoefficients(dataFile)
+def getActionValues(dataFile, coefficients, on_shuffled=False):
+    def lfa2sv(lfa):
+        lfa['beamL'] = lfa.label.str.contains('[dp]L').astype('int')
+        lfa['beamR'] = lfa.label.str.contains('[dp]R').astype('int')
+        lfa['rewardNo'] = (lfa.label.str.contains('p[LR]2.r[\.!]$')
+                              .astype('int').diff() == 1).cumsum()
+        return lfa[['beamL','beamR','rewardNo']]
     
     actionValues = pd.DataFrame()   
     for sess in readSessions.findSessions(dataFile, task='2choice'):
-        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-        sv = sess.readSensorValues()
-        dummy_df, reg_vars = getRegressionVars(sv)
+        if on_shuffled:
+            lfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
+            sv = lfa2sv(lfa)
+        else:
+            lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+            sv = sess.readSensorValues()
+        dummy_df, reg_vars = getRegressionVars(sv) # cf above; merge resets index in dummy_df
         lfa['value'] = (dummy_df[reg_vars] * \
                         coefficients.loc[sess.meta.genotype, sess.meta.animal]
                        ).sum(axis=1, skipna=False)
@@ -409,106 +514,321 @@ def getActionValues(dataFile):
         actionValues = actionValues.append(lfa[['genotype','animal','date',
                                                 'actionNo','label','value']],
                                            ignore_index=True)
-    return actionValues, coefficients, regression_df
+    return actionValues
 
 
 #%%
-def getWStayLSwitchAUC(dataFile, n_shuffles=1000):
-    def _getAUC(labels, avgs):
-        fpr, tpr, _ = roc_curve(labels, avgs, pos_label='r.')
-        roc_auc = 2*(auc(fpr, tpr)-.5) # Gini coefficient!
-        return roc_auc
-        
-    auc_df = pd.DataFrame()
-    for sess in readSessions.findSessions(dataFile, task='2choice'):
-        deconv = sess.readDeconvolvedTraces(zScore=False).reset_index(drop=True)
-        lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
-        if len(deconv) != len(lfa): continue
+#def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False):
+#    def _getAUC(labels, avgs):
+#        fpr, tpr, _ = roc_curve(labels, avgs, pos_label='r.')
+#        roc_auc = 2*(auc(fpr, tpr)-.5) # Gini coefficient!
+#        return roc_auc
+#        
+#    auc_df = pd.DataFrame()
+#    for sess in readSessions.findSessions(dataFile, task='2choice'):
+#        print(str(sess))
+#        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+#        if on_shuffled:
+#            lfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
+#        else:
+#            lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+#        if len(deconv) != len(lfa): continue
+#        trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
+#        labels = lfa.groupby("actionNo").label.first()
+#        selectedLabels = [base+trial for base in ['dL2C','pL2C','mL2C','pC2L','mC2L',
+#                                                  'dR2C','pR2C','mR2C','pC2R','mC2R']
+#                                     for trial in ['r.','o!']]
+#        validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
+#        labels = pd.DataFrame(labels.loc[validTrials])
+#        trialAvgs = trialAvgs.loc[validTrials]
+#        
+#        # v nasty hack
+#        labels['label'] = labels.label.replace({'pC2Lo!':'pC2Ro!', 'pC2Ro!':'pC2Lo!'})
+#        labels['action'], labels['trialType'] = (labels.label.str.slice(0,4),
+#                                                 labels.label.str.slice(4))
+#        
+#        df = pd.DataFrame()
+#        for action, ls in labels.groupby('action'):
+#            lsAvgs = trialAvgs.loc[ls.index].copy()
+#            for n in lsAvgs: # iterate over neurons
+#                roc_auc = _getAUC(ls.trialType.values, lsAvgs[n].values)
+#                # v AUC for shuffled r./o! labels
+#                shuffle_dist = [_getAUC(np.random.permutation(ls.trialType.values),
+#                                        lsAvgs[n].values) for _ in range(n_shuffles)]
+#                shuffle_dist = np.array(shuffle_dist)
+#                pct = np.searchsorted(np.sort(shuffle_dist), roc_auc) / len(shuffle_dist)
+#                df = df.append(pd.Series({'neuron':n, 'auc':roc_auc, 'pct':pct,
+#                                          'action':action,
+#                                          's_mean':shuffle_dist.mean(),
+#                                          's_std':shuffle_dist.std(),
+#                                          'tuning':(roc_auc-shuffle_dist.mean())/shuffle_dist.std()}),
+#                               ignore_index=True)
+#        for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
+#                    ('genotype',sess.meta.genotype)]:
+#            df.insert(0,k,v)
+#        
+#        auc_df = auc_df.append(df, ignore_index=True)
+#    return auc_df
+
+
+#%%
+def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False): # shit is slower than hell
+    def _prepareTrials(deconv, lfa):
         trialAvgs = deconv.groupby(lfa.actionNo).mean() # trial-average
         labels = lfa.groupby("actionNo").label.first()
-        selectedLabels = [base+trial for base in ['mL2C','mC2L','pC2L',
-                                                  'pC2R','mC2R','mR2C']
+        selectedLabels = [base+trial for base in ['dL2C','pL2C','mL2C','pC2L','mC2L',
+                                                  'dR2C','pR2C','mR2C','pC2R','mC2R']
                                      for trial in ['r.','o!']]
         validTrials = np.logical_and(trialAvgs.notna().all(axis=1), labels.isin(selectedLabels))
         labels = pd.DataFrame(labels.loc[validTrials])
         trialAvgs = trialAvgs.loc[validTrials]
-        
+        # v nasty hack (use same origin for switch trials)
+        #labels['label'] = labels.label.replace({'pC2Lo!':'pC2Ro!', 'pC2Ro!':'pC2Lo!'})
         labels['action'], labels['trialType'] = (labels.label.str.slice(0,4),
                                                  labels.label.str.slice(4))
-        
+        return trialAvgs, labels
+    
+    def _getAUCs(avgs, labels):
+        def _getAUC(labels, avgs):
+            fpr, tpr, _ = sklearn.metrics.roc_curve(labels, avgs, pos_label='r.')
+            roc_auc = 2*(sklearn.metrics.auc(fpr, tpr)-.5) # Gini coefficient!
+            return roc_auc
         df = pd.DataFrame()
-        for action, ls in labels.groupby('action'):
-            lsAvgs = trialAvgs.loc[ls.index].copy()
-            for n in lsAvgs:
+        for action, ls in labels.groupby('action'): # iterate over actions
+            lsAvgs = avgs.loc[ls.index].copy()
+            for n in lsAvgs: # iterate over neurons
                 roc_auc = _getAUC(ls.trialType.values, lsAvgs[n].values)
-                shuffle_dist = [_getAUC(np.random.permutation(ls.trialType.values),
-                                        lsAvgs[n].values) for _ in range(n_shuffles)]
-                shuffle_dist = np.array(shuffle_dist)
-                pct = np.searchsorted(np.sort(shuffle_dist), roc_auc) / len(shuffle_dist)
-                df = df.append(pd.Series({'neuron':n, 'auc':roc_auc, 'pct':pct,
-                                          'action':action,
-                                          's_mean':shuffle_dist.mean(),
-                                          's_std':shuffle_dist.std(),
-                                          'tuning':(roc_auc-shuffle_dist.mean())/shuffle_dist.std()}),
+                df = df.append(pd.Series({'neuron':n, 'auc':roc_auc,
+                                          'action':action}),
                                ignore_index=True)
+        return df
+    
+    def _getPctl(dist, value):
+        return np.searchsorted(np.sort(dist), value) / len(dist)
+        
+    auc_df = pd.DataFrame()
+    for sess in readSessions.findSessions(dataFile, task='2choice'):
+        print(str(sess))
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+        if on_shuffled:
+            lfa = sess.shuffleFrameLabels(reward='fullTrial', switch=True)[0]
+        else:
+            lfa = sess.labelFrameActions(reward='fullTrial', switch=True)
+        if len(deconv) != len(lfa): continue
+    
+        trialAvgs, labels = _prepareTrials(deconv, lfa)
+        shuffled_data = [_prepareTrials(deconv, slfa) 
+                         for slfa in sess.shuffleFrameLabels(reward='fullTrial',
+                                                             switch=True,
+                                                             n=n_shuffles)]
+                
+        realAUCs = _getAUCs(trialAvgs, labels).set_index(['action','neuron'])
+        shuffledAUCs = pd.concat([_getAUCs(*sdata) for sdata in shuffled_data],
+                                 keys=np.arange(len(shuffled_data)), names=['shuffleNo'])
+        shuffledAUCs = (shuffledAUCs.reset_index(-1, drop=True)
+                                    .set_index(['action','neuron'], append=True)
+                                    .unstack('shuffleNo')['auc'])
+        
+        realAUCs['pct'] = np.nan
+        realAUCs['s_mean'] = np.nan
+        realAUCs['s_std'] = np.nan
+        realAUCs['tuning'] = np.nan
+        for (a,n), _ in realAUCs.groupby(['action','neuron']):
+            dist = shuffledAUCs.loc[(a,n)].values
+            auc_value = realAUCs.loc[(a,n), 'auc']
+            realAUCs.loc[(a,n), 'pct'] = _getPctl(dist, auc_value)
+            realAUCs.loc[(a,n), 's_mean'] = np.mean(dist)
+            realAUCs.loc[(a,n), 's_std'] = np.std(dist)
+            realAUCs.loc[(a,n), 'tuning'] = (auc_value - np.mean(dist)) / np.std(dist)
+        realAUCs.reset_index(inplace=True)
+        
         for k,v in [('date',sess.meta.date), ('animal',sess.meta.animal), 
                     ('genotype',sess.meta.genotype)]:
-            df.insert(0,k,v)
+            realAUCs.insert(0,k,v)
         
-        auc_df = auc_df.append(df, ignore_index=True)
+        auc_df = auc_df.append(realAUCs, ignore_index=True)
     return auc_df
 
 
-#%% TODO: omg this is some horrible code :D
-def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
-                                   shuffled=False):
-    C = (C.query('shuffled == @shuffled and genotype == @genotype and action == @action')
-          .set_index(['genotype','animal','date','action','neuron'])
-          .coefficient
-          .sort_index()
-          .copy())
+#%%
+def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix=''):
+    @cachedDataFrame('stSwRasterData_{}-{}.pkl'.format(action, pkl_suffix))
+    def _getStSwRasterData():
+        def _getPrevNextPhases(phase):
+            trial = ['pS2C','mS2C','pC2S','mC2S','dS2C']
+            side = 'L' if 'L' in phase else 'R'
+            phaseNo = np.argmax(np.array(trial) == phase[:-2].replace(side, 'S'))
+            if phase.endswith('.'):
+                trial = [p.replace('S', side)+phase[-2:] for p in trial]
+            if phase.endswith('!'):
+                if phaseNo == 1:
+                    sides = ('L','R') if side == 'L' else ('R','L')
+                if phaseNo in [2,3]:
+                    sides = ('R','L') if side == 'L' else ('L','R')
+                trial = [p.replace('S', sides[0])+phase[-2:] for p in trial[:2]] + \
+                        [p.replace('S', sides[1])+phase[-2:] for p in trial[2:]]
+            return trial[phaseNo-1:phaseNo+2]
+        
+        piles = {action+'r.': [], action+'o.': [], action+'o!': []}    
+        for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
+            sess = next(readSessions.findSessions(dataFile, genotype=genotype,
+                                                  animal=animal, date=date,
+                                                  task='2choice'))
+            lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+            
+            for p in piles.keys():
+                incl_phases = _getPrevNextPhases(p)
+                X = deconv.loc[lfa.label.isin(incl_phases)]
+                Y = lfa.loc[lfa.label.isin(incl_phases), ['label','actionProgress']]
+                avgActivity = X.groupby([Y.label,(Y.actionProgress*5).astype("int")/5.0]).mean().T
+                avgActivity = avgActivity[incl_phases]
+                for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal),
+                            ('date',sess.meta.date)]:
+                    avgActivity.insert(0,k,v)
+                avgActivity.index.name = 'neuron'
+                avgActivity = avgActivity.reset_index().set_index(['genotype','animal','date','neuron'])
+                piles[p].append(avgActivity)
+        
+        for p in piles.keys():
+            piles[p] = pd.concat(piles[p])
+            
+        stacked = pd.concat(list(piles.values()), keys=piles.keys(), axis=1)
+        sort_idx = []
+        for p in piles.keys():
+            #sort_idx.append(stacked[(p,p)].max(axis=1) > .5)
+            sort_idx.append(stacked[(p,p)].mean(axis=1))#max(axis=1))
+        sort_idx = pd.concat(sort_idx, axis=1)
+        sort_idx = pd.DataFrame(sort_idx.mean(axis=1), columns=['mean'])
+        sort_idx['type'] = sort_idx.reset_index()['genotype'].values
+        if sort_ascending:
+            sort_idx['type'] = sort_idx.type.replace(dict(zip(['d1','a2a','oprm1'],np.arange(3))))
+        else:
+            sort_idx['type'] = sort_idx.type.replace(dict(zip(['d1','a2a','oprm1'],np.arange(3)[::-1])))
+        #stacked = stacked.loc[sort_idx.sort_values([0,1,2], ascending=False).index]
+        stacked = stacked.loc[sort_idx.sort_values(by=['type','mean'], 
+                                                   ascending=sort_ascending).index]
+        
+        return stacked
+    return _getStSwRasterData()
 
-    # can't create a intensity plot without session data -> actually, looks like you can
-    s = next(readSessions.findSessions(dataFile, task='2choice'))
-    fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
-    fvSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
-                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+
+#%%
+def getActionMeans(dataFile, popdf, actionValues, action, pkl_suffix=''):
+    @cachedDataFrame('actionMeans_{}-{}.pkl'.format(action, pkl_suffix))
+    def _getActionMeans():
+        actionMeans = pd.DataFrame()
+        for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
+            sess = next(readSessions.findSessions(dataFile, genotype=genotype,
+                                                  animal=animal, date=date,
+                                                  task='2choice'))
+            lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
+            avs = actionValues.query('genotype == @genotype & animal == @animal & date == @date').copy()
+            
+            incl_labels = [action+tt for tt in ('r.','o.','o!')]
+            X = deconv.loc[lfa.label.isin(incl_labels)]
+            Y = lfa.loc[lfa.label.isin(incl_labels), ['label','actionNo','actionDuration']]
+            avs = avs.loc[avs.label.isin(incl_labels)].set_index(['label','actionNo'])
+            
+            avgActivity = X.groupby([Y.label,Y.actionNo]).mean()
+            avgActivity.columns.name = 'neuron'
+            avgActivity = pd.DataFrame(avgActivity.stack(), columns=['activity'])
+            durations = Y.groupby(['label','actionNo'])[['actionDuration']].first()
+            avgActivity['duration'] = durations.actionDuration
+            avgActivity['value'] = avs.value
     
-    for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
-        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
-        if len(deconv) != len(lfa): continue
-        
-        coefs = C.loc[(s.meta.genotype,s.meta.animal,s.meta.date,action)]
+            for k,v in [('date',sess.meta.date),('animal',sess.meta.animal),
+                        ('genotype',sess.meta.genotype)]:
+                avgActivity.insert(0,k,v)
     
-        trans = (deconv * coefs).sum(axis=1) # svm normalizes each session in some way
-#        trans -= trans.mean()
-        trans /= trans.std()
-        #print(trans.max())
+            actionMeans = actionMeans.append(avgActivity.reset_index(), ignore_index=True)
+        return actionMeans
+    return _getActionMeans()
+
+
+#def getActivityCorrs(dataFile, popdf, actionValues, action):
+#    actionMeans = getActionMeans(dataFile, popdf, actionValues, action)
+#    corrs_df = (actionMeans.groupby(['genotype','animal','date','neuron'])
+#                           [['activity','duration','value']].corr()
+#                           .unstack())
+#    return corrs_df
     
-        fvSt.setSession(s)
-        fvSt.setMask(lfa.label.str.endswith('r.'))
-        fvSt.addTraceToBuffer(trans)
-        fvSw.setSession(s)
-        fvSw.setMask(lfa.label.str.endswith('o!'))
-        fvSw.addTraceToBuffer(trans)
+
+#%%
+def getTunedNoHistData(tuningData):
+    count_df = (tuningData.groupby(['genotype','animal','date','neuron'])[['sign']]
+                          .sum().astype('int').copy())
     
-    stax, swax = axes[0], axes[1]
+    hist_df = pd.DataFrame()
+    for (g,a,d), data in count_df.groupby(['genotype','animal','date']):
+        signHist = pd.Series(dict(zip(np.arange(13), 
+                                       np.bincount(data.sign, minlength=13))))
+        df = pd.DataFrame({'sign':signHist})
+        df.index.name = 'count'
+        df['genotype'], df['animal'], df['date'] = g, a, d
+        hist_df = hist_df.append(df.reset_index().set_index(['genotype','animal','date','count']))
     
-    fvSt.drawBuffer(ax=stax, cmap='RdYlGn') # drawing flushes buffer
-    img = fvSw.drawBuffer(ax=swax, cmap='RdYlGn')
+    hist_df = hist_df.reset_index('count')
+    hist_df['bin'] = pd.cut(hist_df['count'], bins=[-.5,.5,1.5,2.5,3.5,4.5,13]).cat.codes
+    hist_df = (hist_df.groupby(['genotype','animal','date','bin'])[['sign']].sum()
+                      .reset_index('bin'))
+    hist_df['noNeurons'] = count_df.groupby(['genotype','animal','date']).size()
+    hist_df['sign'] /= hist_df.noNeurons
     
-    if cax:
-        cb = plt.colorbar(img, cax=cax)
-        cax.tick_params(axis='y', which='both',length=0)
-        cb.outline.set_visible(False)
-        
+    return hist_df
+
+
+#%% TODO: omg this is some horrible code :D
+#def drawCoefficientWeightedAverage(dataFile, C, genotype, action, axes, cax=False,
+#                                   shuffled=False):
+#    C = (C.query('shuffled == @shuffled and genotype == @genotype and action == @action')
+#          .set_index(['genotype','animal','date','action','neuron'])
+#          .coefficient
+#          .sort_index()
+#          .copy())
+#
+#    # can't create a intensity plot without session data -> actually, looks like you can
+#    s = next(readSessions.findSessions(dataFile, task='2choice'))
+#    fvSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+#    fvSw = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
+#                                           saturation=.5, linewidth=mpl.rcParams['axes.linewidth'])
+#    
+#    for s in readSessions.findSessions(dataFile, genotype=genotype, task='2choice'):
+#        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+#        lfa = s.labelFrameActions(switch=True, reward='fullTrial')
+#        if len(deconv) != len(lfa): continue
+#        
+#        coefs = C.loc[(s.meta.genotype,s.meta.animal,s.meta.date,action)]
+#    
+#        trans = (deconv * coefs).sum(axis=1) # svm normalizes each session in some way
+##        trans -= trans.mean()
+#        trans /= trans.std()
+#        #print(trans.max())
+#    
+#        fvSt.setSession(s)
+#        fvSt.setMask(lfa.label.str.endswith('r.'))
+#        fvSt.addTraceToBuffer(trans)
+#        fvSw.setSession(s)
+#        fvSw.setMask(lfa.label.str.endswith('o!'))
+#        fvSw.addTraceToBuffer(trans)
+#    
+#    stax, swax = axes[0], axes[1]
+#    
+#    fvSt.drawBuffer(ax=stax, cmap='RdYlGn') # drawing flushes buffer
+#    img = fvSw.drawBuffer(ax=swax, cmap='RdYlGn')
+#    
+#    if cax:
+#        cb = plt.colorbar(img, cax=cax)
+#        cax.tick_params(axis='y', which='both',length=0)
+#        cb.outline.set_visible(False)
+#        
 
 #%%
 def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
                      saturation=.25, smoothing=5, cmap='RdYlBu_r'):
-    # can't create a intensity plot without session data
+    # can't create a intensity plot without session data -> not true!
     s = next(readSessions.findSessions(dataFile, task='2choice'))
     fvWSt = fancyViz.SchematicIntensityPlot(s, splitReturns=False, splitCenter=True,
                                             saturation=saturation, smoothing=smoothing,
@@ -532,16 +852,17 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
         s = next(readSessions.findSessions(dataFile, task='2choice',
                                            genotype=genotype, animal=animal, date=date))
         
-        deconv = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         if auc_weigh:
             aucs = pop.set_index('neuron').auc
             deconv *= aucs
         
         lfa = s.labelFrameActions(switch=True, reward='fullTrial')
-        d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
-                     lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
-                    .reset_index().set_index(lfa.index))
-        lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
+        # v obscure code for when the delay wasn't labeled properly
+#        d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
+#                     lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
+#                    .reset_index().set_index(lfa.index))
+#        lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
     
         fvWSt.setSession(s)
         fvWSt.setMask(lfa.label.str.endswith('r.'))
