@@ -291,7 +291,7 @@ def getPhaseRasterData(dataFile):
     allTunedNeurons = (tuningData.pct > 0.995).sort_index()
     res = []
     for sess in readSessions.findSessions(dataFile, task="2choice"):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward="sidePorts")
         if len(deconv) != len(lfa):
             continue

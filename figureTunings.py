@@ -256,6 +256,7 @@ for g in ['d1','a2a','oprm1']:
 
 #%%
 phaseRasterData = analysisTunings.getPhaseRasterData(endoDataPath)
+phaseRasterData.columns = phaseRasterData.columns.astype("float")
 for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
     mean = df.mean(axis=0)
     sem = df.sem(axis=0)
@@ -386,8 +387,8 @@ primaryPairs = primaryPairs[["genotype", "animal", "date", "neuron", "action", "
 primaryPairs.rename(columns={'action': 'action_openField'}, inplace=True)
 
 order_openField = ["stationary", "running", "leftTurn", "rightTurn", "none"]
-order_twoChoice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
-                   "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr", "none"]
+order_twoChoice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+                   "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr", "none"]
 primaryPairs.action_2choice = pd.Categorical(primaryPairs.action_2choice, order_twoChoice)
 primaryPairs.action_openField = pd.Categorical(primaryPairs.action_openField, order_openField)
 
@@ -418,6 +419,7 @@ for gt in ("d1", "a2a", "oprm1"):
     if gt=="oprm1":
         newLabels = rightY.index.get_level_values(1).str[:4]
         newLabels = newLabels.str.replace('pC2.', 'pC')
+        newLabels = newLabels.str.replace('d', 'p')
         ticks = rightY.groupby(newLabels).agg({'lower': np.min, 'higher': np.max}).mean(axis=1)
         for label, y in ticks.items():
             ax.text(1.25, y, phaseNames[label], ha="left", va="center",
