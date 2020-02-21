@@ -70,7 +70,7 @@ def decodeWithIncreasingNumberOfNeurons(dataFile):
     with multiprocessing.Pool(5) as pool:
         res = []
         for sess in readSessions.findSessions(dataFile, task="2choice"):
-            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
             lfa = sess.labelFrameActions(reward="sidePorts")
             if len(deconv) != len(lfa): continue
             shuffledLfa = sess.shuffleFrameLabels(switch=False)[0]
@@ -106,7 +106,7 @@ def decodeWithSortedNeurons(dataFile):
     with multiprocessing.Pool(5) as pool:
         res = []
         for sess in readSessions.findSessions(dataFile, task="2choice"):
-            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
             lfa = sess.labelFrameActions(reward="sidePorts")
             if len(deconv) != len(lfa): continue
             X, Y = _prepareTrials(deconv, lfa)
@@ -128,7 +128,7 @@ def decodeWithSortedNeurons(dataFile):
 def decodingConfusion(dataFile):
     confMats = []
     for sess in readSessions.findSessions(dataFile, task="2choice"):
-        deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward="sidePorts")
         if len(deconv) != len(lfa): continue
         realX, realY = _prepareTrials(deconv, lfa)
@@ -158,7 +158,7 @@ def decodingAcrossDays(dataFile, alignmentFile):
                     fromSess = next(readSessions.findSessions(dataFile, animal=animal, date=fromDate))
                     fromTask = fromSess.meta.task
                     if fromTask == "openField": continue
-                    fromDeconv = fromSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                    fromDeconv = fromSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                     fromLfa = fromSess.labelFrameActions(reward="sidePorts")
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(switch=False)[0]
@@ -171,7 +171,7 @@ def decodingAcrossDays(dataFile, alignmentFile):
                         toSess = next(readSessions.findSessions(dataFile, animal=animal, date=toDate))
                         toTask = toSess.meta.task
                         if toTask == "openField": continue
-                        toDeconv = toSess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+                        toDeconv = toSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
                         toLfa = toSess.labelFrameActions(reward="sidePorts")
                         if len(toDeconv) != len(toLfa): continue
 
@@ -204,7 +204,7 @@ def _decodeMovementProgress(dataFile, label):
                 lfa = sess.shuffleFrameLabels(switch=False)[0]
             else:
                 lfa = sess.labelFrameActions(reward="sidePorts")
-            deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
             if len(lfa) != len(deconv): continue
             if deconv.isna().any().any(): continue #TODO: Fix this
             X = deconv[lfa.label==label]

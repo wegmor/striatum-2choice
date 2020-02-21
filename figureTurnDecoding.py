@@ -17,7 +17,6 @@ import figurefirst
 from scipy.stats import pearsonr
 from utils import fancyViz
 from utils import readSessions
-from utils import sessionBarPlot
 import analysisDecoding
 import analysisStaySwitchDecoding
 import style
@@ -47,7 +46,7 @@ saturation = 1
 
 sess = next(readSessions.findSessions(endoDataPath, animal="5308", date="190131"))
 lfa = sess.labelFrameActions(reward="sidePorts")
-deconv = sess.readDeconvolvedTraces(zScore=True).reset_index(drop=True)
+deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
 X = deconv[lfa.label=="mR2C-"]
 Y = lfa.actionProgress[lfa.label=="mR2C-"]
 avgActivity = X.groupby((Y*10).astype("int")/10.0).mean().T
