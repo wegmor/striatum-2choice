@@ -34,7 +34,7 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "tunings.svg")
+layout = figurefirst.FigureLayout(templateFolder / "figure3Tunings.svg")
 layout.make_mplfigures()
 
 #%%
@@ -461,5 +461,5 @@ cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "tunings.svg")
+layout.write_svg(outputFolder / "figure3Tunings.svg")
 

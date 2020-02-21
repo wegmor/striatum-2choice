@@ -34,7 +34,7 @@ if not outputFolder.is_dir():
     
     
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "decoding.svg")
+layout = figurefirst.FigureLayout(templateFolder / "figure4FollowNeurons.svg")
 layout.make_mplfigures()
 
 
@@ -375,5 +375,5 @@ axt.legend(handles=legend_elements, loc=(-0.6, -0.3), ncol=2)
     
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "decoding.svg")
+layout.write_svg(outputFolder / "figure4FollowNeurons.svg")
 
