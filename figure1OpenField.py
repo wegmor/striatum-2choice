@@ -23,7 +23,7 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "openFieldNew.svg")
+layout = figurefirst.FigureLayout(templateFolder / "figure1OpenField.svg")
 layout.make_mplfigures()
 
 longGtNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
@@ -412,4 +412,4 @@ cax.text(1.025, .4, '100%', ha='left', va='center', fontdict={'fontsize':6})
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "openFieldNew.svg")
+layout.write_svg(outputFolder / "figure1OpenField.svg")
