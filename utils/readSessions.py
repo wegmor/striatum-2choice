@@ -318,6 +318,15 @@ class Session:
         A list of length 4 with the coordinates (left, bottom, right, top)
         '''
         return wallCorners[str(self)]
+    
+    def _repr_html_(self):
+        output = "<table><thead><tr><th>{}</th><th></th></tr></thead><tbody>".format(str(self))
+        order = ("genotype", "animal", "date", "task", "cohort",
+                 "camera", "board", "video", "caRecordings")
+        for key in order:
+            output += "<tr><th>{}</th><td>{}</td>".format(key, self.meta.__getattribute__(key))
+        output += "</tbody></table>"
+        return output
 
 def findSessions(hdfFile, onlyRecordedTrials=True, filterQuery=None, sortBy=None, closeStore=True, **filters):
     store = pd.HDFStore(hdfFile, 'r')
