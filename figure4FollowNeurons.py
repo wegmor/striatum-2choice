@@ -15,7 +15,10 @@ import cmocean
 
 from utils import fancyViz
 from utils import readSessions
+from utils import alluvialPlot
 #from utils import sessionBarPlot
+import analysisOpenField
+import analysisTunings
 import analysisDecoding
 import style
 
@@ -38,95 +41,104 @@ layout = figurefirst.FigureLayout(templateFolder / "figure4FollowNeurons.svg")
 layout.make_mplfigures()
 
 
-#%% Panel A
-decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
-decodingData.insert(1, "genotype", decodingData.session.str.split("_").str[0])
-
-##%%
-plt.sca(layout.axes["decodeWithIncreasingNumberOfNeurons"]["axis"])
-for strSess, df in decodingData.groupby("session"):
-    genotype = strSess.split("_")[0]
-    plt.plot(df.groupby("nNeurons").realAccuracy.mean(), color=style.getColor(genotype),
-             alpha=0.35, lw=.35)
-    plt.plot(df.groupby("nNeurons").shuffledAccuracy.mean(), color=style.getColor("shuffled"),
-             alpha=0.35, lw=.35)
-for genotype, df in decodingData.groupby("genotype"):
-    gavg = df.groupby('nNeurons').realAccuracy.mean()
-    gsem = df.groupby('nNeurons').realAccuracy.sem()
-    plt.plot(gavg, color=style.getColor(genotype), alpha=1.0)
-    plt.fill_between(gavg.index, gavg-gsem, gavg+gsem, lw=0,
-                     color=style.getColor(genotype), alpha=.2, zorder=-99)
-savg = decodingData.groupby('nNeurons').shuffledAccuracy.mean()
-ssem = decodingData.groupby('nNeurons').shuffledAccuracy.sem()
-plt.plot(savg, color=style.getColor("shuffled"), alpha=1.0)
-plt.fill_between(savg.index, savg-ssem, savg+ssem, lw=0,
-                 color=style.getColor('shuffled'), alpha=.2, zorder=-99)
-
-order = ("d1", "a2a", "oprm1")
+#%%
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
-meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g), 
-                                label=genotypeNames[g])
-                   for g in order]
-shuffleHandle = mpl.lines.Line2D([], [], color=style.getColor("shuffled"),
-                                 label='shuffled')
-plt.legend(handles=meanHandles+[shuffleHandle],
-           bbox_to_anchor=(1,.28), loc='center right', ncol=2)
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn'}
 
-plt.ylim(0,1)
-plt.xlim(0,200)
-plt.xlabel("number of neurons")
-plt.ylabel("decoding accuracy (%)")
-plt.yticks((0,.5,1), (0,50,100))
-plt.gca().set_yticks(np.arange(.25,1,.25), minor=True)
-plt.xticks(np.arange(0,201,50))
-plt.gca().set_xticks(np.arange(25,200,25), minor=True)
-sns.despine(ax=plt.gca())
+## Panel A
+segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
+#segmentedBehavior = segmentedBehavior.set_index("session")
+openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
 
+twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
 
-#%% Panel B
-decodingData = analysisDecoding.decodingConfusion(endoDataPath)
-
-#means = confusionDiagonal.groupby("sess").mean()
-#nNeurons = means.nNeurons
-#labels = list(means.columns)
-#for i in range(6):
-#     labels[i] = labels[i][:4]
-#genotypes = means.index.str.split("_").str[0]
+for t in (twoChoiceTunings, openFieldTunings):
+    t['signp'] = t['pct'] > .995
+    t['signn'] = t['pct'] < .005
     
-decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
+primaryTwoChoice = twoChoiceTunings.loc[twoChoiceTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+primaryTwoChoice.loc[~primaryTwoChoice.signp, 'action'] = 'none'
+primaryOpenField = openFieldTunings.loc[openFieldTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+primaryOpenField.loc[~primaryOpenField.signp, 'action'] = 'none'
 
-cmap = mpl.cm.RdYlGn
-for gt, data in decodingData.groupby("genotype"):
-    #gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
-    weightedData = data.set_index(["true", "predicted"]).eval("occurences * nNeurons")
-    weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
-    weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
-    gtMeans = np.diag(weightedData)
-    
-    #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
-    #cmap = sns.light_palette(style.getColor(gt), 1024, as_cmap=True)
-    #cmap = cmocean.cm.algae
-    cmap = mpl.cm.RdYlGn
-    #cmap = mpl.cm.rainbow
-    labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
-    di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
-    plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
-    fancyViz.drawBinnedSchematicPlot(di, lw=mpl.rcParams['axes.linewidth'])
+primaryPairs = primaryOpenField.join(primaryTwoChoice.set_index(["animal", "date", "neuron"]),
+                                     on=["animal", "date", "neuron"], rsuffix="_2choice", how="inner")
+primaryPairs = primaryPairs[["genotype", "animal", "date", "neuron", "action", "action_2choice"]]
+primaryPairs.rename(columns={'action': 'action_openField'}, inplace=True)
 
-cax = layout.axes["decodingAccuracyCbar"]
-cb1 = mpl.colorbar.ColorbarBase(cmap=cmap, ax=cax, norm=mpl.colors.Normalize(vmin=0, vmax=100),
-                                orientation='horizontal', ticks=(0,50,100))
-cb1.outline.set_visible(False)
-#cax.tick_params(axis='both', which='both',length=0)
-#cax.set_xlabel('decoding accuracy (%)', fontdict={'fontsize':6})
-#cax.xaxis.set_label_position('top')
+order_openField = ["stationary", "running", "leftTurn", "rightTurn", "none"]
+order_twoChoice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+                   "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr", "none"]
+primaryPairs.action_2choice = pd.Categorical(primaryPairs.action_2choice, order_twoChoice)
+primaryPairs.action_openField = pd.Categorical(primaryPairs.action_openField, order_openField)
+
+colormap = {a: style.getColor(a[:4]) for a in primaryPairs.action_2choice.unique()}
+colormap.update({a: style.getColor(a) for a in primaryPairs.action_openField.unique()})
+
+genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn', 'none': 'untuned'}
+phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
+              'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
+              'pR2C': 'right port', 'none': 'untuned'}
+
+for gt in ("d1", "a2a", "oprm1"):
+    ax = layout.axes['alluvial_{}'.format(gt)]['axis']
+    data = primaryPairs.query("genotype == '{}'".format(gt))
+    leftY, rightY = alluvialPlot.alluvialPlot(data, "action_openField",
+                                              "action_2choice", colormap, ax, 
+                                              colorByRight=False, alpha=0.75)
+    ax.set_xlim(-0.2,1.2)
+    ax.axis("off")
+    ax.set_title(genotypeNames[gt])
+    if gt=="d1":
+        ticks = leftY.groupby(level=0).agg({'lower': np.min, 'higher': np.max}).mean(axis=1)
+        for label, y in ticks.items():
+            ax.text(-0.25, y, behaviorNames[label], ha="right", va="center",
+                    color=style.getColor(label))
+    if gt=="oprm1":
+        newLabels = rightY.index.get_level_values(1).str[:4]
+        newLabels = newLabels.str.replace('pC2.', 'pC')
+        newLabels = newLabels.str.replace('d', 'p')
+        ticks = rightY.groupby(newLabels).agg({'lower': np.min, 'higher': np.max}).mean(axis=1)
+        for label, y in ticks.items():
+            ax.text(1.25, y, phaseNames[label], ha="left", va="center",
+                    color=style.getColor(label))
+
+## Panel B
+examples = [
+    ('d1_5643_190201', 112),
+    ('a2a_5693_190131', 197),
+    ('oprm1_5308_190201', 86)
+]
+for i in range(3):
+    genotype, animal, date = examples[i][0].split("_")
+    twoChoiceSess = next(readSessions.findSessions(endoDataPath, animal=animal,
+                                                   date=date, task="2choice"))
+    openFieldSess = next(readSessions.findSessions(endoDataPath, animal=animal,
+                                                   date=date, task="openField"))
+    twoChoiceSignal = twoChoiceSess.readDeconvolvedTraces()[examples[i][1]]
+    twoChoiceSignal -= twoChoiceSignal.mean()
+    twoChoiceSignal /= twoChoiceSignal.std()
+    openFieldSignal = openFieldSess.readDeconvolvedTraces()[examples[i][1]]
+    openFieldSignal -= openFieldSignal.mean()
+    openFieldSignal /= openFieldSignal.std()
+    twoChoiceAx = layout.axes["ex_2choice_{}".format(i+1)]["axis"]
+    openFieldAx = layout.axes["ex_of_{}".format(i+1)]["axis"]
+    fv2choice = fancyViz.SchematicIntensityPlot(twoChoiceSess, linewidth=style.lw()*0.5,
+                                                smoothing=7, splitReturns=False)
+    img = fv2choice.draw(twoChoiceSignal, ax=twoChoiceAx)
+    fvof = fancyViz.OpenFieldSchematicPlot(openFieldSess, linewidth=style.lw()*0.5)
+    img = fvof.draw(openFieldSignal, ax=openFieldAx)
+    openFieldAx.set_title(genotypeNames[genotype] + " example", loc="left", pad=-4)
+cax = layout.axes['second_colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
 cax.set_axis_off()
-cax.text(-.025, .25, 0, ha='right', va='center', fontdict={'fontsize':6},
-         transform=cax.transAxes)
-cax.text(1.025, .25, 100, ha='left', va='center', fontdict={'fontsize':6},
-         transform=cax.transAxes)
-cax.text(.5, 1.125, 'recall (%)', ha='center', va='bottom', fontdict={'fontsize':6},
-         transform=cax.transAxes)
+cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 
 #%% Panel C
@@ -192,7 +204,7 @@ for d, drois in enumerate((d1_rois, d2_rois)):
     ax.axis('off')
 
 
-##%% Panel E
+##%% Panel C
 alignmentStore = h5py.File(alignmentDataPath, "r")
 def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
     if fromDate == toDate:
@@ -235,7 +247,7 @@ cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
 
 
-#%% Panel D
+#%% Panel E
 decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []
@@ -324,7 +336,7 @@ axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
 axt.axis('off')
 '''
 
-## Panel E
+##
 for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
     
