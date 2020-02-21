@@ -25,7 +25,6 @@ import analysisDecoding
 import analysisStaySwitchDecoding
 plt.ioff()
 
-
 #%%
 style.set_context()
 
@@ -109,10 +108,8 @@ for r in np.arange(5):
         
     for r in rewards:
         fancyViz.drawWaterDrop(axt, np.array([r, 9.7]), np.array([.31,1.5]),
-                               facecolor='k')#sns.color_palette()[0])
-        axt.axvline(r, .05, .67, lw=.5, ls='--', color='k')#sns.color_palette()[0])
-        #axt.text(r, 10, '*', ha='center', va='top', fontdict={'fontsize':9})
-        
+                               facecolor='k')
+        axt.axvline(r, .05, .67, lw=.5, ls='--', color='k')
     axt.set_ylim((-1,12))
     axt.set_xlim((start, start+tpr))
     axt.axis('off')
@@ -148,38 +145,7 @@ roiPlot.roiPlot(rois, colors, ax)
 sel_cnts = np.array(list(rois[sel_neurons].idxmax(axis=0)))
 ax.scatter(sel_cnts[:,1], sel_cnts[:,0], marker='o', edgecolor='k', facecolor='none', 
            s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
-
 ax.axis('off')
-'''
-ax = layout.axes['tuning_fov']['axis']
-
-df = tunings.loc[tunings.groupby('neuron').tuning.idxmax()].copy()
-df['color'] = df.action
-df.loc[~df.signp, 'color'] = 'none'
-df['color'] = df.color.str.slice(0,4).apply(lambda c: np.array(style.getColor(c)))
-
-rois = s.readROIs()
-sel_cnts = np.array(rois.idxmax(axis=0).loc[sel_neurons].tolist())[:,::-1]
-rois = np.array([rois[n].unstack('x').values for n in rois])
-
-rs = []
-for roi, color in zip(rois, df.color.values):
-    roi /= roi.max()
-    roi = roi**1.5
-    roi = np.clip(roi-.1, 0, .85)
-    roi /= roi.max()
-    r = np.array([(roi > 0).astype('int')]*3) * color[:, np.newaxis, np.newaxis]
-    r = np.concatenate([r, roi[np.newaxis]], axis=0)
-    rs.append(r.transpose((1,2,0)))    
-rs = np.array(rs)
-
-for img in rs:
-    ax.imshow(img)
-ax.scatter(sel_cnts[:,0], sel_cnts[:,1], marker='o', edgecolor='k', facecolor='none', 
-           s=25, alpha=1, lw=mpl.rcParams['axes.linewidth'])
-
-ax.axis('off')
-'''
 
 #%%
 ax = layout.axes['tuning_hist1']['axis']
@@ -222,7 +188,6 @@ ax.set_xlabel('tuning score')
 #ax.set_ylabel('# neurons')
 ax.set_ylabel('density')
 sns.despine(ax=ax, trim=True)
-
 
 #%% pie charts
 df = tuningData.copy()
@@ -409,29 +374,14 @@ sns.despine(ax=plt.gca())
 
 #%% Panel K
 decodingData = analysisDecoding.decodingConfusion(endoDataPath)
-
-#means = confusionDiagonal.groupby("sess").mean()
-#nNeurons = means.nNeurons
-#labels = list(means.columns)
-#for i in range(6):
-#     labels[i] = labels[i][:4]
-#genotypes = means.index.str.split("_").str[0]
-
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
 
 cmap = mpl.cm.RdYlGn
 for gt, data in decodingData.groupby("genotype"):
-    #gtMeans = np.average(means[genotypes==gt].drop("nNeurons", axis=1), axis=0, weights=nNeurons[genotypes==gt])
     weightedData = data.set_index(["true", "predicted"]).eval("occurences * nNeurons")
     weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
     weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
     gtMeans = np.diag(weightedData)
-    
-    #cmap = {"oprm1": plt.cm.Greens, "d1": plt.cm.Reds, "a2a": plt.cm.Blues}[gt]
-    #cmap = sns.light_palette(style.getColor(gt), 1024, as_cmap=True)
-    #cmap = cmocean.cm.algae
-    cmap = mpl.cm.RdYlGn
-    #cmap = mpl.cm.rainbow
     labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
@@ -441,9 +391,6 @@ cax = layout.axes["decodingAccuracyCbar"]
 cb1 = mpl.colorbar.ColorbarBase(cmap=cmap, ax=cax, norm=mpl.colors.Normalize(vmin=0, vmax=100),
                                 orientation='horizontal', ticks=(0,50,100))
 cb1.outline.set_visible(False)
-#cax.tick_params(axis='both', which='both',length=0)
-#cax.set_xlabel('decoding accuracy (%)', fontdict={'fontsize':6})
-#cax.xaxis.set_label_position('top')
 cax.set_axis_off()
 cax.text(-.025, .25, 0, ha='right', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
@@ -523,8 +470,6 @@ plt.xticks((0,50,100),())#, rotation=30, ha="right", va="top")
 plt.yticks((0,50,100))
 plt.gca().set_xticks((25,75), minor=True)
 plt.gca().set_yticks((25,75), minor=True)
-#plt.xlabel("true")
-#plt.ylabel("predicted", labelpad=-2.25)
 corr = calcCorr(exampleSession).loc["correlation"]
 plt.text(100, 1.5, "r = {:.3f}".format(corr), fontsize=6,
          color="k", ha="right", va='center')
@@ -625,4 +570,3 @@ ax.axis('off')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "figure3Tunings.svg")
-

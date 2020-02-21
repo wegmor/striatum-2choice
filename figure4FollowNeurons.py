@@ -1,22 +1,13 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import scipy
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import h5py
 import pathlib
 import figurefirst
 import cmocean
-
-#import sys
-#thisFolder = pathlib.Path(__file__).resolve().parent
-#sys.path.append(str(thisFolder.parent))
-
-from utils import fancyViz
-from utils import readSessions
-from utils import alluvialPlot
-#from utils import sessionBarPlot
+from utils import readSessions, fancyViz, alluvialPlot
 import analysisOpenField
 import analysisTunings
 import analysisDecoding
@@ -24,7 +15,6 @@ import style
 
 style.set_context()
 plt.ioff()
-
 
 #%%
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
@@ -34,12 +24,10 @@ templateFolder = pathlib.Path('templates')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-    
-    
+
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "figure4FollowNeurons.svg")
 layout.make_mplfigures()
-
 
 #%%
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
@@ -48,7 +36,6 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
 
 ## Panel A
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
-#segmentedBehavior = segmentedBehavior.set_index("session")
 openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
 
 twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
@@ -255,89 +242,14 @@ def bootstrapSEM(values, weights, iterations=1000):
         idx = np.random.choice(len(values), len(values), replace=True)
         avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
     return np.std(avgs)
-    
-#acrossDays = acrossDays.rename(columns={"sameDayShuffled": "nextDayScore", "nextDayScore": "sameDayShuffled"})
+
 fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
 toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
 td = (toDate - fromDate).dt.days
 decodingAcrossDays["dayDifference"] = td
-
 selection = decodingAcrossDays.query("fromTask=='2choice' & toTask=='2choice'")
-'''
+
 for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
-    g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
-                  .groupby(["animal", "fromDate", "toDate"]))
-
-    perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore',
-                          'sameDayShuffled', 'nextDayShuffled']]
-    perAnimal["genotype"] = g.genotype.first()
-
-
-    scaledScore = perAnimal[['sameDayScore', 'nextDayScore',
-                             'sameDayShuffled', 'nextDayShuffled']] * \
-                  np.stack([perAnimal.nNeurons]*4, axis=1)
-    
-    perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
-    totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
-    perGenotype /= np.stack([totalNeurons]*4, axis=1)
-
-    for genotype in ('d1','a2a','oprm1'):
-        plt.sca(layout.axes["{}_decodingAcrossDays_{}".format(genotype, i+1)]["axis"])
-    
-        for r in perAnimal.query("genotype == @genotype").itertuples():
-            plt.plot([0,1], [r.nextDayScore, r.nextDayShuffled],
-                     lw=r.nNeurons/150,#lw=mpl.rcParams['axes.linewidth'],
-                     alpha=.25, clip_on=False, zorder=-99, color=style.getColor(genotype))
-        
-        r = perGenotype.loc[genotype]
-        animalsWithGt = perAnimal.query("genotype == '{}'".format(genotype))
-        nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
-        nextDayShuffledSEM = bootstrapSEM(animalsWithGt.nextDayShuffled, animalsWithGt.nNeurons)
-        plt.errorbar(0, r.nextDayScore, nextDaySEM,
-                     c=style.getColor(genotype), clip_on=False,
-                     marker='v', markersize=3.6, markerfacecolor='w',
-                     markeredgewidth=.8)
-        plt.errorbar(1, r.nextDayShuffled, nextDayShuffledSEM,
-                     c=style.getColor(genotype), clip_on=False,
-                     marker='o', markersize=3.2, markerfacecolor='w',
-                     markeredgewidth=.8)
-        plt.plot([0,1], [r.nextDayScore, r.nextDayShuffled],
-                 color=style.getColor(genotype), clip_on=False)
-        
-        plt.ylim((0,1))
-        plt.xlim((-.35,1))
-        plt.xticks((.5,),('{}'.format({0:'1-3',1:'4-13',2:'14+'}[i]),))
-        plt.yticks(())
-        if i != 0:
-            sns.despine(ax=plt.gca(), left=True, trim=False)
-        else:
-            plt.yticks((0,.5,1), ())
-            plt.gca().set_yticks((.25,.75), minor=True)
-            if genotype == 'd1':
-                plt.yticks((0,.5,1),(0,50,100))
-                plt.ylabel('decoder accuracy (%)')
-        
-            sns.despine(ax=plt.gca(), trim=False)
-        if i == 1:
-            plt.title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[genotype])
-            if genotype == 'a2a':
-                plt.xlabel('days later')
-
-axt = layout.axes['across_days_legend1']['axis']
-legend_elements = [mpl.lines.Line2D([0], [0], marker='v', color='k', label='neural activity',
-                                    markerfacecolor='w', markersize=3.6,
-                                    markeredgewidth=.8),
-                   mpl.lines.Line2D([0], [0], marker='o', color='k',
-                                    label='neural activity\n(labels shuffled)',
-                                    markerfacecolor='w', markersize=3.2,
-                                    markeredgewidth=.8)
-                  ]
-axt.legend(handles=legend_elements, loc='center', ncol=1, mode='expand')
-axt.axis('off')
-'''
-
-##
-for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):#(1,4,6), (2,7,14), (3,14,100)):
     g = selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h)).groupby(["animal", "fromDate", "toDate"])
     
     perAnimal = g.mean()[['nNeurons', 'sameDayScore', 'nextDayScore', 'sameDayShuffled', 'nextDayShuffled']]
@@ -383,7 +295,6 @@ axt = layout.axes['decodingAcrossDays_2']['axis']
 genotypeNames["shuffled"] = "shuffled"
 legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=genotypeNames[g]) for g in ("d1", "a2a", "oprm1", "shuffled")]
 axt.legend(handles=legend_elements, loc=(-0.6, -0.3), ncol=2)
-    
     
 #%%
 layout.insert_figures('plots')

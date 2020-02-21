@@ -5,8 +5,8 @@ import cmocean
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
-from matplotlib.ticker import MultipleLocator, FixedLocator
-from utils import readSessions, fancyViz, sessionBarPlot, roiPlot
+from matplotlib.ticker import MultipleLocator
+from utils import readSessions, fancyViz, roiPlot
 import pathlib
 import figurefirst
 import style
