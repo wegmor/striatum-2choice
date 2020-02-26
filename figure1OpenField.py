@@ -126,7 +126,7 @@ for fullDf, axName in [(onsets, "avgOnset"), (offsets, "avgOffset")]:
         df = fullDf[genotypes==gt]
         m = df.mean(axis=0)
         err = df.sem(axis=0)
-        ax.fill_between(m.index*0.05, m-err, m+err, color=style.getColor(gt), alpha=0.25)
+        ax.fill_between(m.index*0.05, m-err, m+err, color=style.getColor(gt), alpha=0.25, lw=0)
         ax.plot(m.index*0.05, m, color=style.getColor(gt), label=longGtNames[gt])
     ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
     ax.set_ylim(-0.04, 0.08)
@@ -261,7 +261,7 @@ ewindows.set_index(["animal", "date", "neuron", "label"], inplace=True)
 ewindows["tuned"] = tuningData.set_index(["animal", "date", "neuron", "action"]).pct>0.0995
 ewindows.reset_index(inplace=True)
 
-for label in behaviorOrder:
+for label in ("leftTurn", "running"):#behaviorOrder:
     ax = layout.axes["onset_"+label]["axis"]
     for gt in genotypeOrder:
         mask = np.logical_and(ewindows.genotype==gt, ewindows.label==label)
@@ -270,7 +270,7 @@ for label in behaviorOrder:
         m = ma.mean()
         s = ma.sem()
         ax.plot(np.linspace(-1,1,40), m, color=style.getColor(gt))
-        ax.fill_between(np.linspace(-1,1,40), m-s, m+s, color=style.getColor(gt), alpha=0.15)
+        ax.fill_between(np.linspace(-1,1,40), m-s, m+s, color=style.getColor(gt), alpha=0.15, lw=0)
     #ax.axvline(0, color='k', linestyle='--', lw=0.75)
     ax.axvspan(0, 1, color=style.getColor(label), alpha=.15, zorder=-10)
     ax.set_title(behaviorNames[label] + ' tuned', pad=4)
@@ -293,8 +293,8 @@ for label in behaviorOrder:
     sns.despine(ax=ax)
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
 labels = [longGtNames[gt] for gt in genotypeOrder]
-layout.axes["onset_running"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.2,
-                                            bbox_to_anchor=(0.85, 1.4, 1, 0.1))
+layout.axes["onset_running"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.0,
+                                            bbox_to_anchor=(0.25, 1.4, 1, 0.1))
 
 #%% Example tuning FOV
 ax = layout.axes['tuning_fov']['axis']

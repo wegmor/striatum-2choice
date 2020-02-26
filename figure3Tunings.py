@@ -248,7 +248,7 @@ for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
         ax.axvspan(0, 5, color=style.getColor("p"+action[1]), alpha=0.2)
         ax.axvspan(10, 15, color=style.getColor("p"+action[3]), alpha=0.2)
         ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
-        ax.axhspan(0.5, 0.53, color=style.getColor(action[:4]), clip_on=False)
+        ax.axvspan(-0.5, 0, color=style.getColor(action[:4]), clip_on=False, zorder=-1)
         sns.despine(ax=ax)
 genotypeOrder = ("d1", "a2a", "oprm1")
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
@@ -382,7 +382,7 @@ for gt, data in decodingData.groupby("genotype"):
     weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
     weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
     gtMeans = np.diag(weightedData)
-    labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
+    labels = [(l[:4] if l[-1]=='-' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
     fancyViz.drawBinnedSchematicPlot(di, lw=mpl.rcParams['axes.linewidth'])
@@ -398,8 +398,6 @@ cax.text(1.025, .25, 100, ha='left', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
 cax.text(.5, 1.125, 'recall (%)', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
-
-
 
 #%% Panel L
 exampleNeurons = (7, 66, 13)
@@ -434,7 +432,7 @@ for i in range(3):
     ax = layout.axes["movementExample{}".format(i+1)]["axis"]
     img = fv.draw(deconv[exampleNeurons[i]], ax=ax)
     
-cax = layout.axes['colorbar']['axis']
+cax = layout.axes['colorbar_turnDecoding']['axis']
 cb = plt.colorbar(img, cax=cax, orientation='horizontal')
 cb.outline.set_visible(False)
 cax.set_axis_off()
@@ -461,17 +459,17 @@ means = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.
 #xmeans = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).true.mean()
 stds = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.std()
 plt.sca(layout.axes["decodingProgressExample"]["axis"])
-plt.plot([0,100], [0, 100], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
-plt.errorbar(means.index*100, means*100, yerr=stds*100, fmt='o-', ms=2.8,
+plt.plot([0,1], [0, 1], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
+plt.errorbar(means.index, means, yerr=stds, fmt='o-', ms=2.8,
              color=style.getColor("oprm1"), markeredgewidth=0)
-plt.xlim(-5,100)
-plt.ylim(-5,100)
-plt.xticks((0,50,100),())#, rotation=30, ha="right", va="top")
-plt.yticks((0,50,100))
-plt.gca().set_xticks((25,75), minor=True)
-plt.gca().set_yticks((25,75), minor=True)
+plt.xlim(-0.05,1.00)
+plt.ylim(-0.05,1.00)
+plt.xticks((0,.5,1),())#, rotation=30, ha="right", va="top")
+plt.yticks((0,.5,1))
+plt.gca().set_xticks((.25,.75), minor=True)
+plt.gca().set_yticks((.25,.75), minor=True)
 corr = calcCorr(exampleSession).loc["correlation"]
-plt.text(100, 1.5, "r = {:.3f}".format(corr), fontsize=6,
+plt.text(1, 0.015, "r = {:.3f}".format(corr), fontsize=6,
          color="k", ha="right", va='center')
 sns.despine(ax=plt.gca())
 
