@@ -79,7 +79,7 @@ for p,(a,t) in enumerate(tunings.query('action in @actions').groupby('action')):
     axbg.set_xlim((0,1))
     axbg.set_axis_off()
     
-cax = layout.axes['colorbar']['axis']
+cax = layout.axes['ex1_colorbar']['axis']
 cb = plt.colorbar(img, cax=cax, orientation='horizontal')
 #cax.xaxis.tick_top()
 #cax.tick_params(axis='both', which='both',length=0)
@@ -433,7 +433,7 @@ for i in range(3):
     ax = layout.axes["movementExample{}".format(i+1)]["axis"]
     img = fv.draw(deconv[exampleNeurons[i]], ax=ax)
     
-cax = layout.axes['colorbar']['axis']
+cax = layout.axes['ex2_colorbar']['axis']
 cb = plt.colorbar(img, cax=cax, orientation='horizontal')
 cb.outline.set_visible(False)
 cax.set_axis_off()
