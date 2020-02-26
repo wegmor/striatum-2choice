@@ -18,7 +18,7 @@ from utils.cachedDataFrame import cachedDataFrame
 
 #The bins that the decoder needs to distinguish
 selectedLabels = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pC2L-", "pC2R-",
-                  "pL2Cd", "pL2Co", "pL2Cr", "pR2Cd", "pR2Co", "pR2Cr"]
+                  "dL2C-", "pL2Co", "pL2Cr", "dR2C-", "pR2Co", "pR2Cr"]
 
 def _crossValScore(X, Y):
     svm = sklearn.svm.SVC(kernel="linear", cache_size=2000)

@@ -382,7 +382,7 @@ for gt, data in decodingData.groupby("genotype"):
     weightedData = weightedData.groupby(level=[0,1]).sum().unstack()
     weightedData /= weightedData.sum(axis=1)[:, np.newaxis]
     gtMeans = np.diag(weightedData)
-    labels = [(l[:4] if l[0]=='m' or l[1]=='C' else l) for l in weightedData.columns]
+    labels = [(l[:4] if l[0]=='m' or l[0]=='d' or l[1]=='C' else l) for l in weightedData.columns]
     di = {k: cmap(v) for k, v in zip(labels, gtMeans)}
     plt.sca(layout.axes["decodingAccuracyPerLabel_{}".format(gt)]["axis"])
     fancyViz.drawBinnedSchematicPlot(di, lw=mpl.rcParams['axes.linewidth'])
@@ -398,7 +398,6 @@ cax.text(1.025, .25, 100, ha='left', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
 cax.text(.5, 1.125, 'recall (%)', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
-
 
 
 #%% Panel L
