@@ -509,8 +509,8 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
         aaxs[i].set_ylim(0, .5)
         aaxs[i].set_xlim(-.5, 14.5)
         aaxs[i].hlines([0], -.5, 16, lw=mpl.rcParams['axes.linewidth'],
-                       color='k', alpha=.5, zorder=-99, ls=':', clip_on=False)
-        aaxs[i].vlines([4.5,9.5], -.18, .5, ls=':', color='k', alpha=1, 
+                       color='k', alpha=.5, zorder=-99, linestyle=':', clip_on=False)
+        aaxs[i].vlines([4.5,9.5], -.18, .5, linestyle=':', color='k', alpha=1, 
                        lw=mpl.rcParams['axes.linewidth'], clip_on=False,
                        zorder=-99)
         aaxs[i].axis('off')
