@@ -33,7 +33,7 @@ with tqdm.tqdm(total=len(uniqueSessions), desc="Loading data") as t:
             k = str(sess)
             neurons = selection[selection.session == str(sess)].neuron
             fancyVizs[k] = fancyViz.SchematicIntensityPlot(sess, smoothing=7, linewidth=lw, splitReturns=False)
-            signals[k] = sess.readDeconvolvedTraces(zScore=True)[neurons]
+            signals[k] = sess.readDeconvolvedTraces(rScore=True)[neurons]
             t.update(1)
 
 for i, (session, neuron) in selection.iterrows():

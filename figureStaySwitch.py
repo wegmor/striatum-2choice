@@ -52,9 +52,7 @@ for i in range(18):
     sess = next(readSessions.findSessions(endoDataPath, animal=examples[i][0],
                                           date=examples[i][1], task="2choice"))
     neuron = examples[i][2]
-    signal = sess.readDeconvolvedTraces()[neuron]
-    signal -= signal.mean()
-    signal /= signal.std()
+    signal = sess.readDeconvolvedTraces(rScore=True)[neuron]
     ax = layout.axes["example_{}_{}".format(examples[i][3], (i%6)+1)]["axis"]
     lw = matplotlib.rcParams["lines.linewidth"]*0.5
     fv = fancyViz.SwitchSchematicPlot(sess, linewidth=lw)
