@@ -36,7 +36,6 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
 
 #All 4-behavior panels    
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
-segmentedBehavior = segmentedBehavior.set_index("session")
 
 ## Panel A
 tuningData = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
@@ -172,8 +171,8 @@ correlations = joinedTunings.groupby(["genotype", "action", "action_2choice"]).a
 cax = layout.axes['corr_of2c_colorbar']['axis']
 cax.tick_params(axis='y', which='both',length=0)
 
-order2choice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
-                "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr"]
+order2choice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+                "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr"]
 for gt, perGt in correlations[order2choice].groupby(level=0):
     ax = layout.axes["openField2choiceCorrs_{}".format(gt)]["axis"]
     sns.heatmap(perGt.loc[gt].loc[order], ax=ax, vmin=-1, vmax=1, annot=True,
@@ -223,9 +222,7 @@ for i, sess, neuron in cherryPicks:
     genotype, animal, date = sess.split("_")
     ax = layout.axes["wallAngleEx_{}_{}".format(genotype, i+1)]["axis"]
     s = next(readSessions.findSessions(endoDataPath, task="openField", animal=animal, date=date))
-    deconv = s.readDeconvolvedTraces()[neuron]
-    deconv -= deconv.mean()
-    deconv /= deconv.std()
+    deconv = s.readDeconvolvedTraces(rScore=True)[neuron]
     fancyViz.WallAnglePlot(s).draw(deconv, ax=ax)
     
 ## Panel G
