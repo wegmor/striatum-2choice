@@ -12,7 +12,7 @@
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
    height="11in"
    id="svg18009"
-   inkscape:version="0.92.4 (unknown)"
+   inkscape:version="0.92.3 (2405546, 2018-03-11)"
    sodipodi:docname="tuningsSupp2.svg"
    version="1.1"
    viewBox="0 0 215.89999 279.4"
@@ -14705,8 +14705,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer1"
-     inkscape:cx="467.0638"
-     inkscape:cy="518.40071"
+     inkscape:cx="405.72568"
+     inkscape:cy="617.93308"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -14717,12 +14717,12 @@
      inkscape:snap-bbox-midpoints="true"
      inkscape:snap-global="true"
      inkscape:snap-page="true"
-     inkscape:window-height="1043"
+     inkscape:window-height="1016"
      inkscape:window-maximized="1"
-     inkscape:window-width="1920"
-     inkscape:window-x="1920"
-     inkscape:window-y="0"
-     inkscape:zoom="2.0000002"
+     inkscape:window-width="1853"
+     inkscape:window-x="1987"
+     inkscape:window-y="27"
+     inkscape:zoom="1.4142137"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -14735,7 +14735,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -14821,7 +14821,7 @@
        x="26.346479"
        y="88.191032">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_dist" />
+         figurefirst:name="dL2C-_dist" />
     </rect>
     <rect
        height="6.1295328"
@@ -14831,7 +14831,7 @@
        x="26.346466"
        y="103.56215">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_bp" />
+         figurefirst:name="dL2C-_bp" />
     </rect>
     <rect
        height="15.900333"
@@ -14921,7 +14921,7 @@
        x="26.346483"
        y="171.31392">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_dist" />
+         figurefirst:name="dR2C-_dist" />
     </rect>
     <rect
        height="6.1295328"
@@ -14931,7 +14931,7 @@
        x="26.346472"
        y="186.68509">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_bp" />
+         figurefirst:name="dR2C-_bp" />
     </rect>
     <rect
        height="26.938288"
@@ -15081,7 +15081,7 @@
        x="46.834236"
        y="77.986404">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_tsne" />
+         figurefirst:name="dL2C-_tsne" />
     </rect>
     <rect
        height="26.938288"
@@ -15091,7 +15091,7 @@
        x="46.83424"
        y="161.10928">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_tsne" />
+         figurefirst:name="dR2C-_tsne" />
     </rect>
     <rect
        height="26.938288"
@@ -15322,7 +15322,7 @@
        x="45.331421"
        y="103.11768">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_tsne_d1" />
+         figurefirst:name="dL2C-_tsne_d1" />
     </rect>
     <rect
        height="9.7785988"
@@ -15332,7 +15332,7 @@
        x="65.496742"
        y="103.11768">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_tsne_oprm1" />
+         figurefirst:name="dL2C-_tsne_oprm1" />
     </rect>
     <rect
        height="9.7785988"
@@ -15342,7 +15342,7 @@
        x="55.414078"
        y="103.11768">
       <figurefirst:axis
-         figurefirst:name="pL2Cd_tsne_a2a" />
+         figurefirst:name="dL2C-_tsne_a2a" />
     </rect>
     <rect
        height="9.7785988"
@@ -15502,7 +15502,7 @@
        x="45.30714"
        y="186.2406">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_tsne_d1" />
+         figurefirst:name="dR2C-_tsne_d1" />
     </rect>
     <rect
        height="9.7785988"
@@ -15512,7 +15512,7 @@
        x="65.472458"
        y="186.2406">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_tsne_oprm1" />
+         figurefirst:name="dR2C-_tsne_oprm1" />
     </rect>
     <rect
        height="9.7785988"
@@ -15522,7 +15522,7 @@
        x="55.389797"
        y="186.2406">
       <figurefirst:axis
-         figurefirst:name="pR2Cd_tsne_a2a" />
+         figurefirst:name="dR2C-_tsne_a2a" />
     </rect>
     <rect
        height="9.7785988"

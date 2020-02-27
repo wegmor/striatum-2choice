@@ -139,6 +139,7 @@ def getTunedNoHistData(tuningData):
 @cachedDataFrame("tuning_tsne.pkl")
 def getTSNEProjection(tuningData, perplexity=30):
     df = tuningData.set_index(['genotype','animal','date','neuron']).copy()
+    df["signp"] = df.pct > 0.995
     df = df.loc[df.groupby(['genotype','animal','date','neuron']).signp.sum() >= 1]
     df = df.set_index('action', append=True).tuning.unstack('action')
     
@@ -146,6 +147,7 @@ def getTSNEProjection(tuningData, perplexity=30):
     tsne_df = pd.DataFrame(tsne, index=df.index).reset_index()
     
     df = tuningData.copy()
+    df["signp"] = df.pct > 0.995
     maxdf = df.loc[df.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
     maxdf = maxdf.loc[df.signp]
     #maxdf.loc[~df.signp, 'action'] = 'none'
@@ -211,9 +213,7 @@ def getPDistVsCorrData(dataFilePath):
         #pct80 = np.nanpercentile(deconv[deconv != 0], 80, axis=0)
         #deconv = deconv[deconv >= pct80].fillna(0)
         
-        rois = s.readROIs()
-        rois = np.array([rois[n].unstack('x').values for n in rois])
-        coords = get_centers(rois)
+        coords = np.array(s.readROIs().idxmax(axis=0).tolist())
         coords_shuffled = np.random.permutation(coords)
     
         ##%%

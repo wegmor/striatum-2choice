@@ -1,25 +1,17 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-#import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-#import h5py
 import pathlib
 import figurefirst
 import cmocean
 import tqdm
 import os
 from matplotlib.ticker import MultipleLocator
-#import matplotlib.lines as mlines
-
-#import sys
-#thisFolder = pathlib.Path(__file__).resolve().parent
-#sys.path.append(str(thisFolder.parent))
 
 from utils import fancyViz
 from utils import readSessions
-#from utils import sessionBarPlot
 import analysisTunings
 import style
 
@@ -31,27 +23,17 @@ plt.ioff()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
-cacheFolder = pathlib.Path("cache")
 templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-if not cacheFolder.is_dir():
-    cacheFolder.mkdir()
-
 
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "tuningsSupp1.svg")
 layout.make_mplfigures()
 
-
 #%% Panel A
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
+tuningData = analysisTunings.getTuningData(endoDataPath)
 
 df = tuningData.copy()
 
@@ -67,8 +49,8 @@ sign_pct = sign_count / total_count
 sign_pct['noNeurons'] = total_count.signp
 
 
-order = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
-         "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr"]
+order = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+         "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr"]
 
 # v x coords for actions
 a2x = dict(zip(order, np.arange(.5,12)))
@@ -300,20 +282,10 @@ layout = figurefirst.FigureLayout(templateFolder / "tuningsSupp2.svg")
 layout.make_mplfigures()
 
 #%% TSNE 
-cachedDataPath = cacheFolder / "tuning_tsne.pkl"
-if cachedDataPath.is_file():
-    tuningTsne = pd.read_pickle(cachedDataPath)
-else:
-    tuningTsne = analysisTunings.getTSNEProjection(tuningData)
-    tuningTsne.to_pickle(cachedDataPath)
+tuningTsne = analysisTunings.getTSNEProjection(tuningData)
 
 #%% tuning data
-cachedDataPath = cacheFolder / "actionTunings.pkl"
-if cachedDataPath.is_file():
-    tuningData = pd.read_pickle(cachedDataPath)
-else:
-    tuningData = analysisTunings.getTuningData(endoDataPath)
-    tuningData.to_pickle(cachedDataPath)
+tuningData = analysisTunings.getTuningData(endoDataPath)
     
 #%% "intensity color code" tsne by tuning
 tsne = tuningTsne.set_index(['genotype','animal','date','neuron'])[[0,1]].copy()

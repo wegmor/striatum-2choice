@@ -40,8 +40,8 @@ layout.make_mplfigures()
 #%% Panel A
 decodingData = analysisDecoding.decodingConfusion(endoDataPath)
 
-order = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "pL2Cd", "pL2Co", "pL2Cr",
-         "pC2L-", "pC2R-", "pR2Cd", "pR2Co", "pR2Cr"]
+order = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+         "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr"]
 decodingData["genotype"] = decodingData.sess.str.split("_").str[0]
 
 cax = layout.axes['dec_colorbar']['axis']
