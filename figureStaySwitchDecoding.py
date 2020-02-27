@@ -257,7 +257,7 @@ sign_sess_frac.reset_index(inplace=True)
 for tuning in ['stay','switch']:
     ax = layout.axes['perc_{}'.format(tuning)]
     sessionBarPlot.sessionBarPlot(sign_sess_frac, tuning, ax, style.getColor,
-                                  weightScale=.0075, orientation='vertical')
+                                  weightScale=.0075)
     ax.axhline(0, ls=':', lw=mpl.rcParams['axes.linewidth'], color='k', alpha=.5,
                clip_on=False)
 #    ax.axvline(0, ls=':', lw=mpl.rcParams['axes.linewidth'], color='k', alpha=.5,
