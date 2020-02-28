@@ -24,7 +24,7 @@
      id="base"
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      inkscape:cx="251.2749"
      inkscape:cy="655.80128"
      inkscape:document-units="in"
@@ -12528,7 +12528,7 @@
        style="display:inline;opacity:1;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.19699511;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.19699508, 0.39399015;stroke-dashoffset:0;stroke-opacity:1"
        width="17.423393"
        x="171.60806"
-       y="154.66676">
+       y="156.25424">
       <figurefirst:axis
          figurefirst:name="colorbar_confusionMatrix" />
     </rect>

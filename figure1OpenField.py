@@ -248,7 +248,7 @@ maxdf = maxdf.groupby(['genotype','action'])[['signp']].count() # get counts
 
 for g in genotypeOrder:
     ax = layout.axes['pie_{}'.format(g)]['axis']
-    gdata = maxdf.loc[g]   
+    gdata = maxdf.loc[g].loc[['leftTurn', 'rightTurn', 'blank', 'running', 'stationary']]
     ws, ts = ax.pie(gdata.values.squeeze(), wedgeprops={'lw':0, 'edgecolor':'w'},
                     explode=[.1]*len(gdata),
                     textprops={'color':'k'}, colors=[style.getColor(b) for b in gdata.index])
@@ -302,7 +302,11 @@ df = ex_tunings.loc[ex_tunings.groupby('neuron').tuning.idxmax()]
 colors = df.action.copy()
 colors[~df.signp] = 'none'
 colors = np.array([style.getColor(c) for c in colors])
-roiPlot.roiPlot(exampleSess.readROIs(), colors, ax)
+rois = exampleSess.readROIs()
+roiPlot.roiPlot(rois, colors, ax)
+sel_cnts = np.array(list(rois[best_neurons[order]].idxmax(axis=0)))
+ax.scatter(sel_cnts[:,1], sel_cnts[:,0], marker='o', edgecolor='k', facecolor='none', 
+           s=8, alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.axis('off')
 
 #%% Distance between tuned neurons
@@ -408,7 +412,7 @@ cax.set_axis_off()
 cax.axis("off")
 cax.text(-0.025, .4, '0%', ha='right', va='center', fontdict={'fontsize':6})
 cax.text(1.025, .4, '100%', ha='left', va='center', fontdict={'fontsize':6})
-#cax.text(0.5, 1.1, 'predictions', ha='center', va='bottom', fontdict={'fontsize':6})
+cax.text(0.5, 1.1, 'recall', ha='center', va='bottom', fontdict={'fontsize':6})
 
 #%%
 layout.insert_figures('plots')
