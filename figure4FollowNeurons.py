@@ -283,7 +283,7 @@ for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
     #xlab = ("1-3 days later", "4-13 days later", "14+ days later")
     #plt.xticks((0,1), ("same day", xlab[i]), rotation=90)
     plt.xticks([])
-    plt.title(("1-3", "4-13", "14+")[i] + "\ndays", pad=6, fontsize=6)
+    plt.xlabel(("1-3", "4-13", "14+")[i] + "\ndays", labelpad=7, fontsize=6)
     if i==0:
         plt.yticks(np.linspace(0,1,5), np.linspace(0,100,5,dtype=np.int64))
         plt.ylabel("decoding accuracy (%)")
@@ -294,7 +294,7 @@ for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
 axt = layout.axes['decodingAcrossDays_2']['axis']
 genotypeNames["shuffled"] = "shuffled"
 legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=genotypeNames[g]) for g in ("d1", "a2a", "oprm1", "shuffled")]
-axt.legend(handles=legend_elements, loc=(-0.6, -0.3), ncol=2)
+axt.legend(handles=legend_elements, loc=(-0.7, 1.08), ncol=2)
     
 #%%
 layout.insert_figures('plots')
