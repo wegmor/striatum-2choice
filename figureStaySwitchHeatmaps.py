@@ -23,7 +23,7 @@ templateFolder = pathlib.Path("templates")
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 
-layout = figurefirst.FigureLayout(templateFolder / "staySwitch.svg")
+layout = figurefirst.FigureLayout(templateFolder / "staySwitchHeatmaps.svg")
 layout.make_mplfigures()
 
 
@@ -70,4 +70,4 @@ cax.text(-1.05, 0.5, 'z-score', ha='center', va='center', fontdict={'fontsize':6
 
 
 layout.insert_figures('target_layer_name')
-layout.write_svg(outputFolder / "staySwitch.svg")
+layout.write_svg(outputFolder / "staySwitchHeatmaps.svg")

@@ -37,7 +37,7 @@ if not cacheFolder.is_dir():
     cacheFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "2ChoiceIntro.svg")
+layout = figurefirst.FigureLayout(templateFolder / "figure2ChoiceIntro.svg")
 layout.make_mplfigures()
 
 

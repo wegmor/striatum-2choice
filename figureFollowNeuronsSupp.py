@@ -26,7 +26,7 @@ templateFolder = pathlib.Path("templates")
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
-layout = figurefirst.FigureLayout(templateFolder / "openFieldNewSupp.svg")
+layout = figurefirst.FigureLayout(templateFolder / "followNeuronsSupp.svg")
 layout.make_mplfigures()
 
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
@@ -122,4 +122,4 @@ cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdi
 cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 layout.insert_figures('target_layer_name')
-layout.write_svg(outputFolder / "openFieldNewSupp.svg")
+layout.write_svg(outputFolder / "followNeuronsSupp.svg")
