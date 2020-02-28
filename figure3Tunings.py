@@ -248,8 +248,12 @@ for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
         ax.axvspan(0, 5, color=style.getColor("p"+action[1]), alpha=0.2)
         ax.axvspan(10, 15, color=style.getColor("p"+action[3]), alpha=0.2)
         ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
-        ax.axvspan(-0.5, 0, color=style.getColor(action[:4]), clip_on=False, zorder=-1)
+        #ax.axvspan(-0.5, 0, color=style.getColor(action[:4]), clip_on=False, zorder=-1)
         sns.despine(ax=ax)
+        actionColor = style.getColor(action[:4])
+        ax.tick_params(axis='y', colors=actionColor, which="minor")
+        ax.spines['bottom'].set_color(actionColor)
+        ax.spines['left'].set_color(actionColor)
 genotypeOrder = ("d1", "a2a", "oprm1")
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
 labels = ["D1", "A2A", "Oprm1"]
@@ -413,18 +417,18 @@ sorting = avgActivity.idxmax(axis=1).argsort()
 plt.sca(layout.axes["movementProgressRaster"]["axis"])
 plt.imshow(avgActivity.iloc[sorting], aspect="auto",
            interpolation="nearest", vmin=-saturation, vmax=saturation, cmap="RdYlBu_r")
-markY = [dict(sorting.reset_index().values[:,::-1])[n] for n in exampleNeurons]
+for i, y in enumerate(np.argsort(sorting)[list(exampleNeurons)]):
+    plt.plot([13, 10, 13], [i*110+15, y, (i+1)*110-10], 'k', lw=0.5, ls=':', clip_on=False)
 plt.xlim((-.5,9.5))
-plt.scatter([-.8]*3, markY, marker='.', s=.25, c='k', clip_on=False,
-            linewidths=0)
-plt.xticks((0,9), ('R', 'C'))#, rotation=30, ha="right", va="top")#(0, 50, 100))
+plt.ylim(len(sorting)-1, 0)
+plt.xticks([])
 plt.yticks([0, len(sorting)-1], [len(sorting), 1])
-plt.xlabel("scaled time")
-plt.ylabel('neuron', labelpad=-10)
-plt.gca().yaxis.tick_right()
-plt.gca().yaxis.set_label_position('right')
+plt.xlabel("scaled\ntime", labelpad=3)
+plt.ylabel('neuron (sorted)', labelpad=-8)
+plt.title("right to\ncenter turn", pad=5)
 plt.gca().tick_params(axis='both', which='both',length=0)
-sns.despine(ax=plt.gca(), top=True, bottom=True, left=True, right=True)
+#plt.gca().spines['bottom'].set_color(style.getColor("mR2C"))
+sns.despine(ax=plt.gca(), top=True, bottom=False, left=True, right=True)
 
 fv = fancyViz.SchematicIntensityPlot(sess, linewidth=mpl.rcParams['axes.linewidth'],
                                      splitReturns=False, smoothing=7, saturation=saturation)
@@ -471,6 +475,7 @@ plt.gca().set_yticks((.25,.75), minor=True)
 corr = calcCorr(exampleSession).loc["correlation"]
 plt.text(1, 0.015, "r = {:.3f}".format(corr), fontsize=6,
          color="k", ha="right", va='center')
+plt.title("right to center\nturn")
 sns.despine(ax=plt.gca())
 
 ##%%
@@ -553,7 +558,7 @@ for gt, gdata in avgCorr.groupby('genotype'):
     ax.set_yticks((0,.6))
     ax.set_yticks((.3,), minor=True)
     if gt == 'a2a':
-        ax.set_ylabel('true X predicted correlation')
+        ax.set_ylabel('r(true, predicted)')
     sns.despine(ax=ax, bottom=True, trim=True)
     
 ax = layout.axes['corr_legend']['axis']
