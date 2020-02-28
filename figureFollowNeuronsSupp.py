@@ -121,5 +121,32 @@ cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fon
 cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdict={'fontsize':6})
 cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
+
+## Panel C
+twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
+twoChoiceTunings = twoChoiceTunings.set_index(["animal", "date", "neuron"])[["action", "pct", "tuning"]]
+joinedTunings = openFieldTunings.reset_index().join(twoChoiceTunings, on=["animal", "date", "neuron"], rsuffix="_2choice")
+corrMeasure = lambda df: scipy.stats.pearsonr(df.tuning, df.tuning_2choice)[0]
+correlations = joinedTunings.groupby(["genotype", "action", "action_2choice"]).apply(corrMeasure).unstack()
+
+cax = layout.axes['corr_of2c_colorbar']['axis']
+cax.tick_params(axis='y', which='both',length=0)
+
+openFieldOrder = ["leftTurn", "rightTurn", "running", "stationary"]
+order2choice = ["mC2L-", "mC2R-", "mL2C-", "mR2C-", "dL2C-", "pL2Co", "pL2Cr",
+                "pC2L-", "pC2R-", "dR2C-", "pR2Co", "pR2Cr"]
+for gt, perGt in correlations[order2choice].groupby(level=0):
+    ax = layout.axes["openField2choiceCorrs_{}".format(gt)]["axis"]
+    sns.heatmap(perGt.loc[gt].loc[openFieldOrder], ax=ax, vmin=-1, vmax=1, annot=True,
+                fmt=".2f", cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
+                cbar_kws={'ticks':(-1,0,1)}, xticklabels=False, yticklabels=(gt=="d1"),
+                annot_kws={'fontsize': 4.0},
+                linewidths=mpl.rcParams["axes.linewidth"])
+    ax.set_xlabel(None)
+    ax.set_ylabel(None)
+    ax.set_title(genotypeNames[gt], pad=3)
+    ax.set_ylim(4,0)
+    ax.tick_params("both", length=0, pad=3)
+layout.axes["openField2choiceCorrs_d1"]["axis"].set_yticklabels([behaviorNames[b] for b in openFieldOrder])
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "followNeuronsSupp.svg")
