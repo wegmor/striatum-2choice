@@ -27,7 +27,7 @@ templateFolder = pathlib.Path("templates")
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 
-layout = figurefirst.FigureLayout(templateFolder / "openField.svg")
+layout = figurefirst.FigureLayout(templateFolder / "openFieldSupp.svg")
 layout.make_mplfigures()
 
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
@@ -234,4 +234,4 @@ for i, sess, neuron in cherryPicks:
 #    wallAngleDecoding.to_pickle(cachedDataPath)
 
 layout.insert_figures('target_layer_name')
-layout.write_svg(outputFolder / "openField.svg")
+layout.write_svg(outputFolder / "openFieldSupp.svg")
