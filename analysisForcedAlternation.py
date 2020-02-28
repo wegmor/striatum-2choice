@@ -7,8 +7,8 @@ from utils.cachedDataFrame import cachedDataFrame
 def getActionAverages(traces, apf):
     keepLabels = ['pC2L-', 'mC2L-',
                   'pC2R-', 'mC2R-',
-                  'pL2Cd', 'pL2Co', 'pL2Cr', 'mL2C-',
-                  'pR2Cd', 'pR2Co', 'pR2Cr', 'mR2C-']
+                  'dL2C-', 'pL2Co', 'pL2Cr', 'mL2C-',
+                  'dR2C-', 'pR2Co', 'pR2Cr', 'mR2C-']
     apf = apf.loc[apf.label.isin(keepLabels)].copy()
     apf['label'] = apf.label.astype('str')
     actionAvg = traces.loc[apf.index].groupby([apf.label,apf.actionNo]).mean().dropna()
@@ -36,7 +36,7 @@ def jitter(x, std):
 def getTuningData(dataFilePath, no_shuffles=1000):
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='forcedAlternation'):
-        traces = s.readDeconvolvedTraces(zScore=True).reset_index(drop=True) # frame no as index
+        traces = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True) # frame no as index
         apf = s.labelFrameActions(switch=False, reward='sidePorts',
                                   splitCenter=True).reset_index(drop=True)
         

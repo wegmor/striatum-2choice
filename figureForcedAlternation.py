@@ -51,10 +51,10 @@ cdict = defaultdict(lambda: np.array([1,1,1]),
                      in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
 cdict['pL2Cr'] = cdict['pL2C-']
 cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
-cdict['pL2Cd'] = np.append(cdict['pL2C-'], .7)
+cdict['dL2C-'] = np.append(cdict['pL2C-'], .7)
 cdict['pR2Cr'] = cdict['pR2C-']
 cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
-cdict['pR2Cd'] = np.append(cdict['pR2C-'], .7)
+cdict['dR2C-'] = np.append(cdict['pR2C-'], .7)
 cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
 
 for g in ['d1','a2a','oprm1']:
@@ -178,9 +178,7 @@ for i in range(3):
                                               task=["2choice", "forcedAlternation", "2choiceAgain"]))
         neuron = findAlignedNeuron(examples[i][0], examples[i][1], examples[i][2],
                                    examples[i][3][j], examples[i][4])
-        signal = sess.readDeconvolvedTraces()[neuron]
-        signal -= signal.mean()
-        signal /= signal.std()
+        signal = sess.readDeconvolvedTraces(rScore=True)[neuron]
         ax = layout.axes["accrossDays_ex{}{}".format(i+1,j+1)]["axis"]
         fv = fancyViz.SchematicIntensityPlot(sess, linewidth=style.lw()*0.5)
         fv.draw(signal, ax=ax)
