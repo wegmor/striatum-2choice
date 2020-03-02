@@ -11,7 +11,7 @@ def bootstrapSEM(values, weights, iterations=1000):
 
 def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="animal",
                    dateCol="date", weightCol="noNeurons", weightScale=0.1,
-                   genotypeOrder=("d1","a2a","oprm1"), barAlpha=0.3):
+                   genotypeOrder=("d1","a2a","oprm1"), barAlpha=0.3, xlabels=None):
 
     genotypeMeans = df.groupby(genotypeCol).apply(lambda df: np.average(df[yCol], weights=df[weightCol]))
     genotypeSEMs = df.groupby(genotypeCol).apply(lambda df: bootstrapSEM(df[yCol], weights=df[weightCol]))
@@ -27,13 +27,22 @@ def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="a
     genotypeIndex = pd.Series(np.arange(len(genotypeOrder)), genotypeOrder).reindex(perAnimal[genotypeCol])
     xCoord = (cumCount.values / (nAnimalsPerGenotype.values-1))*0.6 + 0.2 - 0.5 + genotypeIndex.values
     xCoord = pd.Series(xCoord, perAnimal[animalCol]).reindex(df[animalCol])
-    xCoord.index = df.index
+    #xCoord.index = df.index
     c = [colorFunc(gt) for gt in df[genotypeCol]]
     ax.scatter(xCoord, df[yCol], df[weightCol]*weightScale, edgecolors=c, facecolor="none",
                clip_on=False, lw=.5)
-    ax.set_xticks(np.arange(len(genotypeOrder)))
-    ax.set_xticklabels(genotypeOrder)
-    
+    if xlabels==genotypeCol:
+        ax.set_xticks(np.arange(len(genotypeOrder)))
+        ax.set_xticklabels(genotypeOrder)
+    elif xlabels==animalCol:
+        xticks = xCoord.drop_duplicates()
+        ax.set_xticks(xticks)
+        xticks = xticks[~xticks.index.str.endswith("shuffled")]
+        #xticks = xticks.append(pd.Series([3], ["(shuffled)"]))
+        ax.set_xticklabels("#"+xticks.index.str[:4], rotation=90)
+    else:
+        ax.set_xticks([])
+        
 def actionBarPlot(df, yCol, hueCol, ax, colorFunc, animalCol="animal", dateCol="date", weightCol="noNeurons",
                   weightScale=0.02, hueOrder=None, barAlpha=0.3):
     hueMeans = df.groupby(hueCol).apply(lambda df: np.average(df[yCol], weights=df[weightCol]))

@@ -64,8 +64,65 @@ cax.text(-.025, .25, 0, ha='right', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
 cax.text(1.025, .25, 100, ha='left', va='center', fontdict={'fontsize':6},
          transform=cax.transAxes)
-cax.text(.5, 1.1, 'accuracy (%)', ha='center', va='bottom', fontdict={'fontsize':6},
+cax.text(.5, 1.1, 'recall (%)', ha='center', va='bottom', fontdict={'fontsize':6},
          transform=cax.transAxes)
+
+#%% Panel ?
+decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
+for nNeurons in (100, 175, "all"):
+    if nNeurons == "all":
+        maxNeurons = decodingData.groupby("session").nNeurons.max()
+        acc = decodingData.join(maxNeurons.rename("maxNeurons"), on="session")
+        acc = acc[acc.nNeurons == acc.maxNeurons]
+    else:
+        acc = decodingData[decodingData.nNeurons==nNeurons]
+    acc = acc.groupby("session").mean().reset_index()
+    genotype, animal, date = acc.session.str.split("_").str
+    acc["genotype"] = genotype
+    acc["animal"] = animal
+    acc["date"] = date
+
+    cols = ["genotype", "animal", "date", "nNeurons", "accuracy"]
+    real = acc.rename(columns={'realAccuracy': 'accuracy'})[cols]
+    shuffled = acc.rename(columns={'shuffledAccuracy': 'accuracy'})[cols]
+    shuffled["genotype"] = "shuffled"
+    shuffled["animal"] += "_shuffled"
+    acc = pd.concat((real, shuffled))
+    acc["accuracy"] *= 100
+    if nNeurons == "all":
+        ax = layout.axes['decodingAll']['axis']
+        ax.set_title("all recorded neurons")
+    else:
+        ax = layout.axes['decodingAt{}'.format(nNeurons)]['axis']
+        ax.set_title("subsampling {} neurons".format(nNeurons))
+    sessionBarPlot.sessionBarPlot(acc, yCol="accuracy", weightCol="nNeurons",
+                                  genotypeOrder=('d1','a2a','oprm1','shuffled'),
+                                  ax=ax, colorFunc=style.getColor, weightScale=0.035, xlabels="animal")
+    sns.despine(ax=ax)
+    ax.set_ylim(0,100)
+    if nNeurons == 100:
+        ax.set_ylabel("decoding accuracy (%)")
+        ax.text(3, -7, "(same animals\nshuffled)", fontsize=6, ha="center",
+                va="top", clip_on=False)
+        ax.set_xlabel("animal ID", labelpad=6)
+    else:
+        ax.set_xticklabels([])
+        ax.set_xlabel("animal", labelpad=6)
+axt = layout.axes['decoding_legend_genotype']['axis']
+legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.3,
+                                  label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
+                                        'shuffled':'shuffled'}[gt])
+                   for gt in ['d1','a2a','oprm1','shuffled']]
+axt.legend(handles=legend_elements, ncol=2, loc='center', mode='expand')
+axt.axis('off')
+axt = layout.axes['decoding_legend_nNeurons']['axis']
+legend_elements = [mpl.lines.Line2D([], [], marker='o', linestyle="none", markeredgecolor='k',
+                                    markerfacecolor="none", markersize=np.sqrt(0.035*i),
+                                    markeredgewidth=0.5, label=str(i))
+                   for i in (25, 50, 100, 300, 600)]
+axt.legend(handles=legend_elements, loc='upper left', 
+           mode="expand", title="num. neurons")#, mode='expand')
+axt.axis('off')
 
 #%% Panel B
 decodingData = analysisDecoding.decodeWithSortedNeurons(endoDataPath)
@@ -123,7 +180,7 @@ for label in ("mC2L", "mC2R", "mL2C", "mR2C","pC2L","pC2R"):
     ax.set_yticks((0,.5,1))
     ax.set_yticks((.25,.75), minor=True)
     if label=="mL2C":
-        ax.set_ylabel("true X predicted\ncorrelation")
+        ax.set_ylabel("r(true, predicted)")
     else:
         ax.set_yticklabels([])
 
