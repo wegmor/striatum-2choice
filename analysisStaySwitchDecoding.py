@@ -651,7 +651,7 @@ def getWStayLSwitchAUC(dataFile, n_shuffles=1000, on_shuffled=False): # shit is 
 
 
 #%%
-def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix=''):
+def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix='', task='2choice'):
     @cachedDataFrame('stSwRasterData_{}-{}.pkl'.format(action, pkl_suffix))
     def _getStSwRasterData():
         def _getPrevNextPhases(phase):
@@ -669,14 +669,15 @@ def getStSwRasterData(dataFile, popdf, action, sort_ascending=False, pkl_suffix=
                         [p.replace('S', sides[1])+phase[-2:] for p in trial[2:]]
             return trial[phaseNo-1:phaseNo+2]
         
-        piles = {action+'r.': [], action+'o.': [], action+'o!': []}    
+        piles = {action+'r.': [], action+'o.': [], action+'o!': []}
+        if task=='forcedAlternation': piles[action+'r!'] = []
         for (genotype, animal, date), auc in popdf.groupby(['genotype','animal','date']):
             sess = next(readSessions.findSessions(dataFile, genotype=genotype,
                                                   animal=animal, date=date,
-                                                  task='2choice'))
+                                                  task=task))
             lfa = sess.labelFrameActions(reward="fullTrial", switch=True, splitCenter=True)
             deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)[list(auc.neuron)]
-            
+            if len(lfa) != len(deconv): continue
             for p in piles.keys():
                 incl_phases = _getPrevNextPhases(p)
                 X = deconv.loc[lfa.label.isin(incl_phases)]

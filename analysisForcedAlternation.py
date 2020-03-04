@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 import tqdm
+import h5py
 from utils import readSessions
 from utils.cachedDataFrame import cachedDataFrame
 
@@ -149,3 +150,53 @@ def getFASessionStats(dataFilePath):
         sessionStats = sessionStats.append(stats.reset_index(), ignore_index=True)
         
     return sessionStats
+
+@cachedDataFrame("prevStaySwitchTuned.pkl")
+def findPrevStaySwitchTuned(endoDataFile, alignmentFile, staySwitchAUC):
+    '''
+    Create a dataframe with the number of _earlier_ sessions each neuron and
+    action has been classified as stay or switch tuned.
+    '''
+    actions = staySwitchAUC.action.unique()
+    staySwitchAUC = staySwitchAUC.set_index(["genotype", "animal", "date",
+                                             "action", "neuron"]).sort_index()
+    #Initialize counters to 0
+    nHitsStay = {}
+    nHitsSwitch = {}
+    for sess in readSessions.findSessions(endoDataFile):
+        nNeurons = sess.readDeconvolvedTraces().shape[1]
+        for action in actions:
+            key = sess.meta.genotype, sess.meta.animal, sess.meta.date, action
+            nHitsStay[key] = np.zeros(nNeurons, np.int)
+            nHitsSwitch[key] = np.zeros(nNeurons, np.int)
+    
+    #Strategy: go through all sessions, find tuned neurons, and mark those
+    #neurons in subsequent sessions
+    alignmentStore = h5py.File(alignmentFile, "r")
+    for genotype in alignmentStore["data"]:
+        for animal in alignmentStore["data/{}".format(genotype)]:
+            for fromDate in alignmentStore["data/{}/{}".format(genotype, animal)]:
+                if (genotype, animal, fromDate) not in staySwitchAUC.index: continue
+                for toDate in alignmentStore["data/{}/{}/{}".format(genotype, animal, fromDate)]:
+                    if toDate <= fromDate: continue
+                    #if toDate == "190224": continue #Hack to exclude sessions with only open field.
+                    match = alignmentStore["data/{}/{}/{}/{}/match".format(genotype, animal, fromDate, toDate)][()]
+                    if len(match) == 0: continue
+                    for action in actions:
+                        fromKey = (genotype, animal, fromDate, action)
+                        toKey = (genotype, animal, toDate, action)
+                        stayTuned = staySwitchAUC.loc[fromKey].pct > .995
+                        switchTuned = staySwitchAUC.loc[fromKey].pct < .005
+                        nHitsStay[toKey][match[:,1]] += stayTuned.values[match[:,0]]
+                        nHitsSwitch[toKey][match[:,1]] += switchTuned.values[match[:,0]]
+                        
+    #Build dataframe from the dictionaries
+    res = []
+    for k in nHitsSwitch.keys():
+        res.append(pd.DataFrame(dict(genotype=k[0], animal=k[1], date=k[2],
+                                     action=k[3], neuron=np.arange(len(nHitsSwitch[k])),
+                                     prevSwitchTunings=nHitsSwitch[k],
+                                     prevStayTunings=nHitsStay[k])))
+    res = pd.concat(res).set_index(["genotype", "animal", "date",
+                                    "neuron", "action"]).sort_index()
+    return res
