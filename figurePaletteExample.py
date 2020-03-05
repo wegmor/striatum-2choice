@@ -49,7 +49,7 @@ ax = layout.axes['bigLegend']['axis']
 labels = [("d1", 1.0, "D1"), ("a2a", 1.0, "A2A"), ("oprm1", 1.0, "Oprm1"),
           ("shuffled", 1.0, "shuffled"),
           ("leftTurn", 0.15, "left turn"), ("rightTurn", 0.15, "right turn"),
-          ("running", 0.15, "running"), ("stationary", 0.15, "stationary"),
+          ("running", 0.15, "running"), ("stationary", 0.0, "stationary"),
           ("leftTurn", 1.0, "left turn tuning"), ("rightTurn", 1.0, "right turn tuning"),
           ("running", 1.0, "running tuning"), ("stationary", 1.0, "stationary tuning"),
           ("pL", 0.15, "in left port"), ("pR", 0.15, "in right port"),
@@ -108,7 +108,7 @@ for r in np.arange(5):
                    0, traces.loc[start:start+tpr, max_neuron],
                    lw=.35, clip_on=False, color=style.getColor(behavior)) 
         
-    for behavior in order+["stationary"]:
+    for behavior in order:#+["stationary"]:
         axt.fill_between(traces.index.values, 11, -1,              
                          where=coords['behavior'] == behavior,
                          color=style.getColor(behavior), lw=0, alpha=.15)

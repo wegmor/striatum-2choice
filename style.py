@@ -1,4 +1,5 @@
 import seaborn as sns
+import matplotlib as mpl
 
 def set_context():
     sns.set(context='paper', style='ticks', font_scale=.7, palette='tab10',
@@ -51,39 +52,39 @@ def set_context():
     
 def getColor(key):
     cdict = dict()
-    cdict['d1'] = sns.color_palette()[3] # or color by port -> cyan
-    cdict['a2a'] = sns.color_palette()[2] # -> orange
-    cdict['oprm1'] = sns.color_palette()[0]
+    cdict['d1'] = sns.color_palette()[0] # or color by port -> cyan
+    cdict['a2a'] = sns.color_palette()[1] # -> orange
+    cdict['oprm1'] = sns.color_palette()[2]
 
-    cdict['pL'] = sns.color_palette()[0]
+    cdict['pL'] = sns.color_palette()[9]
     cdict['pL2C'] = cdict['pL']
     cdict['dL2C'] = cdict['pL']
 #    cdict['pL2Cr'] = cdict['pL']
 #    cdict['pL2Cd'] = tuple(list(cdict['pL']) + [.66])
 #    cdict['pL2Co'] = tuple(list(cdict['pL']) + [.38])
-    cdict['pR'] = sns.color_palette()[2]
+    cdict['pR'] = sns.color_palette()[1]
     cdict['pR2C'] = cdict['pR']
     cdict['dR2C'] = cdict['pR']
 #    cdict['pR2Cr'] = cdict['pR']
 #    cdict['pR2Cd'] = tuple(list(cdict['pR']) + [.66])
 #    cdict['pR2Co'] = tuple(list(cdict['pR']) + [.38])
-    cdict['pC'] = sns.color_palette()[5]
+    cdict['pC'] = sns.color_palette()[4]
     cdict['pC2L'] = cdict['pC']
     cdict['pC2R'] = cdict['pC']
 #    cdict['pC2R'] = tuple(list(cdict['pC']) + [.38])
     
-    cdict['mC2L'] = sns.color_palette()[4]
-    cdict['mC2R'] = sns.color_palette()[1]
-    cdict['mL2C'] = sns.color_palette()[3]
-    cdict['mR2C'] = sns.color_palette()[9]
+    cdict['mC2L'] = sns.color_palette()[0]
+    cdict['mC2R'] = sns.color_palette()[3]
+    cdict['mL2C'] = sns.color_palette()[2]
+    cdict['mR2C'] = sns.color_palette()[5]
     
-    cdict['correct'] = cdict['oprm1']
-    cdict['error'] = sns.color_palette()[7]
-    cdict['stay'] = sns.color_palette()[9]#cdict['d1']
-    cdict['r.'] = sns.color_palette()[9]
-    cdict['switch'] = sns.color_palette()[4]
-    cdict['o!'] = sns.color_palette()[4]
-    cdict['o.'] = sns.color_palette()[0]
+    cdict['correct'] = sns.color_palette()[0]#cdict['oprm1']
+    cdict['error'] = sns.color_palette()[3]
+    cdict['stay'] = sns.color_palette()[4]#cdict['d1']
+    cdict['r.'] = sns.color_palette()[0]
+    cdict['switch'] = sns.color_palette()[3]
+    cdict['o!'] = sns.color_palette()[3]
+    cdict['o.'] = sns.color_palette()[4]
     
     cdict['double'] = sns.color_palette()[6]
 
@@ -92,10 +93,11 @@ def getColor(key):
     cdict['blank'] = (1.0,1.0,1.0)
     
     #Open field
-    cdict['stationary'] = sns.color_palette()[5]
-    cdict['running'] = sns.color_palette()[2]
-    cdict['leftTurn'] = sns.color_palette()[4]
-    cdict['rightTurn'] = sns.color_palette()[1]
+    #xkcd = sns.
+    cdict['stationary'] = cdict["pC"]#sns.color_palette()[5]
+    cdict['running'] = mpl.colors.hex2color(sns.xkcd_rgb["ocher"])
+    cdict['leftTurn'] = cdict["mC2L"]#sns.color_palette()[4]
+    cdict['rightTurn'] = cdict["mC2R"]#sns.color_palette()[1]
     
     #Decoding sorted by mutual information
     cdict['ascending'] = sns.color_palette()[0]
