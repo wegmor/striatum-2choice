@@ -626,10 +626,12 @@ class SwitchSchematicPlot(IntensityPlot):
 
 class OpenFieldSchematicPlot(IntensityPlot):
     
-    def __init__(self, session=None, saturation=1.0, smoothing=3, linewidth=2):
+    def __init__(self, session=None, saturation=1.0, smoothing=3, linewidth=2,
+                 cmap="RdYlBu_r"):
         self.saturation = saturation
         self.smoothing = smoothing
         self.linewidth = linewidth
+        self.cmap = cmap
         self.mask = slice(None, None) #No mask, use all values
         self.clearBuffer()
         if session is not None:
@@ -642,7 +644,7 @@ class OpenFieldSchematicPlot(IntensityPlot):
     def _drawSchema(self, im, alpha, ax=None):
         '''Internal function, do not call directly.'''
         imshowWithAlpha(im, alpha, self.saturation, origin="lower",
-                        extent=(-3,3,-1,2), zorder=-100000)
+                        extent=(-3,3,-1,2), zorder=-100000, cmap=self.cmap)
         if ax is None:
             ax = plt.gca()
         lw = self.linewidth
