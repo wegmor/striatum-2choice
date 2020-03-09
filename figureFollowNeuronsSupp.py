@@ -21,6 +21,7 @@ plt.ioff()
 #%%
 
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
+alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 templateFolder = pathlib.Path("templates")
 
@@ -77,7 +78,7 @@ for t in (twoChoiceTunings, openFieldTunings):
     t.set_index(["animal", "date", "action", "neuron"], inplace=True)
     t.sort_index(inplace=True)
 
-labels = ["leftTurn", "running", "mC2L", "mC2R", "mL2C", "mR2C", "all"]
+labels = ["leftTurn", "mL2C", "mR2C", "all"] #"running", "mC2L", "mC2R"
 saturation = 0.3
 fvs = {}
 for key in itertools.product(('d1', 'a2a', 'oprm1'), labels):
@@ -122,7 +123,7 @@ cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdi
 cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 
-## Panel C
+#%% Panel C
 twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
 twoChoiceTunings = twoChoiceTunings.set_index(["animal", "date", "neuron"])[["action", "pct", "tuning"]]
 joinedTunings = openFieldTunings.reset_index().join(twoChoiceTunings, on=["animal", "date", "neuron"], rsuffix="_2choice")
@@ -148,5 +149,43 @@ for gt, perGt in correlations[order2choice].groupby(level=0):
     ax.set_ylim(4,0)
     ax.tick_params("both", length=0, pad=3)
 layout.axes["openField2choiceCorrs_d1"]["axis"].set_yticklabels([behaviorNames[b] for b in openFieldOrder])
+
+#%% Panel D
+examples = [('d1','5643',('190112', '190114', '190128', '190130', '190201'), 170),
+            ('a2a','6043',('190114', '190126', '190128', '190130', '190201'), 287),
+            ('oprm1','5574',('190126', '190127', '190129', '190131', '190202'), 20)]
+alignmentStore = h5py.File(alignmentDataPath, "r")
+def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
+    if fromDate == toDate:
+        return neuron
+    else:
+        matches = alignmentStore["/data/{}/{}/{}/{}/match".format(genotype, animal, fromDate, toDate)]
+        return pd.Series(matches[:,1], matches[:,0]).loc[neuron]
+
+saturation = 1
+for i in range(3):
+    for j in range(5):
+        sess = next(readSessions.findSessions(endoDataPath, animal=examples[i][1],
+                                             date=examples[i][2][j], task="2choice"))
+        neuron = findAlignedNeuron(examples[i][0], examples[i][1], examples[i][2][0],
+                                   examples[i][2][j], examples[i][3])
+        signal = sess.readDeconvolvedTraces()[neuron]
+        signal -= signal.mean()
+        signal /= signal.std()
+        ax = layout.axes["acrossDays_ex{}{}".format(i+1,j+1)]["axis"]
+        fv = fancyViz.SchematicIntensityPlot(sess, splitReturns=False,
+                                             linewidth=mpl.rcParams['axes.linewidth'],
+                                             saturation=saturation, smoothing=7)
+        img = fv.draw(signal, ax=ax)
+        
+cax = layout.axes['colorbar_2choice_examples']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+alignmentStore.close()
+
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / "followNeuronsSupp.svg")

@@ -5,14 +5,9 @@ import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
-import h5py
 import pathlib
 import figurefirst
 import cmocean
-
-#import sys
-#thisFolder = pathlib.Path(__file__).resolve().parent
-#sys.path.append(str(thisFolder.parent))
 
 from utils import fancyViz
 from utils import readSessions
@@ -24,12 +19,9 @@ style.set_context()
 plt.ioff
 
 #%%
-
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
-alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path("svg")
 templateFolder = pathlib.Path("templates")
-
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 
@@ -197,41 +189,6 @@ axt.legend(handles=legend_elements, ncol=4, loc='center',
            mode='expand')
 axt.axis('off')
 
-#%% Panel D
-
-examples = [('oprm1','5574',('190126', '190127', '190129', '190131', '190202'), 20),
-            ('d1','5643',('190112', '190114', '190128', '190130', '190201'), 170),
-            ('a2a','6043',('190114', '190126', '190128', '190130', '190201'), 287)]
-alignmentStore = h5py.File(alignmentDataPath, "r")
-def findAlignedNeuron(genotype, animal, fromDate, toDate, neuron):
-    if fromDate == toDate:
-        return neuron
-    else:
-        matches = alignmentStore["/data/{}/{}/{}/{}/match".format(genotype, animal, fromDate, toDate)]
-        return pd.Series(matches[:,1], matches[:,0]).loc[neuron]
-
-saturation = 1
-for i in range(3):
-    for j in range(5):
-        sess = next(readSessions.findSessions(endoDataPath, animal=examples[i][1],
-                                             date=examples[i][2][j], task="2choice"))
-        neuron = findAlignedNeuron(examples[i][0], examples[i][1], examples[i][2][0],
-                                   examples[i][2][j], examples[i][3])
-        signal = sess.readDeconvolvedTraces()[neuron]
-        signal -= signal.mean()
-        signal /= signal.std()
-        ax = layout.axes["acrossDays_ex{}{}".format(i+1,j+1)]["axis"]
-        fv = fancyViz.SchematicIntensityPlot(sess, splitReturns=True,
-                                             linewidth=mpl.rcParams['axes.linewidth'],
-                                             saturation=saturation, smoothing=7)
-        img = fv.draw(signal, ax=ax)
-    
-    #axbg = layout.axes['acrossDays_ex{}1_bg'.format(i+1)]['axis']
-    #axbg.axvspan(-.055, -.03, .1, .93, color=sel_colors[i], alpha=1,
-    #             clip_on=False)
-    #axbg.set_xlim((0,1))
-    #axbg.set_axis_off()
-alignmentStore.close()
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "decodingSupp.svg")
