@@ -274,9 +274,12 @@ for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
         nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
         plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
                      lw=style.lw(), c=style.getColor(gt))
-        
-    plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
-             lw=style.lw(), c=style.getColor("shuffled"))
+    
+    sameDayShuffledSEM = bootstrapSEM(perAnimal.sameDayShuffled, perAnimal.nNeurons)
+    nextDayShuffledSEM = bootstrapSEM(perAnimal.nextDayShuffled, perAnimal.nNeurons)
+    plt.errorbar([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+                 [sameDayShuffledSEM, nextDayShuffledSEM],
+                 lw=style.lw(), c=style.getColor("shuffled"))
     
     plt.ylim(0,1)
     plt.xlim(-0.25, 1.25)

@@ -323,7 +323,7 @@ decodingAcrossDays["dayDifference"] = td
 
 for label in ('mL2C','pC2L','mC2L','mR2C','pC2R','mC2R'):
     selection = decodingAcrossDays[decodingAcrossDays.label == label]
-    for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
+    for i,l,h in ((0,1,100),):#((0,1,3), (1,4,13), (2,14,100)):
         g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
                       .groupby(["animal", "fromDate", "toDate"]))
 
@@ -334,79 +334,58 @@ for label in ('mL2C','pC2L','mC2L','mR2C','pC2R','mC2R'):
 
         scaledScore = perAnimal[['sameDayScore', 'nextDayScore',
                                  'sameDayShuffled', 'nextDayShuffled']] * \
-                      np.stack([perAnimal.nNeurons]*4, axis=1)
+                      perAnimal.nNeurons[:,np.newaxis]
         
         perGenotype = scaledScore.groupby(perAnimal.genotype).sum()
         totalNeurons = perAnimal.groupby('genotype').nNeurons.sum()
-        perGenotype /= np.stack([totalNeurons]*4, axis=1)
+        perGenotype /= totalNeurons[:,np.newaxis]
 
-        shuffleScore = scaledScore[['sameDayShuffled','nextDayShuffled']].sum() / perAnimal.nNeurons.sum()
+        shuffleScore = scaledScore[['sameDayShuffled','nextDayShuffled']].sum() / \
+                       perAnimal.nNeurons.sum()
 
         plt.sca(layout.axes["decodingAcrossDays_{}_{}".format(label, i+1)]["axis"])
 
-#        for r in perAnimal.itertuples():
-#            plt.plot([0,1], [r.sameDayScore, r.nextDayScore], lw=style.lw()*r.nNeurons/400.0,
-#                     c=style.getColor(r.genotype), alpha=0.2)
         for r in perAnimal.itertuples():
-            plt.plot([0,1], [r.nextDayScore, r.nextDayShuffled],
-                     lw=mpl.rcParams['axes.linewidth'], alpha=.25,
+            plt.plot([0,1], [r.sameDayScore, r.nextDayScore],
+                     lw=mpl.rcParams['axes.linewidth']*r.nNeurons/400.0, alpha=.25,
                      clip_on=False, zorder=-99, color=style.getColor(r.genotype))
         for r in perGenotype.itertuples():
             gt = r.Index
             animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
-            #sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
+            sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
             nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
-            nextDayShuffledSEM = bootstrapSEM(animalsWithGt.nextDayShuffled, animalsWithGt.nNeurons)
-            plt.errorbar(0, r.nextDayScore, nextDaySEM,
-                         c=style.getColor(gt), clip_on=False,
-                         marker='v', markersize=3.6, markerfacecolor='w',
-                         markeredgewidth=.8)
-            plt.errorbar(1, r.nextDayShuffled, nextDayShuffledSEM,
-                         c=style.getColor(gt), clip_on=False,
-                         marker='o', markersize=3.2, markerfacecolor='w',
-                         markeredgewidth=.8)
-            plt.plot([0,1], [r.nextDayScore, r.nextDayShuffled],
-                     color=style.getColor(gt), clip_on=False)
-
-#        plt.plot([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
-#                 c=style.getColor("shuffled"))
+            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                         lw=style.lw(), c=style.getColor(gt))
+        
+        sameDayShuffledSEM = bootstrapSEM(perAnimal.sameDayShuffled, perAnimal.nNeurons)
+        nextDayShuffledSEM = bootstrapSEM(perAnimal.nextDayShuffled, perAnimal.nNeurons)
+        plt.errorbar([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+                     [sameDayShuffledSEM, nextDayShuffledSEM],
+                     lw=style.lw(), c=style.getColor("shuffled"))
 
         plt.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5,
                     ls=':', clip_on=False)
         
-        plt.ylim((0,1))
-        plt.xlim((-.35,1.35))
-        plt.xticks((.5,),('{}'.format({0:'1-3',1:'4-13',2:'14+'}[i]),))
-        plt.yticks(())
-        if i != 0:
-            sns.despine(ax=plt.gca(), left=True)
-        else:
-            plt.yticks((0,.25,.5,.75,1), ())
-            if label == 'mL2C':
-                plt.yticks((0,.25,.5,.75,1),(0,25,50,75,100))
-                plt.ylabel('decoder accuracy (%)')
         
-            sns.despine(ax=plt.gca())
+        plt.ylim(.5,1)
+        plt.xlim(-0.25, 1.25)
+        plt.xticks([])
+        plt.xlabel(("1-3", "4-13", "14+")[i] + "\ndays", labelpad=7, fontsize=6)
+        if i==0:
+            plt.yticks(np.linspace(.5,1,3), np.linspace(50,100,3,dtype=np.int64))
+            plt.ylabel("decoding accuracy (%)")
+        else:
+            plt.yticks([])
+        plt.axhline(0.5, color='k', lw=0.5, alpha=0.5, ls=":")
+        sns.despine(ax=plt.gca(), left=(i!=0), bottom=True)
 
 axt = layout.axes['across_days_legend1']['axis']
-legend_elements = [mlines.Line2D([0], [0], marker='v', color='k', label='neural activity',
-                                 markerfacecolor='w', markersize=3.6,
-                                 markeredgewidth=.8),
-                   mlines.Line2D([0], [0], marker='o', color='k',
-                                 label='neural activity\n(labels shuffled)',
-                                 markerfacecolor='w', markersize=3.2,
-                                 markeredgewidth=.8)
-                  ]
-axt.legend(handles=legend_elements, loc='center', ncol=2, mode='expand')
+legend_elements = [mpl.lines.Line2D([0],[0], color=style.getColor(gt),
+                                    label={'oprm1':'Oprm1','a2a':'A2A','d1':'D1',
+                                           'shuffled':'shuffled'}[gt])
+                   for gt in ['d1','a2a','oprm1','shuffled']]
+axt.legend(handles=legend_elements, loc='center', ncol=4, mode='expand')
 axt.axis('off')
-
-axt = layout.axes['across_days_legend2']['axis']
-legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
-                                  label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1'}[gt])
-                   for gt in ['d1','a2a','oprm1']]
-axt.legend(handles=legend_elements, loc='center', ncol=3, mode='expand')
-axt.axis('off')
-
 
 #%%
 def getCorr(data):
@@ -605,64 +584,3 @@ for actions in (['mL2C','mR2C'],['pC2L','pC2R'],['mC2L','mC2R']):
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "staySwitchDecodingSupp2.svg")
-
-
-#%% ###############################################################################
-#staySwitchAUC['sign'] = (staySwitchAUC.pct > .995).astype('int') - (staySwitchAUC.pct < .005).astype('int')
-#
-#for genotype in ['d1','a2a','oprm1']:
-#    layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecodingSuppTuningAvgs.svg")
-#    layout.make_mplfigures()
-#    
-#    df = staySwitchAUC.query('genotype == @genotype & sign in [1,-1]').copy()
-#    df['auc'] = df.auc.abs()
-#    
-#    for (sign,action), pop_df in df.groupby(['sign','action']):
-#        axs = [layout.axes['{}{}_{}'.format(action,tt,{1:'stay',-1:'switch'}[sign])]['axis']
-#                   for tt in ['r.','o.','o!']]
-#        cax = layout.axes['colorbar']['axis']
-#        
-#        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs, cax,
-#                                                    auc_weigh=True)
-#        
-#    layout.insert_figures('plots')
-#    layout.write_svg(outputFolder / "staySwitchDecodingSuppTuningAvgs_{}.svg".format(genotype))
-
-
-#%%
-#for (gt,ta), gdata in (crossDecoding.query('(trainAction == "mL2C" & testAction == "mC2L") | '+
-#                                           '(trainAction == "mR2C" & testAction == "mC2R")')
-#                                    .groupby(['genotype','testAction'])):
-#    ax = layout.axes['{}_{}_cross'.format(gt,ta)]['axis']
-#    
-#    wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy', 'noNeurons')
-#    wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy', 'noNeurons')
-#    s_wAvg = analysisStaySwitchDecoding.wAvg(gdata, 'accuracy_shuffle', 'noNeurons')
-#    s_wSem = analysisStaySwitchDecoding.bootstrap(gdata, 'accuracy_shuffle', 'noNeurons')
-#    
-#    ax.errorbar(0, wAvg, yerr=wSem, color=style.getColor(ta), clip_on=False,
-#                marker='v', markersize=3.6, markerfacecolor='w',
-#                markeredgewidth=.8)
-#    ax.errorbar(1, s_wAvg, yerr=s_wSem, color=style.getColor(ta), clip_on=False,
-#                marker='o', markersize=3.2, markerfacecolor='w',
-#                markeredgewidth=.8)
-#    ax.plot([0,1], [wAvg, s_wAvg], color=style.getColor(ta), clip_on=False)
-#    
-#    for acc in gdata[['accuracy','accuracy_shuffle','noNeurons']].values:
-#        ax.plot([0,1], acc[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
-#                clip_on=False, zorder=-99, color=style.getColor(ta))
-#    
-#    ax.axhline(.5, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-#
-#    ax.set_ylim((.5,1))    
-#    ax.set_xlim((-.35,1.35))
-#    if ta == 'mC2L':
-#        ax.set_xticks(())
-#        ax.set_yticks((.5,.75,1.))
-#        ax.set_yticklabels(())
-#        if gt == 'a2a':
-#            ax.set_ylabel('decoding accuracy (%)')
-#            ax.set_yticklabels((50,75,100))
-#        sns.despine(ax=ax, bottom=True, trim=True)
-#    else:
-#        ax.set_axis_off()
