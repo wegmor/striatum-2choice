@@ -192,7 +192,7 @@ for r in np.arange(5):
                    0, traces.loc[start:start+tpr, max_neuron],
                    lw=.35, clip_on=False, color=style.getColor(behavior)) 
         
-    for behavior in order+["stationary"]:
+    for behavior in order:#+["stationary"]:
         axt.fill_between(traces.index.values, 11, -1,              
                          where=coords['behavior'] == behavior,
                          color=style.getColor(behavior), lw=0, alpha=.15)
@@ -213,8 +213,8 @@ axt.text(x1-sec/2, y0-1, '{}s'.format(sec), ha='center', va='top',
 
 axt = layout.axes['ex_t1']['axis']
 patches = [mpatches.Patch(color=style.getColor(b), label=behaviorNames[b],
-                          alpha=.15) for b in behaviorOrder]
-axt.legend(handles=patches, ncol=4, mode='expand', bbox_to_anchor=(0,1.02,1,1.02),
+                          alpha=.15) for b in order]
+axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02),
            loc='lower center')
 
 #%% Tuning example histogram

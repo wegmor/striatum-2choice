@@ -78,13 +78,14 @@ def getColor(key):
     cdict['mL2C'] = sns.color_palette()[2]
     cdict['mR2C'] = sns.color_palette()[5]
     
-    cdict['correct'] = sns.color_palette()[0]#cdict['oprm1']
-    cdict['error'] = sns.color_palette()[3]
-    cdict['stay'] = sns.color_palette()[4]#cdict['d1']
+    cdict['correct'] = sns.color_palette()[4]#cdict['oprm1']
+    cdict['error'] = sns.color_palette()[7]
+    cdict['stay'] = sns.color_palette()[0]#cdict['d1']
     cdict['r.'] = sns.color_palette()[0]
     cdict['switch'] = sns.color_palette()[3]
     cdict['o!'] = sns.color_palette()[3]
     cdict['o.'] = sns.color_palette()[4]
+    cdict['r!'] = sns.color_palette()[9]
     
     cdict['double'] = sns.color_palette()[6]
 
@@ -101,7 +102,7 @@ def getColor(key):
     
     #Decoding sorted by mutual information
     cdict['ascending'] = sns.color_palette()[0]
-    cdict['descending'] = sns.color_palette()[1]
+    cdict['descending'] = sns.color_palette()[3]
     cdict['random'] = sns.color_palette()[2]
     
     return cdict[key]
