@@ -12,7 +12,7 @@ import analysisOpenField
 import analysisTunings
 import analysisDecoding
 import style
-
+import subprocess
 style.set_context()
 plt.ioff()
 
@@ -26,7 +26,8 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "figure4FollowNeurons.svg")
+svgName = 'figure4FollowNeurons.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 #%%
@@ -301,5 +302,7 @@ axt.legend(handles=legend_elements, loc=(-0.7, 1.08), ncol=2)
     
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "figure4FollowNeurons.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
 

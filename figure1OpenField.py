@@ -11,6 +11,7 @@ import pathlib
 import figurefirst
 import style
 import analysisOpenField
+import subprocess
 plt.ioff()
 
 #%%
@@ -23,7 +24,8 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "figure1OpenField.svg")
+svgName = 'figure1OpenField.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 longGtNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
@@ -416,4 +418,6 @@ cax.text(0.5, 1.1, 'recall', ha='center', va='bottom', fontdict={'fontsize':6})
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "figure1OpenField.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

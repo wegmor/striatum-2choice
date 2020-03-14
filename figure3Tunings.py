@@ -23,6 +23,7 @@ import style
 import analysisTunings
 import analysisDecoding
 import analysisStaySwitchDecoding
+import subprocess
 plt.ioff()
 
 #%%
@@ -36,7 +37,8 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "figure3Tunings.svg")
+svgName = 'figure3Tunings.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 #%%
@@ -572,4 +574,6 @@ ax.axis('off')
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "figure3Tunings.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

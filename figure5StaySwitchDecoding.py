@@ -24,6 +24,7 @@ import scipy.stats
 #import statsmodels.formula.api as smf
 from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, fancyViz, sessionBarPlot
+import subprocess
 plt.ioff()
 
 
@@ -43,7 +44,8 @@ if not cacheFolder.is_dir():
 
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "staySwitchDecoding.svg")
+svgName = 'figure5StaySwitchDecoding.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 
@@ -915,164 +917,6 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
     
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "staySwitchDecoding.svg")
-
-
-#%%##############################################################################
-##%% phase stay-switch auc correlations
-##def shuffleTuning(actionTuning):
-##    return pd.Series(np.random.permutation(actionTuning),
-##                     index=actionTuning.index)
-##    
-##def getPercentile(value, shuffle_dist):
-##    return np.searchsorted(np.sort(shuffle_dist), value) / len(shuffle_dist)
-#
-#
-#order = ['mL2C','dL2C','mC2L','pC2L','pC2R','mC2R','dR2C','mR2C']
-#tunings = staySwitchAUC.set_index(['genotype','animal','date','neuron','action']).auc
-#
-#similarity = tunings.abs().unstack()[order].groupby('genotype').corr().stack()
-#
-##similarity_shuffled = []
-##for _ in range(1000):
-##    tunings_shuffled = (tunings.groupby(['genotype','animal','date','action'])
-##                               .apply(shuffleTuning))
-##    similarity_shuffled.append((tunings_shuffled.unstack()[order]
-##                                                .groupby('genotype')
-##                                                .corr().stack()))
-##similarity_shuffled = pd.concat(similarity_shuffled, axis=1,
-##                                keys=np.arange(len(similarity_shuffled)),
-##                                names=['shuffle_no'])
-##
-##percentile = similarity_shuffled.apply(lambda g: getPercentile(similarity.loc[g.name], g),
-##                                       axis=1)   
-#
-###%%
-#vmin, vmax = -1, 1
-#cmap = cmocean.cm.balance #cmocean.cm.thermal #cmocean.cm.amp
-#
-#for genotype in ("oprm1", "d1", "a2a"):
-#    ax = layout.axes['{}_corr_m'.format(genotype)]['axis']
-#    
-#    corr = similarity.loc[genotype].unstack(-1).values
-##    pctl = percentile.loc[genotype].unstack(-1).values
-#    
-##    sign_matrix = np.array(([''] * 36)).reshape(6,6)
-##    sign_matrix[(pctl < .005) | (pctl > .995)] = '*'
-#    
-#    corr[np.triu_indices_from(corr)] = np.nan
-#    corr = np.ma.masked_where(np.isnan(corr), corr)
-##    sign_matrix = np.ma.masked_where(np.isnan(corr), sign_matrix)
-#
-#    cm = ax.pcolormesh(corr, cmap=cmap, vmin=vmin, vmax=vmax,
-#                       edgecolors='w', lw=.35)
-##    for y,x in zip(*np.tril_indices_from(sign_matrix, -1)):
-##        ax.text(x+.5,y+.22, sign_matrix[(y, x)], ha='center', va='center',
-##                color='k', fontsize=7)
-#    ax.set_xlim((0,6))
-#    ax.set_ylim((1,7))
-#    ax.axis('off')
-#      
-#    pal = [style.getColor(a) for a in order]
-#    n = len(pal)
-#    for orient in ('v','h'):
-#        ax = layout.axes['{}_{}cbar'.format(genotype, orient)]['axis']
-#        ax.pcolormesh(np.arange(n).reshape(1,n) if orient=='h' 
-#                          else np.arange(n).reshape(n,1),
-#                      cmap=mpl.colors.ListedColormap(list(pal)),
-#                      alpha=1, edgecolors='w', lw=.35)
-#        if orient=='h':
-#            ax.set_xlim((0,6))
-#        else:
-#            ax.set_ylim((1,7))
-#        ax.axis('off')
-#
-#cax = layout.axes['corr_colorbar']['axis']
-#cb = plt.colorbar(cm, cax=cax, orientation='horizontal',
-#                  ticks=(vmin, (vmin+vmax)/2, vmax))
-#cax.tick_params(axis='x', which='both',length=0)
-#cb.outline.set_visible(False)
-#
-
-##%%
-#action_aucs = staySwitchAUC.query('action == @action').copy()
-#action_aucs['stay'] = action_aucs.pct > .995
-#action_aucs['switch'] = action_aucs.pct < .005
-#
-#sign_sess_frac = pd.DataFrame(action_aucs.groupby(['genotype','animal','date'])[['stay']].sum())
-#sign_sess_frac['switch'] = action_aucs.groupby(['genotype','animal','date']).switch.sum()
-#sign_sess_frac['noNeurons'] = action_aucs.groupby(['genotype','animal','date']).size()
-#sign_sess_frac.loc[:,['stay','switch']] = (sign_sess_frac[['stay','switch']] / 
-#                                           sign_sess_frac.noNeurons.values[:,np.newaxis])
-#sign_sess_frac.reset_index(inplace=True)
-#
-#for tuning in ['stay','switch']:
-#    fig = plt.figure(figsize=(1,1))
-#    ax = plt.gca()
-#    sessionBarPlot.sessionBarPlot(sign_sess_frac, tuning, ax, style.getColor,
-#                                  weightScale=.02)
-#    ax.set_ylim((0,.4))
-#    ax.set_yticks((0,.2,.4))
-#    ax.set_yticks((.1, .3), minor=True)
-#    ax.set_yticklabels((ax.get_yticks()*100).astype('int'))
-#    sns.despine(ax=ax)
-#    plt.show()
-    
-    
-#%%
-#stay_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, stay_aucs,
-#                                                         actionValues, action)
-#switch_corrs = analysisStaySwitchDecoding.getActivityCorrs(endoDataPath, switch_aucs,
-#                                                           actionValues, action)
-#corrs = pd.concat([stay_corrs,switch_corrs], axis=0, keys=['stay','switch'], names=['tuning'])
-#
-##%%
-#corrs['diff'] = corrs.value.abs() - corrs.duration.abs()
-#corrs.reset_index(inplace=True)
-#
-##%%
-#fig = plt.figure(figsize=(1,1.5))
-#ax = plt.gca()
-#vs = sns.violinplot(x='genotype', y='diff', data=corrs, order=['d1','a2a','oprm1'],
-#                    palette=[style.getColor(g) for g in ['d1','a2a','oprm1']], inner='box',
-#                    linewidth=.5, ax=ax, scale='area')
-#plt.setp(vs.axes.collections, alpha=.5, linewidth=0)
-#ax.axhline(0, ls=':', c='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
-#ax.set_ylabel('|R(value)| - |R(duration)|')
-#ax.set_xlabel('')
-#ax.set_xticks(())
-#sns.despine(ax=ax, trim=True, bottom=True)
-#fig.savefig('svg/stsw_tuned_value-velo_corrs.svg', bbox_inches='tight', pad_inches=.1)
-#plt.show()
-
-
-#%%
-#stay_corrs_means = stay_corrs.groupby(['genotype','animal','date']).mean()
-#stay_corrs_means['noNeurons'] = stay_corrs.groupby(['genotype','animal','date']).size()
-#stay_corrs_means.reset_index(inplace=True)
-#switch_corrs_means = switch_corrs.groupby(['genotype','animal','date']).mean()
-#switch_corrs_means['noNeurons'] = switch_corrs.groupby(['genotype','animal','date']).size()
-#switch_corrs_means.reset_index(inplace=True)
-##%%
-#fig, axs = plt.subplots(1, 2, figsize=(1.5,1.5), sharey=True, sharex=True)
-#for ax, corrs in zip(axs, [stay_corrs_means, switch_corrs_means]):
-#    for gt, gcorrs in corrs.groupby('genotype'):
-#        x = np.ones((2,len(gcorrs)))
-#        x[0,:] = 0
-#        x += np.random.normal(0,.14,size=x.shape[1])
-#        
-#        ax.scatter(x, [gcorrs.duration, gcorrs.value], s=gcorrs.noNeurons / 10.,
-#                   c=[style.getColor(gt),], linewidths=0, alpha=.4, clip_on=False)
-#    ax.axhline(0, ls=':', c='k', zorder=-99, alpha=.35)
-#    ax.set_xticks((0,1))
-#    ax.set_xticklabels(['action duration','action value'], rotation=30,
-#                       ha='right')
-#    ax.set_xlim((-.5,1.5))
-#    ax.set_ylim((-.4,.4))
-#    ax.set_yticks((-.4,-.2,0,.2,.4))
-#    ax.set_yticks((-.3,-.1,.1,.3), minor=True)
-#    sns.despine(ax=ax)
-#axs[0].set_ylabel('correlation')
-#fig.savefig('svg/duration_value_corrs.svg', bbox_inches='tight', pad_inches=.1)
-#plt.show()
-
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

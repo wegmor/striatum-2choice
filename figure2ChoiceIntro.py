@@ -20,7 +20,7 @@ import pathlib
 import figurefirst
 import style
 import analysis2ChoiceIntro
-
+import subprocess
 plt.ioff()
 style.set_context()
 
@@ -37,7 +37,8 @@ if not cacheFolder.is_dir():
     cacheFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "figure2ChoiceIntro.svg")
+svgName = 'figure2ChoiceIntro.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName, dpi=600)
 layout.make_mplfigures()
 
 
@@ -444,4 +445,6 @@ plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "2ChoiceIntro.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
