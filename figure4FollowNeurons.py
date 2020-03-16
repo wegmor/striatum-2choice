@@ -93,6 +93,8 @@ for gt in ("d1", "a2a", "oprm1"):
         for label, y in ticks.items():
             ax.text(1.25, y, phaseNames[label], ha="left", va="center",
                     color=style.getColor(label))
+print("Panel B (followed neurons):")
+print(primaryPairs.groupby("genotype").size())
 
 ## Panel B
 examples = [
@@ -127,7 +129,6 @@ cax.set_axis_off()
 cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
 cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
 cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
-
 
 #%% Panel C
 sel_neurons = [92,44,16]
@@ -299,7 +300,9 @@ axt = layout.axes['decodingAcrossDays_2']['axis']
 genotypeNames["shuffled"] = "shuffled"
 legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=genotypeNames[g]) for g in ("d1", "a2a", "oprm1", "shuffled")]
 axt.legend(handles=legend_elements, loc=(-0.7, 1.08), ncol=2)
-    
+
+print("Panel E:")
+print(selection.groupby([pd.cut(selection.dayDifference, (1, 4, 14, 100)), "genotype"]).size())
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
