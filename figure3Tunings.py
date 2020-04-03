@@ -446,7 +446,7 @@ plt.ylabel('neuron (sorted)', labelpad=-8)
 plt.title("right to\ncenter turn", pad=5)
 plt.gca().tick_params(axis='both', which='both',length=0)
 #plt.gca().spines['bottom'].set_color(style.getColor("mR2C"))
-sns.despine(ax=plt.gca(), top=True, bottom=False, left=True, right=True)
+sns.despine(ax=plt.gca(), top=True, bottom=True, left=True, right=True)
 
 fv = fancyViz.SchematicIntensityPlot(sess, linewidth=mpl.rcParams['axes.linewidth'],
                                      splitReturns=False, smoothing=7, saturation=saturation)
