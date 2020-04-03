@@ -191,6 +191,8 @@ ax.set_xlabel('tuning score')
 ax.set_ylabel('density')
 sns.despine(ax=ax, trim=True)
 
+print("Panel D:", len(hdata), "neurons")
+
 #%% pie charts
 df = tuningData.copy()
 
@@ -223,6 +225,15 @@ for g in ['d1','a2a','oprm1']:
                     textprops={'color':'k'}, colors=[cdict[a] for a in gdata.index])
 
     ax.set_aspect('equal')
+    
+gby = tuningData.groupby(["genotype", "animal", "date", "neuron"]).size()
+sessionStats = pd.concat([
+    gby.groupby(level=[0,1]).size().groupby(level=0).size().rename("animals"),
+    gby.groupby(level=[0,1,2]).size().groupby(level=0).size().rename("sessions"),
+    gby.groupby(level=0).size().rename("neurons")
+], axis=1, sort=True)
+print("Panel E:")
+print(sessionStats)
 
 #%%
 phaseRasterData = analysisTunings.getPhaseRasterData(endoDataPath)
@@ -260,7 +271,9 @@ genotypeOrder = ("d1", "a2a", "oprm1")
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
 labels = ["D1", "A2A", "Oprm1"]
 layout.axes["psth_mC2L"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.2,
-                                            bbox_to_anchor=(0.85, 1.2, 1, 0.1)) 
+                                            bbox_to_anchor=(0.85, 1.2, 1, 0.1))
+print("Panel F:")
+print(phaseRasterData.groupby(level=[0,1]).size().unstack())
 #%% tuning counts (simple)
 hist_df = analysisTunings.getTunedNoHistData(tuningData)
 
@@ -332,6 +345,8 @@ handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[-3:], labels[-3:], loc='lower right', bbox_to_anchor=(1.1, .05))
 ax.set_aspect('equal')
 sns.despine(ax=ax)
+print("Panel H (sessions):")
+print(pdists.groupby("genotype").size())
 
 #%% Panel J
 decodingData = analysisDecoding.decodeWithIncreasingNumberOfNeurons(endoDataPath)
@@ -376,7 +391,8 @@ plt.gca().set_yticks(np.arange(.25,1,.25), minor=True)
 plt.xticks(np.arange(0,201,50))
 plt.gca().set_xticks(np.arange(25,200,25), minor=True)
 sns.despine(ax=plt.gca())
-
+print("Panel J & K (sessions):")
+print(decodingData.groupby("genotype").session.nunique())
 
 #%% Panel K
 decodingData = analysisDecoding.decodingConfusion(endoDataPath)
@@ -571,6 +587,8 @@ legend_elements = [mlines.Line2D([0], [0], marker='o', color='k',
                   ]
 ax.legend(handles=legend_elements, loc='center')
 ax.axis('off')
+print("Panel N (sessions):")
+print(avgCorr.groupby(level=0).size())
 
 #%%
 layout.insert_figures('plots')

@@ -159,8 +159,7 @@ def shuffleBehaviors(behaviors):
     return shuffled
 
 #%%
-@cachedDataFrame("openFieldTunings.pkl")
-def getTuningData(dataFilePath, no_shuffles=1000):
+def _getTuningData(dataFilePath, no_shuffles=1000, on_shuffled=True):
     allBehaviors = segmentAllOpenField(dataFilePath)
     df = pd.DataFrame()
     for s in readSessions.findSessions(dataFilePath, task='openField'):
@@ -168,6 +167,8 @@ def getTuningData(dataFilePath, no_shuffles=1000):
         behaviors = allBehaviors.loc[str(s)].reset_index()
         behaviors = behaviors.set_index("startFrame", drop=False)[["actionNo", "behavior"]]
         behaviors = behaviors.reindex(np.arange(len(traces)), method="ffill")
+        if on_shuffled:
+            behaviors = shuffleBehaviors(behaviors)
         if behaviors.behavior.nunique() < 4:
             raise ValueError("All four actions are not present in the session {}.".format(s))
         actionAvg, labels = getActionAverages(traces, behaviors)  # mean per action
@@ -204,6 +205,15 @@ def getTuningData(dataFilePath, no_shuffles=1000):
         
     return df
 
+@cachedDataFrame("openFieldTunings.pkl")
+def getTuningData(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=False)
+    return df
+
+@cachedDataFrame("openFieldTunings_shuffled.pkl")
+def getTuningData_shuffled(dataFilePath, no_shuffles=1000):
+    df = _getTuningData(dataFilePath, no_shuffles, on_shuffled=True)
+    return df
 
 class BlockKFold(sklearn.model_selection.BaseCrossValidator):
     def __init__(self, nFolds=5, samplesPerGroup=100):

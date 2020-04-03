@@ -54,7 +54,7 @@ ax.axvline(-.5, color='k', ls=':', zorder=-99, alpha=.5, lw=mpl.rcParams['axes.l
 for animal, adata in sdf.groupby('animal'):
     ax.plot(adata.loc[animal,'R'], color=style.getColor('a2a'), alpha=.2)
     ax.plot(adata.loc[animal,'L'], color=style.getColor('d1'), alpha=.2)
- 
+
 df = sdf.groupby(['rewardP','swapDist']).leftIn.agg(['mean','sem'])
 df = df.reset_index(['swapDist'])
 
@@ -218,6 +218,12 @@ ax2.set_ylabel('% switches')
 sns.despine(ax=ax2, trim=False)
 
 analysis2ChoiceIntro.align_xaxis(ax2, 0, ax1, 0)
+
+meta = pd.read_hdf(endoDataPath, "/meta").query("task == '2choice'")
+print("Panels B-E:")
+print("animals:", meta.animal.nunique())
+print("sessions:", len(meta))
+print("\tof which recorded:", len(meta.query("camera == 'on'")))
 
 
 #%% rasterplot

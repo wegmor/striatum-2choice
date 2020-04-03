@@ -39,6 +39,10 @@ tuningData = analysisOpenField.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 
+tuningData_shuffled = analysisOpenField.getTuningData_shuffled(endoDataPath)
+tuningData_shuffled['signp'] = tuningData_shuffled['pct'] > .995
+tuningData_shuffled['signn'] = tuningData_shuffled['pct'] < .005
+
 #%%
 exampleSessParams = {'genotype':'oprm1', 'animal':'5308', 'date':'190224'}
 exampleSess = next(readSessions.findSessions(endoDataPath, task='openField', **exampleSessParams))
@@ -144,6 +148,15 @@ ax.axvspan(0, 1, color="gray", alpha=.2, zorder=-10, label="movement")
 ax.legend(bbox_to_anchor=(-0.1, 1.1, 1.0, 0.1), columnspacing=1.2, ncol=2)
 ax = layout.axes["avgOffset"]["axis"]
 ax.axvspan(-1, 0, color="gray", alpha=.2, zorder=-10)
+sessionStats = pd.DataFrame(list(segmented.index.levels[0].str.split("_")),
+                            columns=["genotype", "animal", "date"])
+sessionStats = pd.concat([
+    sessionStats.groupby("genotype").animal.nunique().rename("animals"),
+    sessionStats.groupby("genotype").size().rename("sessions"),
+    pd.Series(genotypes, name="genotype").value_counts().rename("neurons")
+], axis=1, sort=True)
+print("Panel D & E:")
+print(sessionStats.reindex(genotypeOrder))
 
 #%% Example path
 coords = analysisOpenField.getSmoothedOFTTracking(endoDataPath, **exampleSessParams)
@@ -222,23 +235,38 @@ axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02
 #%% Tuning example histogram
 ax = layout.axes['tuning_hist1']['axis']
 hdata = tuningData.query('genotype == "oprm1" & action == "leftTurn"').copy()
+shuffle_kde = tuningData_shuffled.query('genotype == "oprm1" & action == "leftTurn"').copy()
 
-ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
-        histtype='stepfilled')
-ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
-        histtype='stepfilled', color=style.getColor('leftTurn'))
+#sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+#            clip_on=False, zorder=10, label='')
+#ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
+#        histtype='stepfilled')
+#ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
+#        histtype='stepfilled', color=style.getColor('leftTurn'))
+sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+            clip_on=False, zorder=10, label='')
+sns.kdeplot(hdata['tuning'], ax=ax, color='gray', alpha=.75, clip_on=True,
+            zorder=-99, label='')
+bins = np.arange(-10.5, 21.5)
+none_hist = np.histogram(hdata.loc[~hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
+ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor('leftTurn'), bottom=none_hist)
 
-ax.text(21,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+ax.text(17,0.05,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
         color=style.getColor('leftTurn'))
-ax.text(4.5,200,'left turn tuning',ha='center',va='center',fontdict={'fontsize':7})
-ax.set_yticks((0,100,200))
-ax.yaxis.set_minor_locator(MultipleLocator(50))
+ax.text(4.5,0.425,'left turn tuning',ha='center',va='center',fontdict={'fontsize':7})
+ax.text(3,.25,'shuffled',ha='left',va='center',
+        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':1.0})
+ax.set_yticks((0,0.2,0.4))
+ax.yaxis.set_minor_locator(MultipleLocator(0.1))
 ax.set_xticks((-5,0,5,10,15))
 ax.set_xlim((-8,17))
-ax.set_ylim((0,200))
+ax.set_ylim((0,0.4))
 ax.set_xlabel('tuning score')
-ax.set_ylabel('# neurons')
+ax.set_ylabel('density')
 sns.despine(ax=ax)
+print("Panel J:", len(hdata), "neurons")
 
 #%% Pie charts
 df = tuningData.copy()
@@ -256,6 +284,14 @@ for g in genotypeOrder:
                     textprops={'color':'k'}, colors=[style.getColor(b) for b in gdata.index])
 
     ax.set_aspect('equal')
+gby = tuningData.groupby(["genotype", "animal", "date", "neuron"]).size()
+sessionStats = pd.concat([
+    gby.groupby(level=[0,1]).size().groupby(level=0).size().rename("animals"),
+    gby.groupby(level=[0,1,2]).size().groupby(level=0).size().rename("sessions"),
+    gby.groupby(level=0).size().rename("neurons")
+], axis=1, sort=True)
+print("Panel K:")
+print(sessionStats.reindex(genotypeOrder))
 
 #%% Tuned PSTHs
 ewindows = analysisOpenField.getEventWindows(endoDataPath, behaviorOrder)
@@ -263,12 +299,17 @@ ewindows.set_index(["animal", "date", "neuron", "label"], inplace=True)
 ewindows["tuned"] = tuningData.set_index(["animal", "date", "neuron", "action"]).pct>0.0995
 ewindows.reset_index(inplace=True)
 
+sessionStats = []
 for label in ("leftTurn", "running"):#behaviorOrder:
     ax = layout.axes["onset_"+label]["axis"]
     for gt in genotypeOrder:
         mask = np.logical_and(ewindows.genotype==gt, ewindows.label==label)
         mask = np.logical_and(mask, ewindows.tuned)
         ma = ewindows[mask].groupby(["animal", "date", "neuron"]).mean()["frameNo"]
+        sessionStats.append((label, gt,
+                             len(ma.groupby(level=[0])),
+                             len(ma.groupby(level=[0,1])),
+                             len(ma.groupby(level=[0,1,2]))))
         m = ma.mean()
         s = ma.sem()
         ax.plot(np.linspace(-1,1,40), m, color=style.getColor(gt))
@@ -297,7 +338,11 @@ lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOr
 labels = [longGtNames[gt] for gt in genotypeOrder]
 layout.axes["onset_running"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.0,
                                             bbox_to_anchor=(0.25, 1.4, 1, 0.1))
-
+print("Panel L:")
+sessionStats = pd.DataFrame(sessionStats, columns=["behavior", "genotype", "animals",
+                                                   "sessions", "neurons"])
+print(sessionStats.set_index(["behavior", "genotype"]).reindex(genotypeOrder, level=1))
+                                 
 #%% Example tuning FOV
 ax = layout.axes['tuning_fov']['axis']
 df = ex_tunings.loc[ex_tunings.groupby('neuron').tuning.idxmax()]
@@ -349,6 +394,8 @@ handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles[-3:], labels[-3:], loc='lower right', bbox_to_anchor=(1.1, .05))
 ax.set_aspect('equal')
 sns.despine(ax=ax)
+print("Panel N (sessions):")
+print(pdists.groupby("genotype").size())
 
 
 #%% Decoding
@@ -383,6 +430,9 @@ ax.set_yticks(np.linspace(0,1,5))
 ax.set_yticklabels(np.linspace(0,100,5,dtype=np.int64))
 ax.set_title("SVM decoding of behavior", pad=12)
 sns.despine(ax=ax)
+print("Panel O & P (sessions):")
+print(decodingData.groupby("genotype").session.nunique())
+
 
 #%% Confusion matrices
 decodingData = analysisOpenField.decodingConfusion(endoDataPath)
