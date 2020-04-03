@@ -39,6 +39,10 @@ tuningData = analysisOpenField.getTuningData(endoDataPath)
 tuningData['signp'] = tuningData['pct'] > .995
 tuningData['signn'] = tuningData['pct'] < .005
 
+tuningData_shuffled = analysisOpenField.getTuningData_shuffled(endoDataPath)
+tuningData_shuffled['signp'] = tuningData_shuffled['pct'] > .995
+tuningData_shuffled['signn'] = tuningData_shuffled['pct'] < .005
+
 #%%
 exampleSessParams = {'genotype':'oprm1', 'animal':'5308', 'date':'190224'}
 exampleSess = next(readSessions.findSessions(endoDataPath, task='openField', **exampleSessParams))
@@ -231,22 +235,36 @@ axt.legend(handles=patches, ncol=3, mode='expand', bbox_to_anchor=(0,1.02,1,1.02
 #%% Tuning example histogram
 ax = layout.axes['tuning_hist1']['axis']
 hdata = tuningData.query('genotype == "oprm1" & action == "leftTurn"').copy()
+shuffle_kde = tuningData_shuffled.query('genotype == "oprm1" & action == "leftTurn"').copy()
 
-ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
-        histtype='stepfilled')
-ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
-        histtype='stepfilled', color=style.getColor('leftTurn'))
+#sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+#            clip_on=False, zorder=10, label='')
+#ax.hist(hdata['tuning'], bins=np.arange(-20,40,1), lw=0, color='gray', alpha=.6,
+#        histtype='stepfilled')
+#ax.hist(hdata.loc[hdata.signp,'tuning'], np.arange(-20,40,1), lw=0,
+#        histtype='stepfilled', color=style.getColor('leftTurn'))
+sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+            clip_on=False, zorder=10, label='')
+sns.kdeplot(hdata['tuning'], ax=ax, color='gray', alpha=.75, clip_on=True,
+            zorder=-99, label='')
+bins = np.arange(-10.5, 21.5)
+none_hist = np.histogram(hdata.loc[~hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
+ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor('leftTurn'), bottom=none_hist)
 
-ax.text(21,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+ax.text(17,0.05,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
         color=style.getColor('leftTurn'))
-ax.text(4.5,200,'left turn tuning',ha='center',va='center',fontdict={'fontsize':7})
-ax.set_yticks((0,100,200))
-ax.yaxis.set_minor_locator(MultipleLocator(50))
+ax.text(4.5,0.425,'left turn tuning',ha='center',va='center',fontdict={'fontsize':7})
+ax.text(3,.25,'shuffled',ha='left',va='center',
+        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':1.0})
+ax.set_yticks((0,0.2,0.4))
+ax.yaxis.set_minor_locator(MultipleLocator(0.1))
 ax.set_xticks((-5,0,5,10,15))
 ax.set_xlim((-8,17))
-ax.set_ylim((0,200))
+ax.set_ylim((0,0.4))
 ax.set_xlabel('tuning score')
-ax.set_ylabel('# neurons')
+ax.set_ylabel('density')
 sns.despine(ax=ax)
 print("Panel J:", len(hdata), "neurons")
 

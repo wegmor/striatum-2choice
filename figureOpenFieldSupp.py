@@ -8,6 +8,8 @@ import h5py
 import pathlib
 import figurefirst
 import cmocean
+import itertools
+import subprocess
 from matplotlib.ticker import MultipleLocator
 
 import analysisOpenField, analysisTunings
@@ -29,6 +31,8 @@ if not outputFolder.is_dir():
 
 layout = figurefirst.FigureLayout(templateFolder / "openFieldSupp.svg")
 layout.make_mplfigures()
+svgName = "openFieldSupp.svg"
+
 
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
@@ -36,6 +40,50 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
 
 #All 4-behavior panels    
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
+
+
+## New panel A
+tuningData = analysisOpenField.getTuningData(endoDataPath)
+tuningData['signp'] = tuningData['pct'] > .995
+tuningData['signn'] = tuningData['pct'] < .005
+tuningData_shuffled = analysisOpenField.getTuningData_shuffled(endoDataPath)
+tuningData_shuffled['signp'] = tuningData_shuffled['pct'] > .995
+tuningData_shuffled['signn'] = tuningData_shuffled['pct'] < .005
+for gt, behavior in itertools.product(genotypeNames.keys(), behaviorNames.keys()):
+    ax = layout.axes['tuning_hist_{}_{}'.format(gt, behavior)]['axis']
+    hdata = tuningData.query('genotype == "{}" & action == "{}"'.format(gt, behavior)).copy()
+    shuffle_kde = tuningData_shuffled.query('genotype == "{}" & action == "{}"'.format(gt, behavior)).copy()
+    sns.kdeplot(shuffle_kde['tuning'], ax=ax, color=style.getColor('shuffled'), alpha=.75,
+                clip_on=False, zorder=10, label='')
+    sns.kdeplot(hdata['tuning'], ax=ax, color='gray', alpha=.75, clip_on=True,
+                zorder=-99, label='')
+    bins = np.arange(-20.5, 20.5)
+    none_hist = np.histogram(hdata.loc[~hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+    sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
+    ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
+    ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor(behavior), bottom=none_hist)
+    #ax.text(20,0.05,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
+    #        color=style.getColor(behavior))
+    ax.text(0,0.435,behaviorNames[behavior]+' tuning',ha='center',va='center',
+            fontdict={'fontsize':7})
+    #ax.text(3,.25,'shuffled',ha='left',va='center',
+    #        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':1.0})
+    ax.set_yticks((0,0.2,0.4))
+    if behavior in ("leftTurn", "running"):
+        ax.set_ylabel('density')
+    else:
+        ax.set_yticklabels(("","",""))
+    ax.yaxis.set_minor_locator(MultipleLocator(0.1))
+    ax.set_xticks(np.arange(-20,21,10))
+    if behavior in ("running", "stationary"):
+        ax.set_xlabel('tuning score')
+    else:
+        ax.set_xticklabels([""]*5)
+    ax.set_xlim((-20,20))
+    ax.set_ylim((0,0.4))
+    sns.despine(ax=ax)
+
+
 
 ## Panel A
 tuningData = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
@@ -79,7 +127,7 @@ for tuning in ('signp','signn'):
         ax.set_ylabel('')
         ax.set_yticks((0,.5,1))
         ax.set_yticklabels(())
-        if g == 'oprm1' and tuning == 'signp':
+        if g == 'd1' and tuning == 'signp':
             ax.set_ylabel('tuned neurons (%)')
             ax.set_yticklabels((0,50,100))
         ax.yaxis.set_minor_locator(MultipleLocator(.25))
@@ -96,7 +144,7 @@ cax.tick_params(axis='x', which='both',length=0)
 for genotype in ("oprm1", "d1", "a2a"):
     corr = tunings.loc[genotype].unstack()[order].corr()
     ax = layout.axes["corrMatrix_{}".format(genotype)]["axis"]
-    yticks = [behaviorNames[b] for b in order] if genotype == "oprm1" else False
+    yticks = [behaviorNames[b] for b in order] if genotype == "d1" else False
     hm = sns.heatmap(corr, ax=ax, vmin=-1, vmax=1, annot=True, fmt=".2f",
                      cmap=cmocean.cm.balance, cbar=True, cbar_ax=cax,
                      cbar_kws={'ticks':(-1,0,1), 'orientation': 'horizontal'},
@@ -210,4 +258,6 @@ cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
     
 
 layout.insert_figures('target_layer_name')
-layout.write_svg(outputFolder / "openFieldSupp.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
