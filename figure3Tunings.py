@@ -176,7 +176,7 @@ ax.text(30,.04,'significant\npos. tuning',ha='right',va='bottom',fontdict={'font
 ax.text(7.5,.45,'center to left turn',ha='center',va='center',
         fontdict={'fontsize':7})
 ax.text(4.5,.25,'shuffled',ha='left',va='center',
-        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':.75})
+        fontdict={'fontsize':7,'color':style.getColor('shuffled'),'alpha':1})
 
 #ax.set_yticks((0,200,400))
 ax.set_yticks((.0,.2,.4))
