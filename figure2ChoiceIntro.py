@@ -412,15 +412,15 @@ def plot3D(train_fits, test_fits, azimuth, angle, lims=None, bins=4, order=['r.'
     for i,c in enumerate(coords):
         ax.text(*c, phase_nos[i], fontsize=10, ha='center', va='center',
                 fontfamily="DejaVu Sans", zorder=999)
-    
+            
     ax.set_xticklabels(())
-    #ax.set_xlabel('x')
+    #ax.set_xlabel('PC1')
     ax.set_yticklabels(())
-    #ax.set_ylabel('y')
+    #ax.set_ylabel('PC2')
     ax.set_zticklabels(())
-    #ax.set_zlabel('z')
+    #ax.set_zlabel('PC3')
     
-    ax.set_rasterized(True)
+    #ax.set_rasterized(True)
 
 
 #%%
@@ -434,6 +434,12 @@ plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
        a1_offsets=[0,.3,0], a2_offsets=[.4,-.5,0], a3_offsets=[-.3,-.3,0],
        t1_offsets=[-.35,.35,0], t2_offsets=[.2,.4,0], t3_offsets=[.3,-.3,0],
        t4_offsets=[-.45,-.2,0], t5_offsets=[-.5,0,0], ax=ax)
+ax.text(0,2.5,2.5, 'PC1', fontsize=7, ha='center', va='top',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
+ax.text(-2.5,0,2.5, 'PC2', fontsize=7, ha='center', va='top',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
+ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='center',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
 
 ax = layout.axes['trajectory2']['axis']
 plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
@@ -441,6 +447,12 @@ plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
        a1_offsets=[0,0,.65], a2_offsets=[0,.1,-.28], a3_offsets=[0,-.35,.2],
        t1_offsets=[0,-.3,.4], t2_offsets=[.1,.5,0], t3_offsets=[0,-.43,0],
        t4_offsets=[0,-.4,.2], t5_offsets=[0,0,-.38], ax=ax)
+ax.text(0,2.5,2.5, 'PC1', fontsize=7, ha='center', va='center',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
+ax.text(-2.5,0,2.5, 'PC2', fontsize=7, ha='center', va='top',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
+ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='top',
+        bbox=dict(facecolor='w', alpha=.75, pad=0))
 
 
 #%%
