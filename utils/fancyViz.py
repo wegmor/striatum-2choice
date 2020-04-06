@@ -760,6 +760,8 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
         drawRoundedRect(plt.gca(), (-3.95, -1),  0.7, 1.2, [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2Cr"], edgecolor="k")
     if "dL2C" in c:
         drawRoundedRect(plt.gca(), (-4.75, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["dL2C"], edgecolor="k")
+    if "pL2C" in c:
+        drawRoundedRect(plt.gca(), (-4.75, -1),  1.5, 1.2, [r, 0, 0, r], fill=True, lw=lw, facecolor=c["pL2C"], edgecolor="k")
 
     if "pR2Cr" in c:
         drawRoundedRect(plt.gca(), (3.25, -1), 0.7, 1.2,  [r, 0, 0, 0], fill=True, lw=lw, facecolor=c["pR2Cr"], edgecolor="k")
@@ -767,6 +769,8 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
         drawRoundedRect(plt.gca(), (4.05, -1), 0.7, 1.2,  [0, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2Co"], edgecolor="k")
     if "dR2C" in c:
         drawRoundedRect(plt.gca(), (3.25, 0.3), 1.5, 0.7, [0, r, r, 0], fill=True, lw=lw, facecolor=c["dR2C"], edgecolor="k")
+    if "pR2C" in c:
+        drawRoundedRect(plt.gca(), (3.25, -1),  1.5, 1.2, [r, 0, 0, r], fill=True, lw=lw, facecolor=c["pR2C"], edgecolor="k")
 
     xx = np.linspace(-1,1)
     yy = 1-xx*xx
@@ -793,10 +797,11 @@ def drawBinnedSchematicPlot(binColors, lw = 2, boxRadius=0.4, saturation=1.0, mW
     if "mC2R" in c:
         drawSegments(xx*1.8 + 2.2, yy + 1, normal_x, normal_y, c["mC2R"],
                      (0, 5), (1, 3), edgecolor="k", lw=lw)
-    drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
-    drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
-    drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
-    drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
+    if not 'pL2C' in c:
+        drawWaterDrop(plt.gca(), np.array([-2.75, -0.5]), 0.3)
+        drawWaterDrop(plt.gca(), np.array([2.75, -0.5]), 0.3)
+        drawWaterDrop(plt.gca(), np.array([-4.6, -1.5]), 0.3, True)
+        drawWaterDrop(plt.gca(), np.array([4.6, -1.5]), 0.3, True)
     plt.axis("square")
     plt.xlim(-5,5)
     plt.ylim(-2.5,2.5)
