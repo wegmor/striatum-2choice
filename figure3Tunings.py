@@ -238,6 +238,7 @@ print(sessionStats)
 #%%
 phaseRasterData = analysisTunings.getPhaseRasterData(endoDataPath)
 phaseRasterData.columns = phaseRasterData.columns.astype("float")
+portNames = {'L': 'left', 'C': 'center', 'R': 'right'}
 for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
     mean = df.mean(axis=0)
     sem = df.sem(axis=0)
@@ -261,17 +262,29 @@ for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
         ax.axvspan(0, 5, color=style.getColor("p"+action[1]), alpha=0.2)
         ax.axvspan(10, 15, color=style.getColor("p"+action[3]), alpha=0.2)
         ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
-        #ax.axvspan(-0.5, 0, color=style.getColor(action[:4]), clip_on=False, zorder=-1)
+        tuningName = portNames[action[1]]+" to "+portNames[action[3]]
+        ax.set_title(tuningName+"\ntuned neurons", fontsize=6, pad=1.5)
+        #ax.fill_between([1, 2], [.51, .51], [.58, .58],
+        #                color=style.getColor(action[:4]),
+        #                clip_on=False, zorder=-1)
+        
+        #ax.text(3, .5, tuningName+" tuned neurons", fontsize=6)
         sns.despine(ax=ax)
-        actionColor = style.getColor(action[:4])
-        ax.tick_params(axis='y', colors=actionColor, which="minor")
-        ax.spines['bottom'].set_color(actionColor)
-        ax.spines['left'].set_color(actionColor)
+        #actionColor = style.getColor(action[:4])
+        #ax.tick_params(axis='y', colors=actionColor, which="minor")
+        #ax.spines['bottom'].set_color(actionColor)
+        #ax.spines['left'].set_color(actionColor)
+        firstPort = portNames[action[1]]
+        secondPort = portNames[action[3]]
+        ax.text(2.5, 0.34, firstPort+"\nport", ha="center", va="center",
+                fontsize=6, color=style.getColor("p"+action[1]))
+        ax.text(12.5, 0.34, secondPort+"\nport", ha="center", va="center",
+                fontsize=6, color=style.getColor("p"+action[3]))
 genotypeOrder = ("d1", "a2a", "oprm1")
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
 labels = ["D1", "A2A", "Oprm1"]
 layout.axes["psth_mC2L"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.2,
-                                            bbox_to_anchor=(0.85, 1.2, 1, 0.1))
+                                            bbox_to_anchor=(0.85, 1.55, 1, 0.1))
 print("Panel F:")
 print(phaseRasterData.groupby(level=[0,1]).size().unstack())
 #%% tuning counts (simple)
