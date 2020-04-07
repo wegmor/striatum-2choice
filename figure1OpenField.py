@@ -65,7 +65,7 @@ for i, n in enumerate(traceExampleNeurons):
 roiPlot.roiPlot(rois, colors, ax)
 ymax, xmax = rois[0].unstack().shape
 ax.plot([40, 120], [ymax, ymax], 'k', lw=mpl.rcParams['axes.linewidth'])
-ax.text(80, ymax+3, "200μm", ha="center", va="top", fontsize=6)
+#ax.text(80, ymax+3, "200μm", ha="center", va="top", fontsize=6)
 ax.set_xlim((0, xmax))
 ax.set_ylim((ymax, 0))
 ax.axis("equal")

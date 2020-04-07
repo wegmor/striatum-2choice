@@ -25,8 +25,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="338.2836"
-     inkscape:cy="770.14168"
+     inkscape:cx="312.53071"
+     inkscape:cy="840.10269"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -42,7 +42,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="0"
      inkscape:window-y="1107"
-     inkscape:zoom="1"
+     inkscape:zoom="1.4142136"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -12524,7 +12524,7 @@
          figurefirst:name="colorbar" />
     </rect>
     <rect
-       y="26.389215"
+       y="27.44755"
        x="112.65713"
        height="35.4076"
        width="42.489117"
@@ -13087,6 +13087,14 @@
            y="59.547371">Oprm1-Cre</tspan></text>
     </g>
     <text
+       id="text57139"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499993px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round;"
+       x="112.42458"
+       xml:space="preserve"
+       y="21.271055"><tspan
+         sodipodi:role="line"
+         id="tspan57143">C</tspan></text>
+    <text
        y="21.322731"
        xml:space="preserve"
        x="53.738861"
@@ -13097,27 +13105,10 @@
          x="53.738861"
          y="21.322731"
          style="stroke-linecap:butt;stroke-linejoin:round">B</tspan></text>
-    <text
-       id="text57139"
-       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499993px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round;"
-       x="112.42458"
-       xml:space="preserve"
-       y="21.271055"><tspan
-         sodipodi:role="line"
-         id="tspan57143">C</tspan></text>
     <g
-       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
-       id="g3973">
-      <text
-         y="63.874649"
-         x="63.269299"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:ArialMT;-inkscape-font-specification:'ArialMT, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33380458;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
-         font-size="5"
-         id="text2">
-        <tspan
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round"
-           id="tspan3569">1mm</tspan>
-      </text>
+       id="g3877"
+       transform="translate(0,1.0583333)"
+       style="stroke-linecap:butt;stroke-linejoin:round">
       <text
          y="55.66806"
          x="-33.812057"
@@ -13139,16 +13130,6 @@
         <tspan
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round"
            id="tspan3579">A2A-cre</tspan>
-      </text>
-      <text
-         y="63.874649"
-         x="75.169243"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:ArialMT;-inkscape-font-specification:'ArialMT, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33380458;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
-         font-size="5"
-         id="text14">
-        <tspan
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round"
-           id="tspan3571">200μm</tspan>
       </text>
       <g
          transform="matrix(0.33380457,0,0,0.33380457,35.098103,-2.7561791)"
@@ -13396,7 +13377,7 @@
            id="text152">
           <tspan
              id="tspan3761"
-             style="-inkscape-font-specification:Arial;font-family:Arial;font-weight:normal;font-style:normal;font-stretch:normal;font-variant:normal;font-size:6.34103547px">Lens</tspan>
+             style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:6.34103537px;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round">Lens</tspan>
         </text>
       </g>
       <g
@@ -14075,26 +14056,6 @@
            x="94.922928"
            y="23.262701"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944427px;font-family:Arial;-inkscape-font-specification:Arial;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round">SNr/SNc</tspan></text>
-      <text
-         id="text8458"
-         font-size="5"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:ArialMT;-inkscape-font-specification:'ArialMT, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33380458;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
-         x="87.938042"
-         y="63.874649">
-        <tspan
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round"
-           id="tspan3573">200μm</tspan>
-      </text>
-      <text
-         y="63.874649"
-         x="100.66007"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.11666656px;font-family:ArialMT;-inkscape-font-specification:'ArialMT, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;display:inline;opacity:1;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.33380458;stroke-linecap:butt;stroke-linejoin:round;stroke-opacity:1"
-         font-size="5"
-         id="text8460">
-        <tspan
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-family:Arial;-inkscape-font-specification:Arial;stroke-linecap:butt;stroke-linejoin:round"
-           id="tspan3575">200μm</tspan>
-      </text>
     </g>
   </g>
 </svg>
