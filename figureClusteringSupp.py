@@ -16,6 +16,7 @@ import analysisTunings, analysisClusteringSupp
 import figurefirst
 import scipy.spatial
 import scipy.cluster
+import scipy.ndimage
 from sklearn.metrics import silhouette_samples
 import style
 plt.ioff()
@@ -293,7 +294,6 @@ plt.ylabel("Distance")
 plt.title("agglomerative clustering of pooled mean\npopulation activity in all task phases", pad=6)
 
 #%% TSNE - moved here from tuning figure
-'''
 tuningTsne = analysisTunings.getTSNEProjection(tuningData)
 
 #%%
@@ -321,7 +321,6 @@ ax.set_ylim((tuningTsne[1].min(), tuningTsne[1].max()))
 ax.invert_xaxis()
 ax.set_aspect('equal')
 ax.axis('off')
-'''
 
 #%%
 layout.insert_figures('plots')

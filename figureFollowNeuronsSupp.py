@@ -114,13 +114,14 @@ for task, gt, label in itertools.product(("openField", "2choice"),
     axName = "_".join(("mean", label, "of" if task=="openField" else task, gt))
     img = fvs[(task, gt, label)].drawBuffer(ax=layout.axes[axName]['axis'])
 
-cax = layout.axes['colorbar_means']['axis']
-cb = plt.colorbar(img, cax=cax, orientation='horizontal')
-cb.outline.set_visible(False)
-cax.set_axis_off()
-cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fontdict={'fontsize':6})
-cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdict={'fontsize':6})
-cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+for i in range(1,4):
+    cax = layout.axes['colorbar_means_{}'.format(i)]['axis']
+    cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+    cb.outline.set_visible(False)
+    cax.set_axis_off()
+    cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fontdict={'fontsize':6})
+    cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdict={'fontsize':6})
+    cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 
 #%% Panel C
