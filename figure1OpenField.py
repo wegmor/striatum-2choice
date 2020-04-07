@@ -171,6 +171,10 @@ ax.set_xticks(())
 ax.set_yticks(())
 ax.set_xlim(0,49)
 ax.set_ylim(0,49)
+patches = [mpatches.Patch(color=style.getColor(b), label=behaviorNames[b],
+                          alpha=.43) for b in ["leftTurn", "rightTurn", "running", "stationary"]]
+ax.legend(handles=patches, ncol=2, bbox_to_anchor=(0.1,1.05,0.8,0.3),
+          loc='lower center')
 
 #%% Example traces and fancyViz
 best_neurons = ex_tunings.set_index("neuron").groupby("action").tuning.idxmax()
