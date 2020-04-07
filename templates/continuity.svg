@@ -24,9 +24,9 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="252.15577"
-     inkscape:cy="764.06168"
+     inkscape:zoom="1.4142136"
+     inkscape:cx="154.90385"
+     inkscape:cy="694.91485"
      inkscape:document-units="mm"
      inkscape:current-layer="layer3"
      showgrid="false"
@@ -97,7 +97,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title />
+        <dc:title></dc:title>
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -147,14 +147,14 @@
        id="rect7760"
        width="22"
        height="11"
-       x="19.049994"
-       y="45.645851">
+       x="19.049217"
+       y="36.650146">
       <figurefirst:axis
          figurefirst:name="s1" />
     </rect>
     <rect
-       y="45.645851"
-       x="45.015972"
+       y="36.650146"
+       x="45.015198"
        height="11"
        width="22"
        id="rect7762"
@@ -167,14 +167,14 @@
        id="rect7764"
        width="22"
        height="11"
-       x="70.981956"
-       y="45.645851">
+       x="70.981178"
+       y="36.650146">
       <figurefirst:axis
          figurefirst:name="s3" />
     </rect>
     <rect
-       y="45.645851"
-       x="96.947937"
+       y="36.650146"
+       x="96.947159"
        height="11"
        width="22"
        id="rect7766"
@@ -187,14 +187,14 @@
        id="rect7768"
        width="22"
        height="11"
-       x="122.91391"
-       y="45.645851">
+       x="122.91312"
+       y="36.650146">
       <figurefirst:axis
          figurefirst:name="s5" />
     </rect>
     <rect
-       y="45.645851"
-       x="148.8799"
+       y="36.650146"
+       x="148.87912"
        height="11"
        width="22"
        id="rect7770"
@@ -203,8 +203,8 @@
          figurefirst:name="s6" />
     </rect>
     <rect
-       y="62.771309"
-       x="122.84698"
+       y="53.775604"
+       x="122.8462"
        height="11"
        width="22"
        id="rect7802"
@@ -217,14 +217,14 @@
        id="rect7804"
        width="22"
        height="11"
-       x="96.847534"
-       y="62.771309">
+       x="96.846756"
+       y="53.775604">
       <figurefirst:axis
          figurefirst:name="s11" />
     </rect>
     <rect
-       y="62.771309"
-       x="70.848099"
+       y="53.775604"
+       x="70.847321"
        height="11"
        width="22"
        id="rect7806"
@@ -237,14 +237,14 @@
        id="rect7808"
        width="22"
        height="11"
-       x="44.848656"
-       y="62.771309">
+       x="44.847881"
+       y="53.775604">
       <figurefirst:axis
          figurefirst:name="s9" />
     </rect>
     <rect
-       y="62.771309"
-       x="18.849211"
+       y="53.775604"
+       x="18.848434"
        height="11"
        width="22"
        id="rect7810"
@@ -257,14 +257,14 @@
        id="rect7812"
        width="22"
        height="11"
-       x="174.84589"
-       y="45.645851">
+       x="174.84511"
+       y="36.650146">
       <figurefirst:axis
          figurefirst:name="s7" />
     </rect>
     <rect
-       y="62.771309"
-       x="148.84642"
+       y="53.775604"
+       x="148.84564"
        height="11"
        width="22"
        id="rect7802-2"
@@ -277,8 +277,8 @@
        id="rect7804-8"
        width="22"
        height="11"
-       x="174.84587"
-       y="62.771309">
+       x="174.84509"
+       y="53.775604">
       <figurefirst:axis
          figurefirst:name="s14" />
     </rect>
@@ -286,18 +286,5 @@
   <g
      inkscape:groupmode="layer"
      id="layer3"
-     inkscape:label="Layer 2">
-    <text
-       transform="translate(0,-17.6)"
-       xml:space="preserve"
-       style="display:inline;font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332"
-       x="18.896391"
-       y="38.962532"
-       id="text881"><tspan
-         sodipodi:role="line"
-         id="tspan879"
-         x="18.896391"
-         y="38.962532"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;writing-mode:lr-tb;text-anchor:start;stroke-width:0.26458332">Oprm1+ examples</tspan></text>
-  </g>
+     inkscape:label="Layer 2" />
 </svg>
