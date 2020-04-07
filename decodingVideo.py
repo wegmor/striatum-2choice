@@ -42,7 +42,7 @@ def getSessConfProba(dataFile, animal, date):
     svcProbDf = []
     otherProbDf = []
     coefDf = []
-    splitter = sklearn.model_selection.StratifiedKFold(5, shuffle=True, random_state=0)
+    splitter = sklearn.model_selection.StratifiedKFold(5, shuffle=True, random_state=16)
     for train_idx, test_idx in splitter.split(svcX, svcY):
         trainX, trainY = svcX.iloc[train_idx,:], svcY.iloc[train_idx]
         testX, testY = svcX.iloc[test_idx,:], svcY.iloc[test_idx]
@@ -139,113 +139,47 @@ sess = next(readSessions.findSessions('data/endoData_2019.hdf', task='2choice', 
                                                                 date='190201'))
 lfa = sess.labelFrameActions(reward="fullTrial", switch=True).set_index(['actionNo','label'])
 df = df.reindex(lfa.index).fillna(mpl.colors.to_hex((0,0,0,.75), keep_alpha=True))
-
-df.to_pickle('cache/oprm1_5308_190201_colored_decoding.pkl')
+#df.to_pickle('cache/oprm1_5308_190201_colored_decoding.pkl')
 
 
 #%%
-# color map SVM weights
-#colors = [style.getColor('o!'),style.getColor('o!'),(1,1,1,1),style.getColor('r.'),style.getColor('r.')]
-#nodes = [0,.25,.5,.75,1.]
-#weightsCmap = mpl.colors.LinearSegmentedColormap.from_list("weightsCmap", list(zip(nodes, colors)))
-#sns.palplot(weightsCmap(np.linspace(0,1,20)))
-
-def normRois(rois):
-    rois /= rois.max(axis=0)
-    rois = rois**1.5
-    rois = (rois - .1).clip(0,.8)
-    rois /= rois.max(axis=0)
-    return rois
-
-def getColoredRois(rois, colors):
-    rois = np.array([rois[n].unstack('x').values for n in rois])
-    if len(rois) != len(colors):
-        raise ValueError("Colors must have the same length as rois.")
-    rs = []
-    for roi, color in zip(rois, colors):
-        r = np.array([(roi > 0).astype('int')]*3) * color[:, np.newaxis, np.newaxis]
-        r = np.concatenate([r, roi[np.newaxis]], axis=0)
-        rs.append(r.transpose((1,2,0)))    
-    rs = np.array(rs)
-    return np.array(rs)
-
-def changeAlpha(rois, fDeconv):
-    rs = rois.copy()
-    rs[:,:,:,3] = fDeconv[:,np.newaxis,np.newaxis] * rs[:,:,:,3]
-    return rs
-        
-    
-rois = normRois(sess.readROIs())
-tunings = analysisTunings.getTuningData('data/endoData_2019.hdf')
-tunings = tunings.query('animal == "5308" & date == "190201"').reset_index(drop=True).copy()
-tunings['signp'] = tunings['pct'] > .995
-tunings = tunings.loc[tunings.groupby('neuron').tuning.idxmax()]
-colors = tunings.action.copy()
-colors[~tunings.signp] = 'none'
-colors = np.array([style.getColor(c[:4]) for c in colors])
-rois = getColoredRois(rois, colors)
-
-deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
-deconv = (deconv-1).clip(0,14) / 14
-    
-    
-#%%
-vid = pims.PyAVReaderIndexed('data/20190201_203528_oprm1_5308-0000.avi')
+#vid = pims.PyAVReaderIndexed('data/20190201_203528_oprm1_5308-0000.avi')
 
 
 #%%
 mpl.rcParams['font.sans-serif'] = 'Arial'
-mpl.rcParams['font.size'] = 25
-mpl.rcParams['figure.dpi'] = 90
+mpl.rcParams['font.size'] = 20
+mpl.rcParams['figure.dpi'] = 100
 
-fig, axs = plt.subplots(2, 2, figsize=(9,13),
-                        gridspec_kw={'height_ratios':(.7,.3),'width_ratios':(.975,.025),
-                                     'hspace':0.025,'wspace':0.15,
-                                     'left':.02,'right':.9,'top':.99,'bottom':.03})
+fig, axs = plt.subplots(1, 2, figsize=(7.5,2.5),
+                        gridspec_kw={'width_ratios':(.8,.2),'wspace':0.4,
+                                     'left':.01,'right':.94,'top':.98,'bottom':.1})
 
 
-img = axs[0,0].imshow(np.zeros_like(vid[0].transpose((1,0,2))[::-1,:,:]))
-axs[0,0].axis('off')
+#img = axs[0,0].imshow(np.zeros_like(vid[0].transpose((1,0,2))[::-1,:,:]))
+#axs[0,0].axis('off')
 
-axs[0,1].axis('off')
+axs[0].axis('off')
 
-cax = axs[1,1]
-cb1 = mpl.colorbar.ColorbarBase(cmap=svcCmap, ax=cax,
-                                orientation='vertical', ticks=(0,.5,1))
-cb1.ax.tick_params(axis='y', length=0)
-cb1.set_ticklabels((0,50,100))
-cb1.set_label('P(win-stay)')
-cb1.ax.yaxis.set_label_position('left')
-cb1.outline.set_visible(False)
+cax = axs[1]
+colors = svcCmap(np.linspace(0,1,100))
+colors = np.stack([colors]*100, axis=1)
+alpha = np.stack([np.linspace(1,0,100)]*100, axis=0)
+colors[:,:,3] = alpha
+cax.imshow(colors, origin='lower', aspect='equal')
+cax.set_xticks((0,50,100))
+cax.set_yticks((0,50,100))
+cax.set_ylabel('P(win-stay)')
+cax.set_xlabel('P(phase)')
 
 def update(frame):
-    img.set_array(vid[frame].transpose((1,0,2))[::-1,:,:])
-    plt.sca(axs[1,0])
+    #img.set_array(vid[frame].transpose((1,0,2))[::-1,:,:])
+    plt.sca(axs[0])
     plt.cla()
     fancyViz.drawBinnedSchematicPlot(df.iloc[frame])
     return [img]
 
-ani = animation.FuncAnimation(fig, update, frames=np.arange(10400,12800), blit=True)
+ani = animation.FuncAnimation(fig, update, frames=np.arange(10460,12260), blit=True)
 
-writer = animation.FFMpegWriter(fps=10, bitrate=-1)
-ani.save("behav_decoding.mp4", writer=writer)
-
-
-#%%
-
-fig = plt.figure()
-ax = plt.gca()
-
-imgs = [ax.imshow(np.zeros_like(r)) for r in rois]
-ax.axis('off')
-
-def update(frame):
-    rs = changeAlpha(rois, deconv.loc[frame])
-    [imgs[n].set_array(r) for n,r in enumerate(rs)]
-    return imgs
-
-ani = animation.FuncAnimation(fig, update, frames=np.arange(10400,11600,2), blit=True)
-
-writer = animation.FFMpegWriter(fps=10, bitrate=-1)
-ani.save("ca_vid.mp4", writer=writer)
-
+writer = animation.FFMpegWriter(fps=20, bitrate=-1)
+ani.save("behav_decoding.mp4", writer=writer, dpi=100)
