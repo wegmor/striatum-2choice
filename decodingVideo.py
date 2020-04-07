@@ -12,6 +12,7 @@ import pims
 import itertools
 
 from utils import readSessions, fancyViz
+import analysisTunings
 #from utils.cachedDataFrame import cachedDataFrame
 
 
@@ -81,8 +82,7 @@ def getSessConfProba(dataFile, animal, date):
     probDf = pd.concat([svcProbDf, otherProbDf], ignore_index=False, sort=True).sort_index()
     
     coefDf = pd.concat(coefDf, ignore_index=False).groupby('phase').mean()
-    coefDf -= coefDf.min(axis=0)
-    coefDf /= coefDf.max(axis=0)
+    coefDf /= coefDf.abs().values.max()
     
     return (m, probDf, coefDf)
 
@@ -119,7 +119,7 @@ df['phaseProb'] = df.sum(axis=1)
 df['stSwProb'] = df['r.'] / (df['r.']+df['o!'])
 df = df[['phaseProb','stSwProb']]
 
-# color map or stay VS switch
+# color map for stay VS switch
 colors = [style.getColor(tt) for tt in ['o!','o.','o.','r.']]
 nodes = [0.,.4,.6,1.]
 svcCmap = mpl.colors.LinearSegmentedColormap.from_list("svcCmap", list(zip(nodes, colors)))
@@ -140,10 +140,16 @@ sess = next(readSessions.findSessions('data/endoData_2019.hdf', task='2choice', 
 lfa = sess.labelFrameActions(reward="fullTrial", switch=True).set_index(['actionNo','label'])
 df = df.reindex(lfa.index).fillna(mpl.colors.to_hex((0,0,0,.75), keep_alpha=True))
 
-df.to_pickle('oprm1_5308_190201_colored_decoding.pkl')
+df.to_pickle('cache/oprm1_5308_190201_colored_decoding.pkl')
 
 
 #%%
+# color map SVM weights
+#colors = [style.getColor('o!'),style.getColor('o!'),(1,1,1,1),style.getColor('r.'),style.getColor('r.')]
+#nodes = [0,.25,.5,.75,1.]
+#weightsCmap = mpl.colors.LinearSegmentedColormap.from_list("weightsCmap", list(zip(nodes, colors)))
+#sns.palplot(weightsCmap(np.linspace(0,1,20)))
+
 def normRois(rois):
     rois /= rois.max(axis=0)
     rois = rois**1.5
@@ -151,26 +157,38 @@ def normRois(rois):
     rois /= rois.max(axis=0)
     return rois
 
-deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
-rois = normRois(sess.readROIs())
-caVid = np.array(d[:,np.newaxis,np.newaxis] * rois)
-
-def normRois(rois):
+def getColoredRois(rois, colors):
     rois = np.array([rois[n].unstack('x').values for n in rois])
+    if len(rois) != len(colors):
+        raise ValueError("Colors must have the same length as rois.")
     rs = []
-    for roi, color in zip(rois, colors, alphas):
-        roi /= roi.max()
-        roi = roi**1.5
-        roi = np.clip(roi-.1, 0, .85)
-        roi /= roi.max()
+    for roi, color in zip(rois, colors):
         r = np.array([(roi > 0).astype('int')]*3) * color[:, np.newaxis, np.newaxis]
         r = np.concatenate([r, roi[np.newaxis]], axis=0)
         rs.append(r.transpose((1,2,0)))    
     rs = np.array(rs)
+    return np.array(rs)
 
-    for img in rs:
-        axis.imshow(img)
+def changeAlpha(rois, fDeconv):
+    rs = rois.copy()
+    rs[:,:,:,3] = fDeconv[:,np.newaxis,np.newaxis] * rs[:,:,:,3]
+    return rs
+        
+    
+rois = normRois(sess.readROIs())
+tunings = analysisTunings.getTuningData('data/endoData_2019.hdf')
+tunings = tunings.query('animal == "5308" & date == "190201"').reset_index(drop=True).copy()
+tunings['signp'] = tunings['pct'] > .995
+tunings = tunings.loc[tunings.groupby('neuron').tuning.idxmax()]
+colors = tunings.action.copy()
+colors[~tunings.signp] = 'none'
+colors = np.array([style.getColor(c[:4]) for c in colors])
+rois = getColoredRois(rois, colors)
 
+deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+deconv = (deconv-1).clip(0,14) / 14
+    
+    
 #%%
 vid = pims.PyAVReaderIndexed('data/20190201_203528_oprm1_5308-0000.avi')
 
@@ -211,4 +229,23 @@ ani = animation.FuncAnimation(fig, update, frames=np.arange(10400,12800), blit=T
 
 writer = animation.FFMpegWriter(fps=10, bitrate=-1)
 ani.save("behav_decoding.mp4", writer=writer)
+
+
+#%%
+
+fig = plt.figure()
+ax = plt.gca()
+
+imgs = [ax.imshow(np.zeros_like(r)) for r in rois]
+ax.axis('off')
+
+def update(frame):
+    rs = changeAlpha(rois, deconv.loc[frame])
+    [imgs[n].set_array(r) for n,r in enumerate(rs)]
+    return imgs
+
+ani = animation.FuncAnimation(fig, update, frames=np.arange(10400,11600,2), blit=True)
+
+writer = animation.FFMpegWriter(fps=10, bitrate=-1)
+ani.save("ca_vid.mp4", writer=writer)
 
