@@ -315,9 +315,14 @@ class Session:
         are hard-coded.
 
         Returns:
-        A list of length 4 with the coordinates (left, bottom, right, top)
+        2018 cohort: A list of length 4 with the coordinates (left, bottom, right, top)
+        2019 cohort: A pandas Series with a pair of coordinates for each corner (box is not
+                     necessarily square)
         '''
-        return wallCorners[str(self)]
+        if self.meta.cohort == "2019":
+            return pd.read_hdf(self.hdfFile, "/extra/boxCorners").loc[self.meta.video]
+        else:
+            return wallCorners[str(self)]
     
     def _repr_html_(self):
         output = "<table><thead><tr><th>{}</th><th></th></tr></thead><tbody>".format(str(self))

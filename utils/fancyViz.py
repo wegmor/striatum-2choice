@@ -112,9 +112,11 @@ class SchematicIntensityPlot(IntensityPlot):
         self.coordinates = schematicCoord.values
         
 class TrackingIntensityPlot(IntensityPlot):
-    def __init__(self, session=None, smoothing=10, saturation=1.0):
+    def __init__(self, session=None, smoothing=10, saturation=1.0, portsUp=False, drawBg=True):
         self.smoothing = smoothing
         self.saturation = saturation
+        self.portsUp = portsUp
+        self.drawBg = drawBg
         self.canvasSize = None
         self.mask = slice(None, None) #No mask, use all values
         self.setSession(session)
@@ -143,15 +145,42 @@ class TrackingIntensityPlot(IntensityPlot):
                            ("rightEar", "likelihood"),
                            ("tailBase", "likelihood")]].min(axis=1)
         self.coordinates = headCoordinates.values
-        self.coordinates[likelihood.values < 0.9, :] = np.nan        
+        self.coordinates[likelihood.values < 0.9, :] = np.nan
+        self.wallCorners = session.getWallCorners()
+        self.task = session.meta.task
         
     def clearBuffer(self):
         self.valueCanvas = np.zeros(self.canvasSize, np.float64)
         self.normCanvas = np.zeros(self.canvasSize, np.float64)
             
     def _drawSchema(self, im, alpha):
-        plt.imshow(self.backgroundIm, alpha=0.5, cmap="gray")
+        if self.drawBg:
+            bgIm = self.backgroundIm
+            if self.portsUp: bgIm = np.rot90(bgIm)
+            plt.imshow(bgIm, alpha=0.5, cmap="gray")
+        if self.portsUp:
+            im = np.rot90(im)
+            alpha = np.rot90(alpha)
         imshowWithAlpha(im, alpha, self.saturation)
+        if not self.drawBg:
+            corners = self.wallCorners
+            corners_x = corners[corners.index.get_level_values(1) == 'x'].values
+            corners_y = corners[corners.index.get_level_values(1) == 'y'].values
+            if self.portsUp:
+                corners_x, corners_y = corners_y, corners_x
+            corners_x = np.append(corners_x, corners_x[0])
+            corners_y = np.append(corners_y, corners_y[0])
+            plt.plot(corners_x, corners_y, 'k', lw=0.5)
+            #drawRoundedRect(ax, position, width, height, radius, **kwargs):
+            if self.task in ("2choice", "forcedAlternation", "2choiceAgain"):
+                left = np.min(corners_x)
+                right = np.max(corners_x)
+                top = np.min(corners_y)
+                width = right - left
+                s = width/7
+                for x in left+s*np.array([1, 3, 5]):
+                    drawRoundedRect(plt.gca(), (x, top-s), s, s, [s/4, 0, 0, s/4],
+                                    fill=False, edgecolor="k")
         plt.axis("off")
         
         
