@@ -18,9 +18,10 @@ import h5py
 import datetime
 from itertools import product
 from scipy.stats import ttest_ind
+import scipy.optimize
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-from utils import readSessions, fancyViz
+from utils import readSessions, fancyViz, qActionValues
 from utils.cachedDataFrame import cachedDataFrame
 import statsmodels.api as sm
 import style
@@ -893,3 +894,41 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
         cax.tick_params(axis='x', which='both',length=0)
         cb.outline.set_visible(False)
 
+@cachedDataFrame("qParameters.pkl")
+def fitQParameters(datafile):
+    params = []
+    for sess in tqdm.tqdm(readSessions.findSessions(datafile, task="2choice"),
+                          desc="Fitting Q-parameters"):
+        lfa = sess.labelFrameActions(reward="sidePorts", switch=False)
+        perAction = lfa.groupby("actionNo").first()
+        perAction = perAction[perAction.label.str[-1]!='-']
+        rightPort = (perAction.label.str[1] == 'R').values.astype(np.int8)
+        rewarded = (perAction.label.str[-1] == 'r').values.astype(np.int8)
+        L = lambda x: -qActionValues.qLikelihood(rightPort, rewarded, x[0], x[1], x[2])
+        params.append((str(sess),)+tuple(scipy.optimize.fmin(L, np.array((0.1, 1.0, 0.0)), disp=0)))
+    return pd.DataFrame(params, columns=["session", "alpha", "beta", "bias"]).set_index("session")
+
+@cachedDataFrame("qActionValues.pkl")
+def getQActionValues(datafile):
+    params = fitQParameters(datafile)
+    res = []
+    for sess in tqdm.tqdm(readSessions.findSessions(datafile, task="2choice"),
+                          desc="Calculating Q-action values"):
+        lfa = sess.labelFrameActions(reward="sidePorts", switch=False)
+        perAction = lfa.groupby("actionNo").first()
+        outcomeActions = perAction[perAction.label.str[-1]!='-'].copy()
+        rightPort = (outcomeActions.label.str[1] == 'R').values.astype(np.int8)
+        rewarded = (outcomeActions.label.str[-1] == 'r').values.astype(np.int8)
+        
+        alpha = params.loc[str(sess)].alpha
+        beta = params.loc[str(sess)].beta
+        bias = params.loc[str(sess)].bias
+        outcomeActions["Qr_minus_Ql"] = qActionValues.qActionValues(rightPort, rewarded, alpha)
+        outcomeActions["Q_actionValue"] = beta*outcomeActions["Qr_minus_Ql"] + bias
+        outcomeActions["P_r"] = 1/(1+np.exp(-outcomeActions["Q_actionValue"]))
+        df = outcomeActions[["Qr_minus_Ql", "Q_actionValue", "P_r"]]
+        df = perAction[["label"]].join(df, on="actionNo")
+        df["session"] = str(sess)
+        df = df.ffill()
+        res.append(df.reset_index().set_index(["session", "actionNo"]))
+    return pd.concat(res)
