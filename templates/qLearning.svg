@@ -24,7 +24,7 @@
      id="base"
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer1"
      inkscape:cx="385.2094"
      inkscape:cy="893.54838"
      inkscape:document-units="in"
@@ -12173,6 +12173,16 @@
       <figurefirst:axis
          figurefirst:name="params_bias" />
     </rect>
+    <rect
+       y="41.231403"
+       x="188.60274"
+       width="8.2472363"
+       style="display:inline;opacity:1;vector-effect:none;fill:#929292;fill-opacity:1;stroke:none;stroke-width:0.12718077;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.12718079, 0.25436159;stroke-dashoffset:0;stroke-opacity:1"
+       id="rect7329"
+       height="16.81568">
+      <figurefirst:axis
+         figurefirst:name="inset_corr" />
+    </rect>
   </g>
   <g
      style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
@@ -12204,34 +12214,34 @@
     <text
        y="38.806572"
        xml:space="preserve"
-       x="51.63055"
+       x="50.043049"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
        id="text7297"><tspan
          sodipodi:role="line"
          id="tspan7299"
-         x="51.63055"
+         x="50.043049"
          y="38.806572"
          style="stroke-linecap:butt;stroke-linejoin:round">C</tspan></text>
     <text
        id="text7303"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="88.640656"
+       x="87.053154"
        xml:space="preserve"
        y="38.806572"><tspan
          sodipodi:role="line"
          id="tspan7305"
-         x="88.640656"
+         x="87.053154"
          y="38.806572"
          style="stroke-linecap:butt;stroke-linejoin:round">D</tspan></text>
     <text
        id="text7303-3"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:round"
-       x="141.03784"
+       x="136.80457"
        xml:space="preserve"
        y="21.416275"><tspan
          sodipodi:role="line"
          id="tspan7327"
-         x="141.03784"
+         x="136.80457"
          y="21.416275"
          style="stroke-linecap:butt;stroke-linejoin:round">E</tspan></text>
   </g>

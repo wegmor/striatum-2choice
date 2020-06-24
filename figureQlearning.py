@@ -6,7 +6,7 @@ import matplotlib as mpl
 import pathlib
 import figurefirst
 import style
-import analysisStaySwitchDecoding
+import analysisQlearning, analysisStaySwitchDecoding
 import cmocean
 import scipy.stats
 from utils import readSessions, sessionBarPlot, fancyViz
@@ -46,9 +46,7 @@ else:
 regAVs["session"] = regAVs.genotype + "_" + regAVs.animal + "_" + regAVs.date
 regAVs = regAVs.set_index(["session", "actionNo"])[["label", "value"]]
     
-qAVs = analysisStaySwitchDecoding.getQActionValues(endoDataPath)
-qAVs = qAVs.drop("oprm1_3323_180327", axis=0)
-regAVs = regAVs.drop("oprm1_3323_180327", axis=0)
+qAVs = analysisQlearning.getQActionValues(endoDataPath, perAnimal=True)
 
 ax = layout.axes['ex_trace']['axis']
 exSess = next(readSessions.findSessions(endoDataPath, animal="5703", date="190130"))
@@ -58,7 +56,8 @@ lfa = lfa.join(regAVs.loc[str(exSess)][["value"]], on="actionNo")
 ax.plot(lfa.Q_actionValue, label="Q action value")
 ax.plot(lfa.value, label="regression action value")
 for port in ("pC", "pL", "pR"):
-    ax.fill_between(lfa.index, -6, 6, lfa.label.str.startswith(port), alpha=.25, color=style.getColor(port))
+    ax.fill_between(lfa.index, -6, 6, lfa.label.str.startswith(port), alpha=.15,
+                    color=style.getColor(port), lw=0)
 ax.set_xlim(10000, 20000)
 ax.set_ylim(-7, 7)
 ax.set_xticks([])
@@ -72,8 +71,8 @@ ax.text(19400, -8, "1 min".format(1000/20), ha="center", va="top", fontsize=6)
 sns.despine(ax=ax, bottom=True)
 ax.legend(ncol=2, bbox_to_anchor=(0.55, 1.05, 0.45, 0.1), mode="expand")
 
-q_choices = qAVs[qAVs.label.isin(("pC2L-", "pC2R-"))].copy()
-q_choices["rightChoice"] = q_choices.label=="pC2R-"
+q_choices = qAVs[qAVs.label.str.match("pC2[RL]")].copy()
+q_choices["rightChoice"] = q_choices.label.str.match("pC2R")
 
 bins = np.arange(-1,1.1,0.1)
 binned = pd.cut(q_choices.Qr_minus_Ql, bins)
@@ -98,12 +97,12 @@ ax.set_ylim(0,100)
 #ax.set_ylabel("right choice (%)")
 sns.despine(ax=ax)
 
-params = analysisStaySwitchDecoding.fitQParameters(endoDataPath)
-yticks = {'alpha': [0, 0.25, 0.5], 'beta': [0, 5, 10, 15],
-          'bias': [-2, -1, 0, 1, 2]}
+params = analysisQlearning.fitQParametersPerAnimal(endoDataPath)
+yticks = {'alpha': [0, 0.25, 0.5], 'beta': [0, 5, 10],
+          'bias': [-.5, 0, .5]}
 for p in ("alpha", "beta", "bias"):
     ax = layout.axes['params_'+p]['axis']
-    sns.swarmplot(y=params[p], ax=ax, size=1.5)
+    sns.swarmplot(y=params[p], ax=ax, size=2)
     ax.set_ylabel("")
     ax.set_yticks(yticks[p])
     ax.set_xticks([])
@@ -112,16 +111,36 @@ for p in ("alpha", "beta", "bias"):
     sns.despine(ax=ax, bottom=True)
 
 ax = layout.axes['Qav_vs_regav']['axis']
-mask = qAVs.label.isin(("pC2L-", "pC2R-"))
-ax.plot(qAVs.Q_actionValue[mask], regAVs.value[mask], 'k.', markersize=.2, alpha=.5, rasterized=True)
+mask = qAVs.label.str.match("pC2[RL]")
+#Scatter plot
+#ax.plot(qAVs.Q_actionValue[mask], regAVs.value[mask], 'k.',
+#        markersize=.2, alpha=.5, rasterized=True)
+
+#Line plot
+
+sns.lineplot(qAVs.Q_actionValue[mask].round(0), regAVs.value[mask], sort=True,
+             ci="sd", err_style="bars", ax=ax, marker='.', markersize=5,
+             markeredgecolor="C0")
+
 #Figurefirst axis has proportions 3:4
-ax.set_xlim(-10, 10)
-ax.set_ylim(-7.5, 7.5)
-ax.set_xticks([-10, -5, 0, 5, 10])
+ax.set_xlim(-4/3*5, 4/3*5)
+ax.set_ylim(-5, 5)
+ax.set_xticks([-5, 0, 5])
 ax.set_yticks([-5, 0, 5])
 ax.set_xlabel("Q action value")
 ax.set_ylabel("regression action value")
 sns.despine(ax=ax)
+
+ax = layout.axes['inset_corr']['axis']
+animals = qAVs.index.get_level_values(0).str.split("_").str[1]
+correlations = qAVs.assign(regAV=regAVs.value).groupby(animals)\
+                   .apply(lambda x: x.Q_actionValue.corr(x.regAV))
+sns.swarmplot(y=correlations, ax=ax, size=2)
+ax.set_ylabel("correlation")
+ax.set_ylim(0.5, 1.0)
+ax.set_yticks((0.5, 0.75, 1.0))
+ax.set_xticks([])
+sns.despine(ax=ax, bottom=False)
 
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "qLearning.svg")
