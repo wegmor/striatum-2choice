@@ -892,4 +892,3 @@ def drawPopAverageFV(dataFile, popdf, axes, cax=False, auc_weigh=False,
         cb = plt.colorbar(img, cax=cax, orientation='horizontal')
         cax.tick_params(axis='x', which='both',length=0)
         cb.outline.set_visible(False)
-
