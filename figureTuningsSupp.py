@@ -9,7 +9,7 @@ import cmocean
 import tqdm
 import os
 from matplotlib.ticker import MultipleLocator
-
+from collections import defaultdict
 from utils import fancyViz
 from utils import readSessions
 import analysisTunings
@@ -271,7 +271,48 @@ for g, data in df_orig.groupby('genotype'):
     ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
     sns.despine(ax=ax)
 
+#%% Pie charts with only largest (most neurons) session from each animal
+df = tuningData.copy()
 
+df['signp'] = df['pct'] > .995
+df['signn'] = df['pct'] < .005
+df['sign'] = df.signp.astype('int') - df.signn.astype('int')
+
+nNeurons = df.groupby(["animal", "date"]).neuron.nunique()
+largestSessions = nNeurons.groupby(level=0).idxmax()
+df_ls = df.set_index(["animal", "date"]).loc[largestSessions].reset_index()
+
+# only keep max tuning for each neuron
+maxdf = df_ls.loc[df_ls.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
+maxdf.loc[~maxdf.signp, 'action'] = 'none' # don't color if not significant
+maxdf = maxdf.groupby(['genotype','action'])[['signp']].count() # get counts
+
+# create dictionary with modified alpha to separate r/o/d phases
+cdict = defaultdict(lambda: np.array([1,1,1]),
+                    {a:style.getColor(a[:4]) for a 
+                     in ['mC2L-','mC2R-','mL2C-','mR2C-','pC2L-','pC2R-','pL2C-','pR2C-']})
+cdict['pL2Cr'] = cdict['pL2C-']
+cdict['pL2Co'] = np.append(cdict['pL2C-'], .45)
+cdict['dL2C-'] = np.append(cdict['pL2C-'], .7)
+cdict['pR2Cr'] = cdict['pR2C-']
+cdict['pR2Co'] = np.append(cdict['pR2C-'], .45)
+cdict['dR2C-'] = np.append(cdict['pR2C-'], .7)
+cdict['pC2L-'] = np.append(cdict['pC2L-'], .45)
+
+for g in ['d1','a2a','oprm1']:
+    ax = layout.axes['pie_{}'.format(g)]['axis']
+
+    gdata = maxdf.loc[g].loc[['mC2R-','mL2C-','mC2L-','mR2C-','none',
+                              'dL2C-','pL2Co','pL2Cr',
+                              'dR2C-','pR2Co','pR2Cr',
+                              'pC2L-','pC2R-',]]
+    ws, ts = ax.pie(gdata.values.squeeze(), wedgeprops={'lw':0, 'edgecolor':'w'},
+                    explode=[.1]*len(gdata),
+                    textprops={'color':'k'}, colors=[cdict[a] for a in gdata.index])
+
+    ax.set_aspect('equal')
+   
+    
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "tuningsSupp1.svg")
