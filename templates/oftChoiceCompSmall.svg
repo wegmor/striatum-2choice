@@ -1,0 +1,575 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:figurefirst="http://flyranch.github.io/figurefirst/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   sodipodi:docname="oftChoiceCompSmall.svg"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 181.5781 62.16366"
+   height="2.4473882in"
+   width="7.1487441in">
+  <sodipodi:namedview
+     fit-margin-bottom="0"
+     fit-margin-right="0"
+     fit-margin-left="0"
+     fit-margin-top="0"
+     inkscape:snap-global="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox="true"
+     inkscape:document-rotation="0"
+     inkscape:guide-bbox="true"
+     inkscape:snap-grids="true"
+     units="in"
+     showguides="true"
+     inkscape:window-maximized="1"
+     inkscape:window-y="0"
+     inkscape:window-x="1920"
+     inkscape:window-height="1043"
+     inkscape:window-width="1920"
+     showgrid="false"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="452.96256"
+     inkscape:cx="443.80704"
+     inkscape:zoom="0.7071068"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base">
+    <inkscape:grid
+       originy="-18.467925"
+       originx="-20.349043"
+       spacingy="1"
+       spacingx="1"
+       units="mm"
+       id="grid4586"
+       type="xygrid" />
+  </sodipodi:namedview>
+  <defs
+     id="defs2">
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker14586"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path14584" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="marker14308"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Mend">
+      <path
+         inkscape:connector-curvature="0"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path14306" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker13922"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         inkscape:connector-curvature="0"
+         id="path13920"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker6554"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path6552"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:stockid="Arrow1Mend"
+       orient="auto"
+       refY="0"
+       refX="0"
+       id="marker6074"
+       style="overflow:visible"
+       inkscape:isstock="true">
+      <path
+         id="path6072"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         transform="matrix(-0.4,0,0,-0.4,-4,0)"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <marker
+       inkscape:isstock="true"
+       style="overflow:visible"
+       id="Arrow1Lend"
+       refX="0"
+       refY="0"
+       orient="auto"
+       inkscape:stockid="Arrow1Lend">
+      <path
+         transform="matrix(-0.8,0,0,-0.8,-10,0)"
+         style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1pt;stroke-opacity:1"
+         d="M 0,0 5,-5 -12.5,0 5,5 Z"
+         id="path5379"
+         inkscape:connector-curvature="0" />
+    </marker>
+    <clipPath
+       id="p2aa9f268f3-5">
+      <rect
+         id="rect1253-3"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2871">
+      <rect
+         id="rect2869"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2875">
+      <rect
+         id="rect2873"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2879">
+      <rect
+         id="rect2877"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2883">
+      <rect
+         id="rect2881"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2887">
+      <rect
+         id="rect2885"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2891">
+      <rect
+         id="rect2889"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2895">
+      <rect
+         id="rect2893"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2899">
+      <rect
+         id="rect2897"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2903">
+      <rect
+         id="rect2901"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2907">
+      <rect
+         id="rect2905"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2911">
+      <rect
+         id="rect2909"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2915">
+      <rect
+         id="rect2913"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2919">
+      <rect
+         id="rect2917"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2923">
+      <rect
+         id="rect2921"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2927">
+      <rect
+         id="rect2925"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2931">
+      <rect
+         id="rect2929"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2935">
+      <rect
+         id="rect2933"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2939">
+      <rect
+         id="rect2937"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+    <clipPath
+       id="clipPath2943">
+      <rect
+         id="rect2941"
+         y="227.51859"
+         x="185.30002"
+         width="372.69995"
+         height="41.283508" />
+    </clipPath>
+  </defs>
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     style="display:inline"
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-20.349043,-36.067924)">
+    <g
+       id="g4939">
+      <rect
+         y="36.067924"
+         x="20.349049"
+         height="30.410627"
+         width="30.410627"
+         id="rect987-7"
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:1.2663;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="ofMap" />
+      </rect>
+      <rect
+         style="vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:2.30023;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect2953"
+         width="126.44581"
+         height="16.069633"
+         x="75.481339"
+         y="48.55825">
+        <figurefirst:axis
+           figurefirst:name="ofTopTen" />
+      </rect>
+      <rect
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:1.25718;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect987-7-5"
+         width="126.44581"
+         height="7.2088151"
+         x="75.481339"
+         y="41.349434">
+        <figurefirst:axis
+           figurefirst:name="ofTopTenTraces" />
+      </rect>
+      <rect
+         y="44.800266"
+         x="48.92281"
+         height="15.020345"
+         width="30.040689"
+         id="rect987-0"
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.884522;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="ofSchematic" />
+      </rect>
+      <rect
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.80411;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect987"
+         width="27.309717"
+         height="13.654859"
+         x="50.288288"
+         y="76.177635">
+        <figurefirst:axis
+           figurefirst:name="chSchematic" />
+      </rect>
+      <rect
+         y="78.723671"
+         x="75.481331"
+         height="16.069633"
+         width="126.44581"
+         id="rect2953-5"
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:2.30023;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="chTopTen" />
+      </rect>
+      <rect
+         y="71.514931"
+         x="75.481331"
+         height="7.2088151"
+         width="126.44581"
+         id="rect987-7-5-6"
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:1.25718;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1">
+        <figurefirst:axis
+           figurefirst:name="chTopTenTraces" />
+      </rect>
+      <rect
+         style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:1.2663;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         id="rect987-7-7"
+         width="30.410629"
+         height="30.410629"
+         x="20.349043"
+         y="67.820953">
+        <figurefirst:axis
+           figurefirst:name="chMap" />
+      </rect>
+      <figurefirst:figure
+         figurefirst:name="n1" />
+    </g>
+  </g>
+  <g
+     style="display:inline"
+     inkscape:label="Panel numbers"
+     id="layer2"
+     inkscape:groupmode="layer"
+     transform="translate(-20.349043,110.93208)">
+    <text
+       id="text1476"
+       y="-8.5390635"
+       x="169.66023"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:4.23333px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583"
+       xml:space="preserve" />
+  </g>
+  <g
+     style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+     inkscape:label="plots"
+     id="plots"
+     inkscape:groupmode="layer"
+     transform="matrix(0.35277778,0,0,0.35277778,-20.349043,-18.467924)">
+    <figurefirst:targetlayer
+       figurefirst:name="plots" />
+    <defs
+       id="defs36">
+      <style
+         type="text/css"
+         id="style34">
+*{stroke-linecap:butt;stroke-linejoin:round;}
+  </style>
+    </defs>
+    <g
+       id="patch_1">
+      <path
+         id="path38"
+         style="fill:none"
+         d="M 0,792 H 612 V 0 H 0 Z" />
+    </g>
+    <defs
+       id="defs1256">
+      <clipPath
+         id="pa5ffabbb58">
+        <rect
+           height="32.97501"
+           width="69.0905"
+           x="187.07025"
+           y="451.33179"
+           id="rect1247" />
+      </clipPath>
+      <clipPath
+         id="pcca3793a3f">
+        <rect
+           height="65.98616"
+           width="49.652954"
+           x="95.702988"
+           y="204.95003"
+           id="rect1250" />
+      </clipPath>
+      <clipPath
+         id="p2aa9f268f3">
+        <rect
+           height="41.283508"
+           width="372.69995"
+           x="185.30002"
+           y="227.51859"
+           id="rect1253" />
+      </clipPath>
+    </defs>
+    <defs
+       id="defs92">
+      <style
+         type="text/css"
+         id="style90">
+*{stroke-linecap:butt;stroke-linejoin:round;}
+  </style>
+    </defs>
+    <g
+       id="g96">
+      <path
+         id="path94"
+         style="fill:none"
+         d="M 0,792 H 612 V 0 H 0 Z" />
+    </g>
+    <defs
+       id="defs2482">
+      <clipPath
+         id="p9ee0c3f825">
+        <rect
+           height="86.203354"
+           width="64.865891"
+           x="53.95911"
+           y="194.47884"
+           id="rect2464" />
+      </clipPath>
+      <clipPath
+         id="p504d025db7">
+        <rect
+           height="39.70274"
+           width="358.42908"
+           x="199.57089"
+           y="232.80896"
+           id="rect2467" />
+      </clipPath>
+      <clipPath
+         id="p4af05fe62f">
+        <rect
+           height="38.706688"
+           width="66.354317"
+           x="127.68705"
+           y="219.66725"
+           id="rect2470" />
+      </clipPath>
+      <clipPath
+         id="pe42f0cdc69">
+        <rect
+           height="36.947292"
+           width="77.413368"
+           x="122.1575"
+           y="327.05536"
+           id="rect2473" />
+      </clipPath>
+      <clipPath
+         id="p76babe0534">
+        <rect
+           height="28.674326"
+           width="358.42908"
+           x="199.57086"
+           y="344.83148"
+           id="rect2476" />
+      </clipPath>
+      <clipPath
+         id="p87a59a86c2">
+        <rect
+           height="86.203362"
+           width="74.142799"
+           x="49.320641"
+           y="300.98743"
+           id="rect2479" />
+      </clipPath>
+    </defs>
+  </g>
+</svg>
