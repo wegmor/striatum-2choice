@@ -107,6 +107,8 @@ def plotTop10Events(trace, tracking, axs=None, framesBefore=5, framesAfter=15, o
     ax.axis('off')
     tax.axis('off')
 
+    return np.array(pIdx)
+
 
 #%%
 ofTuningData = analysisOpenField.getTuningData(endoDataPath)
@@ -141,7 +143,7 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
                      .sort_values(ascending=False).index.astype('int').values)
     
     # 278, 43, 166, 86, 117, 77, 0, 224, 217, 198, 73, 97 <- 5308, 190201
-    for n,neuron in enumerate(neurons[:20]):
+    for n,neuron in enumerate(neurons[:30]):
         svgName = 'oftChoiceCompSmall.svg'
         layout = figurefirst.FigureLayout(templateFolder / svgName)
         layout.make_mplfigures()
@@ -150,6 +152,7 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
         chTrace = chTraces[neuron]
     
         # open field
+        # schematic
         schemAx = layout.axes[('n{}'.format(n),'ofSchematic')]['axis']
         fig = schemAx.get_figure()
         fig.sca(schemAx)
@@ -157,19 +160,25 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
                                              smoothing=3)
         img = fv.draw(ofTrace, ax=schemAx)
         
-        mapAx = layout.axes[('n{}'.format(n),'ofMap')]['axis']
-        fig.sca(mapAx)
-        fv = fancyViz.TrackingIntensityPlot(session=ofSess, smoothing=15, saturation=1.0,
-                                            portsUp=True, drawBg=False)
-        fv.draw(ofTrace, ax=mapAx)
-        
+        # top events
         topTenEventsAx = layout.axes[('n{}'.format(n),'ofTopTen')]['axis']
         topTenTracesAx = layout.axes[('n{}'.format(n),'ofTopTenTraces')]['axis']
-        plotTop10Events(ofTrace, ofTracking, axs=[topTenEventsAx, topTenTracesAx])
+        pIdx = plotTop10Events(ofTrace, ofTracking, axs=[topTenEventsAx, topTenTracesAx])
         topTenEventsAx.vlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
         topTenEventsAx.hlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
         topTenTracesAx.vlines(-12.5, -5, 5, lw=mpl.rcParams['axes.linewidth'])
         topTenTracesAx.hlines(-5, -12.5, -7.5, lw=mpl.rcParams['axes.linewidth'])
+        
+        # map
+        mapAx = layout.axes[('n{}'.format(n),'ofMap')]['axis']
+        fig.sca(mapAx)
+        fv = fancyViz.TrackingIntensityPlot(session=ofSess, smoothing=15, saturation=1.0,
+                                            portsUp=False, drawBg=False)
+        fv.draw(ofTrace, ax=mapAx)
+        headCoords = fv.coordinates
+        mapAx.scatter(headCoords[pIdx,0], headCoords[pIdx,1], marker='x',
+                      linewidth=mpl.rcParams['axes.linewidth'],
+                      c=cmocean.cm.phase(np.arange(10)/11))
         
         # 2-choice
         schemAx = layout.axes[('n{}'.format(n),'chSchematic')]['axis']
@@ -178,19 +187,23 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
                                              smoothing=5, splitReturns=False)
         img = fv.draw(chTrace, ax=schemAx)
         
+        topTenEventsAx = layout.axes[('n{}'.format(n),'chTopTen')]['axis']
+        topTenTracesAx = layout.axes[('n{}'.format(n),'chTopTenTraces')]['axis']
+        pIdx = plotTop10Events(chTrace, chTracking, axs=[topTenEventsAx, topTenTracesAx])
+        topTenEventsAx.vlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
+        topTenEventsAx.hlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
+        topTenTracesAx.vlines(-12.5, -2, 3, lw=mpl.rcParams['axes.linewidth'])
+        topTenTracesAx.hlines(-2, -12.5, -7.5, lw=mpl.rcParams['axes.linewidth'])
+        
         mapAx = layout.axes[('n{}'.format(n),'chMap')]['axis']
         fig.sca(mapAx)
         fv = fancyViz.TrackingIntensityPlot(session=chSess, smoothing=15, saturation=1.0,
                                             portsUp=True, drawBg=False)
         fv.draw(chTrace, ax=mapAx)
-        
-        topTenEventsAx = layout.axes[('n{}'.format(n),'chTopTen')]['axis']
-        topTenTracesAx = layout.axes[('n{}'.format(n),'chTopTenTraces')]['axis']
-        plotTop10Events(chTrace, chTracking, axs=[topTenEventsAx, topTenTracesAx])
-        topTenEventsAx.vlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
-        topTenEventsAx.hlines(-10, -10, -5, lw=mpl.rcParams['axes.linewidth'])
-        topTenTracesAx.vlines(-12.5, -2, 3, lw=mpl.rcParams['axes.linewidth'])
-        topTenTracesAx.hlines(-2, -12.5, -7.5, lw=mpl.rcParams['axes.linewidth'])
+        headCoords = fv.coordinates
+        mapAx.scatter(headCoords[pIdx,1], fv.canvasSize[1]-headCoords[pIdx,0],
+                      marker='x', linewidth=mpl.rcParams['axes.linewidth'],
+                      c=cmocean.cm.phase(np.arange(10)/11))
         
         plt.suptitle('{} {} {} #{}'.format(ofSess.meta.genotype, ofSess.meta.animal,
                                            ofSess.meta.date, neuron))
@@ -203,5 +216,6 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
     #layout.insert_figures('plots')
     #layout.write_svg(outputFolder / svgName)
     pdf.close()
+
 
 #%%
