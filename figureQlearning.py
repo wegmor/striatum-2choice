@@ -66,13 +66,13 @@ ax.set_ylim(-7, 7)
 ax.set_xticks([])
 rewards = lfa.loc[lfa.label.str.endswith('r').astype('int').diff()==1].index.values
 for r in rewards:
-    fancyViz.drawWaterDrop(ax, np.array([r, 6]), np.array([75, 1]),
+    fancyViz.drawWaterDrop(ax, np.array([r, 6]), np.array([50, 1]),
                            facecolor='k')
     ax.axvline(r, .05, .85, lw=.5, ls='--', color='k')
 ax.hlines(-7, 18800, 20000, clip_on=False, color='k')
 ax.text(19400, -8, "1 min".format(1000/20), ha="center", va="top", fontsize=6)
 sns.despine(ax=ax, bottom=True)
-ax.legend(ncol=2, bbox_to_anchor=(0.55, 1.05, 0.45, 0.1), mode="expand")
+ax.legend(ncol=2, bbox_to_anchor=(0.75, 1.05, 0.25, 0.1), mode="expand")
 
 q_choices = qAVs[qAVs.label.str.match("pC2[RL]")].copy()
 q_choices["rightChoice"] = q_choices.label.str.match("pC2R")
@@ -131,7 +131,7 @@ ax.set_ylim(-5, 5)
 ax.set_xticks([-5, 0, 5])
 ax.set_yticks([-5, 0, 5])
 ax.set_xlabel("Q action value")
-ax.set_ylabel("regression action value")
+ax.set_ylabel("regression\naction value")
 sns.despine(ax=ax)
 
 ax = layout.axes['inset_corr']['axis']
@@ -143,7 +143,7 @@ ax.set_ylabel("correlation")
 ax.set_ylim(0.5, 1.0)
 ax.set_yticks((0.5, 0.75, 1.0))
 ax.set_xticks([])
-sns.despine(ax=ax, bottom=False)
+sns.despine(ax=ax, bottom=True)
 
 
 P = pd.read_pickle(cacheFolder / "stsw_p.pkl") #TODO: call proper function
