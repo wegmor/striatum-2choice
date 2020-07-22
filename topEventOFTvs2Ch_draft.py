@@ -120,11 +120,13 @@ chTuningData = analysisTunings.getTuningData(endoDataPath)
 #layout = figurefirst.FigureLayout(templateFolder / svgName)
 #layout.make_mplfigures()
 
+selTask = 'choice'
 for ofSess in readSessions.findSessions(endoDataPath, task='openField',
                                         filterQuery='date != "190224"'):
-    pdf = PdfPages('svg/oftChoiceComp/{}_{}_{}.pdf'.format(ofSess.meta.genotype,
-                                                           ofSess.meta.animal,
-                                                           ofSess.meta.date))
+    pdf = PdfPages('svg/oftChoiceComp/{}_{}_{}_{}-sorted.pdf'.format(ofSess.meta.genotype,
+                                                                     ofSess.meta.animal,
+                                                                     ofSess.meta.date,
+                                                                     selTask))
     
     chSess = next(readSessions.findSessions(endoDataPath, task='2choice',
                                             genotype=ofSess.meta.genotype,
@@ -138,9 +140,13 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
     
     ofTuning = ofTuningData.query('animal == @ofSess.meta.animal & date == @ofSess.meta.date')
     chTuning = chTuningData.query('animal == @ofSess.meta.animal & date == @ofSess.meta.date')
-    tuning = pd.concat([chTuning, ofTuning], keys=['choice','oft'])
-    neurons = (tuning.groupby('neuron').tuning.max()
-                     .sort_values(ascending=False).index.astype('int').values)
+    tuning = pd.concat([chTuning, ofTuning], keys=['choice','oft'], names=['task']).reset_index(level=0)
+    #neurons = (tuning.groupby('neuron').tuning.max()
+    #                 .sort_values(ascending=False).index.astype('int').values)
+    
+    neurons = (tuning.loc[tuning.groupby(['task','neuron']).tuning.idxmax().values]
+                     .sort_values(['task','tuning'], ascending=False).set_index(['task','action']))
+    neurons = neurons.loc[selTask].neuron.values.astype('int')
     
     # 278, 43, 166, 86, 117, 77, 0, 224, 217, 198, 73, 97 <- 5308, 190201
     for n,neuron in enumerate(neurons[:30]):
@@ -157,7 +163,7 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
         fig = schemAx.get_figure()
         fig.sca(schemAx)
         fv = fancyViz.OpenFieldSchematicPlot(ofSess, linewidth=mpl.rcParams['axes.linewidth'],
-                                             smoothing=3)
+                                             smoothing=3, saturation=1)
         img = fv.draw(ofTrace, ax=schemAx)
         
         # top events
@@ -201,9 +207,10 @@ for ofSess in readSessions.findSessions(endoDataPath, task='openField',
                                             portsUp=True, drawBg=False)
         fv.draw(chTrace, ax=mapAx)
         headCoords = fv.coordinates
-        mapAx.scatter(headCoords[pIdx,1], fv.canvasSize[1]-headCoords[pIdx,0],
+        mapAx.scatter(headCoords[pIdx,0], headCoords[pIdx,1],
                       marker='x', linewidth=mpl.rcParams['axes.linewidth'],
-                      c=cmocean.cm.phase(np.arange(10)/11))
+                      c=cmocean.cm.phase(np.arange(10)/11),
+                      transform=fv.transform)
         
         plt.suptitle('{} {} {} #{}'.format(ofSess.meta.genotype, ofSess.meta.animal,
                                            ofSess.meta.date, neuron))
