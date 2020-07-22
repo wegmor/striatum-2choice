@@ -120,6 +120,7 @@ class TrackingIntensityPlot(IntensityPlot):
         self.drawBg = drawBg
         self.exactWalls = exactWalls
         self.canvasSize = None
+        self.transform = None
         self.mask = slice(None, None) #No mask, use all values
         self.setSession(session)
         self.clearBuffer()
@@ -169,8 +170,8 @@ class TrackingIntensityPlot(IntensityPlot):
             corners_x = corners[corners.index.get_level_values(1) == 'x'].values
             corners_y = corners[corners.index.get_level_values(1) == 'y'].values
             
-            top = np.min(corners_y)
-            bottom = np.max(corners_y)
+            top = corners_y[2] # np.min(corners_y) <- better alignment of ports
+            bottom = corners_y[3] # np.max(corners_y)
             left = np.min(corners_x)
             right = np.max(corners_x)
             if not self.exactWalls:
@@ -185,6 +186,7 @@ class TrackingIntensityPlot(IntensityPlot):
                 for y in top+s*np.array([1, 3, 5]):
                     drawRoundedRect(plt.gca(), (right, y), s, s, [0, 0, s/4, s/4],
                                     fill=False, edgecolor="k", transform=t)
+        self.transform = t
         plt.axis("off")
         
         
