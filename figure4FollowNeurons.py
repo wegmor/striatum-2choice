@@ -11,6 +11,7 @@ from utils import readSessions, fancyViz, alluvialPlot
 import analysisOpenField
 import analysisTunings
 import analysisDecoding
+import analysisOftVs2Choice
 import style
 import subprocess
 style.set_context()
@@ -35,7 +36,208 @@ genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
                  'rightTurn': 'right turn'}
 
-## Panel A
+def bootstrapSEM(values, weights, iterations=1000):
+    avgs = []
+    for _ in range(iterations):
+        idx = np.random.choice(len(values), len(values), replace=True)
+        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
+    return np.std(avgs)
+
+
+#%% remapping example neurons plot
+ofSess =  next(readSessions.findSessions(endoDataPath, task='openField',
+                                         animal='5308', date='190201'))
+chSess = next(readSessions.findSessions(endoDataPath, task='2choice',
+                                        animal=ofSess.meta.animal,
+                                        date=ofSess.meta.date))
+ofTraces = ofSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+chTraces = chSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+ofTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.genotype, 
+                                                      ofSess.meta.animal, ofSess.meta.date,
+                                                      'openField')
+chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.genotype,
+                                                      ofSess.meta.animal, ofSess.meta.date,
+                                                      '2choice')
+
+for n,neuron in enumerate([86,192][::-1]):
+    ofTrace = ofTraces[neuron]
+    chTrace = chTraces[neuron]
+
+    ### open field
+    # schematic
+    schemAx = layout.axes[('n{}'.format(n),'ofSchematic')]['axis']
+    fig = schemAx.get_figure()
+    fig.sca(schemAx)
+    fv = fancyViz.OpenFieldSchematicPlot(ofSess, linewidth=mpl.rcParams['axes.linewidth'],
+                                         smoothing=3, saturation=1)
+    img = fv.draw(ofTrace, ax=schemAx)
+    
+    # top events
+    topTenEventsAx = layout.axes[('n{}'.format(n),'ofTopTen')]['axis']
+    topTenTracesAxOf = layout.axes[('n{}'.format(n),'ofTopTenTraces')]['axis']
+    pIdx = analysisOftVs2Choice.plotTop10Events(ofTrace, ofTracking, 
+                                                axs=[topTenEventsAx, topTenTracesAxOf],
+                                                offset=10)
+    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenTracesAxOf.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenTracesAxOf.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    
+    # map
+    mapAx = layout.axes[('n{}'.format(n),'ofMap')]['axis']
+    fig.sca(mapAx)
+    fv = fancyViz.TrackingIntensityPlot(session=ofSess, smoothing=20, saturation=1,
+                                        drawBg=False)
+    fv.draw(ofTrace, ax=mapAx)
+    headCoords = fv.coordinates
+    mapAx.scatter(headCoords[pIdx,0], headCoords[pIdx,1], marker='x',
+                  linewidth=mpl.rcParams['axes.linewidth'],
+                  c=cmocean.cm.phase(np.arange(10)/11))
+    
+    ### 2-choice
+    # schematic
+    schemAx = layout.axes[('n{}'.format(n),'chSchematic')]['axis']
+    fig.sca(schemAx)
+    fv = fancyViz.SchematicIntensityPlot(chSess, linewidth=mpl.rcParams['axes.linewidth'],
+                                         smoothing=5, splitReturns=False, saturation=1)
+    img = fv.draw(chTrace, ax=schemAx)
+    
+    # top events
+    topTenEventsAx = layout.axes[('n{}'.format(n),'chTopTen')]['axis']
+    topTenTracesAxCh = layout.axes[('n{}'.format(n),'chTopTenTraces')]['axis']
+    pIdx = analysisOftVs2Choice.plotTop10Events(chTrace, chTracking, 
+                                                axs=[topTenEventsAx, topTenTracesAxCh],
+                                                offset=10)
+    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenTracesAxCh.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenTracesAxCh.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    
+    # map
+    mapAx = layout.axes[('n{}'.format(n),'chMap')]['axis']
+    fig.sca(mapAx)
+    fv = fancyViz.TrackingIntensityPlot(session=chSess, smoothing=20, saturation=1,
+                                        portsUp=True, drawBg=False)
+    fv.draw(chTrace, ax=mapAx)
+    headCoords = fv.coordinates
+    mapAx.scatter(headCoords[pIdx,0], headCoords[pIdx,1],
+                  marker='x', linewidth=mpl.rcParams['axes.linewidth'],
+                  c=cmocean.cm.phase(np.arange(10)/11),
+                  transform=fv.transform)
+    
+    traceAxLims = np.concatenate([topTenTracesAxCh.get_ylim(),topTenTracesAxOf.get_ylim()])
+    traceAxLims = (traceAxLims.min(), traceAxLims.max())
+    topTenTracesAxCh.set_ylim(traceAxLims)
+    topTenTracesAxOf.set_ylim(traceAxLims)
+
+cax = layout.axes['second_colorbar']['axis']
+cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
+cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
+cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+
+
+#%% oft vs choice left/right tuning comparison
+ofTuningData = analysisOpenField.getTuningData(endoDataPath)
+chTuningData = analysisTunings.getTuningData(endoDataPath)
+
+tuningData = (pd.concat([chTuningData, ofTuningData], keys=['choice','oft'], names=['task'])
+                .reset_index('task').reset_index(drop=True))
+tuningData['signp'] = tuningData.pct > .995
+tuningData = tuningData.set_index(['task','action','genotype','animal','date','neuron'])
+
+signTuned = tuningData.unstack(['task','action']).dropna()['signp']
+#signTuned[('choice','none')] = signTuned.choice.sum(axis=1) == 0
+#signTuned[('choice','port')] = signTuned.choice.loc[:,signTuned.choice.columns.str.contains('^p|^d')].any(axis=1)
+signTuned[('choice','leftTurn')] = signTuned.choice[['mC2L-','mR2C-']].any(axis=1)
+signTuned[('choice','rightTurn')] = signTuned.choice[['mC2R-','mC2R-']].any(axis=1)
+    
+for tuning in ['leftTurn', 'rightTurn']:
+    data = signTuned.loc[:,signTuned.columns.get_level_values(1) == tuning].droplevel(1, axis=1)
+    
+    noNeurons = data.groupby(['genotype','animal','date']).size()
+    pctTund = data.groupby(['genotype','animal','date']).sum(axis=1) / noNeurons.values[:,np.newaxis]
+    pctTund *= 100
+    
+    obsOvlp = ((data.oft * data.choice).groupby(['genotype','animal','date']).sum() / \
+                noNeurons)
+    expOvlp = ((data.oft.groupby(['genotype','animal','date']).sum() / \
+                noNeurons) * \
+               (data.choice.groupby(['genotype','animal','date']).sum() / \
+                noNeurons))
+    ovlpDf = pd.concat([obsOvlp, expOvlp], axis=1, keys=['observed','expected']) * 100
+    
+    axs = [layout.axes['{}PctTuned'.format(tuning)]['axis'], 
+           layout.axes['{}Ovlp'.format(tuning)]['axis']]
+    
+    for gt,df in pctTund.groupby('genotype'):
+        x = {'d1':0,'a2a':1,'oprm1':2}[gt]
+        ax = axs[0]
+        means = np.average(df[['oft','choice']], axis=0, weights=noNeurons.loc[gt])
+        sems = [bootstrapSEM(df.oft, noNeurons.loc[gt]),
+                bootstrapSEM(df.choice, noNeurons.loc[gt])]
+        ax.errorbar(x=x-.2, y=means[0], yerr=sems[0],
+                    marker='^', color=style.getColor(gt), clip_on=False)
+        ax.errorbar(x=x+.2, y=means[1], yerr=sems[1],
+                     marker='s', color=style.getColor(gt), clip_on=False)
+        ax.plot([[x-.2]*len(df),[x+.2]*len(df)], df.T.values,
+                color=style.getColor(gt), alpha=.25, zorder=-99, clip_on=False)
+        ax.axhline(0, ls=':', alpha=.5, color='k', zorder=-100,
+                   lw=mpl.rcParams['axes.linewidth'])
+    
+    for gt,df in ovlpDf.groupby('genotype'):
+        x = {'d1':0,'a2a':1,'oprm1':2}[gt]
+        ax = axs[1]
+        means = np.average(df[['observed','expected']], axis=0, weights=noNeurons.loc[gt])
+        sems = [bootstrapSEM(df.observed, noNeurons.loc[gt]),
+                bootstrapSEM(df.expected, noNeurons.loc[gt])]
+        ax.errorbar(x=x-.2, y=means[0], yerr=sems[0],
+                    marker='o', color=style.getColor(gt), clip_on=False)
+        ax.errorbar(x=x+.2, y=means[1], yerr=sems[1],
+                    marker='o', markeredgecolor=style.getColor(gt),
+                    markerfacecolor='w', ecolor=style.getColor(gt), clip_on=False)
+        ax.plot([[x-.2]*len(df),[x+.2]*len(df)], df.T.values,
+                color=style.getColor(gt), alpha=.25, zorder=-99, clip_on=False)
+        ax.axhline(0, ls=':', alpha=.5, color='k', zorder=-100,
+                   lw=mpl.rcParams['axes.linewidth'])
+
+    for ax in axs:
+        ax.set_ylim(0,100)
+        ax.set_yticks([0,50,100])
+        ax.set_yticks([25,75], minor=True)
+        ax.set_xlim((-.5,2.5))
+        ax.set_xticks([])
+        sns.despine(ax=ax, bottom=True)
+        if tuning == 'rightTurn': ax.set_yticklabels([])
+    if tuning == 'leftTurn':
+        legend_elements = [mpl.lines.Line2D([0], [0], marker='^', ls='', color='k',
+                                            label='open field'),
+                           mpl.lines.Line2D([0], [0], marker='s', ls='', color='k',
+                                            label='2-choice')]
+        axs[0].legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(.5,.95))
+        axs[0].set_ylabel('% tuned', labelpad=0)
+        legend_elements = [mpl.lines.Line2D([0], [0], marker='o', ls='', color='k',
+                                            label='observed'),
+                           mpl.lines.Line2D([0], [0], marker='o', ls='', markeredgecolor='k',
+                                            markerfacecolor='w', label='expected')]
+        axs[1].legend(handles=legend_elements, loc='upper center', bbox_to_anchor=(.5,.95))
+        axs[1].set_ylabel('% overlap', labelpad=0)
+        axs[0].set_title('left turn')
+    else:
+        axs[0].set_title('right turn')
+
+axt = layout.axes['gt_legend']['axis']
+legend_elements = [mpl.patches.Patch(color=style.getColor(gt), alpha=1,
+                                     label=genotypeNames[gt])
+                   for gt in ['d1','a2a','oprm1']
+                  ]
+axt.legend(handles=legend_elements, ncol=3, loc='center')
+axt.axis('off')
+
+
+#%% alluvial plot
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
 openFieldTunings = analysisOpenField.getTuningData(endoDataPath, segmentedBehavior)
 
@@ -93,42 +295,9 @@ for gt in ("d1", "a2a", "oprm1"):
         for label, y in ticks.items():
             ax.text(1.25, y, phaseNames[label], ha="left", va="center",
                     color=style.getColor(label))
-print("Panel B (followed neurons):")
+print("alluvial (followed neurons):")
 print(primaryPairs.groupby("genotype").size())
 
-## Panel B
-examples = [
-    ('d1_5643_190201', 112),
-    ('a2a_5693_190131', 197),
-    ('oprm1_5308_190201', 86)
-]
-for i in range(3):
-    genotype, animal, date = examples[i][0].split("_")
-    twoChoiceSess = next(readSessions.findSessions(endoDataPath, animal=animal,
-                                                   date=date, task="2choice"))
-    openFieldSess = next(readSessions.findSessions(endoDataPath, animal=animal,
-                                                   date=date, task="openField"))
-    twoChoiceSignal = twoChoiceSess.readDeconvolvedTraces()[examples[i][1]]
-    twoChoiceSignal -= twoChoiceSignal.mean()
-    twoChoiceSignal /= twoChoiceSignal.std()
-    openFieldSignal = openFieldSess.readDeconvolvedTraces()[examples[i][1]]
-    openFieldSignal -= openFieldSignal.mean()
-    openFieldSignal /= openFieldSignal.std()
-    twoChoiceAx = layout.axes["ex_2choice_{}".format(i+1)]["axis"]
-    openFieldAx = layout.axes["ex_of_{}".format(i+1)]["axis"]
-    fv2choice = fancyViz.SchematicIntensityPlot(twoChoiceSess, linewidth=style.lw()*0.5,
-                                                smoothing=7, splitReturns=False)
-    img = fv2choice.draw(twoChoiceSignal, ax=twoChoiceAx)
-    fvof = fancyViz.OpenFieldSchematicPlot(openFieldSess, linewidth=style.lw()*0.5)
-    img = fvof.draw(openFieldSignal, ax=openFieldAx)
-    openFieldAx.set_title(genotypeNames[genotype] + " example", loc="left", pad=-4)
-cax = layout.axes['second_colorbar']['axis']
-cb = plt.colorbar(img, cax=cax, orientation='horizontal')
-cb.outline.set_visible(False)
-cax.set_axis_off()
-cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
-cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
-cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 #%% Panel C
 sel_neurons = [92,44,16]
@@ -238,12 +407,6 @@ cax.text(.5, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6},
 
 #%% Panel E
 decodingAcrossDays = analysisDecoding.decodingAcrossDays(endoDataPath, alignmentDataPath)
-def bootstrapSEM(values, weights, iterations=1000):
-    avgs = []
-    for _ in range(iterations):
-        idx = np.random.choice(len(values), len(values), replace=True)
-        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
-    return np.std(avgs)
 
 fromDate = pd.to_datetime(decodingAcrossDays.fromDate, format="%y%m%d")
 toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
@@ -306,6 +469,6 @@ print(selection.groupby([pd.cut(selection.dayDifference, (1, 4, 14, 100)), "geno
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                             '-o', outputFolder / (svgName[:-3]+'pdf')])
 
