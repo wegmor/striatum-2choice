@@ -27,8 +27,8 @@ def particleFilter(tracking, nParticles = 2000, flattening=0.0):
     
     meanElong = np.mean(np.sqrt(((tracking.body - tracking.tailBase)**2).sum(axis=1)))                    
     state = {
-        'x'     : tracking.body.x.iloc[0] + np.random.normal(0,5,nParticles),
-        'y'     : tracking.body.y.iloc[0] + np.random.normal(0,5,nParticles),
+        'x'     : tracking.body.x.dropna().iloc[0] + np.random.normal(0,5,nParticles),
+        'y'     : tracking.body.y.dropna().iloc[0] + np.random.normal(0,5,nParticles),
         'speed' : np.random.normal(0,1,nParticles),
         'bodyAngle' :      np.random.uniform(-np.pi, np.pi, nParticles),
         'bodyAngleSpeed' : np.random.normal(0, 0.2, nParticles),
