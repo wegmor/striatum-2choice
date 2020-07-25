@@ -149,9 +149,9 @@ e=ax2.errorbar(gstats.index, gstats['mean'], gstats['sem'], clip_on=False,
                color=style.getColor('stay'))
 e[0].set_clip_on(False)
 [b.set_clip_on(False) for b in e[2]]
-ax2.axhline(bstats.switch.mean(), alpha=.5, color=style.getColor('stay'))
-ax2.fill_between([-11,1], bstats.switch.mean()-bstats.switch.sem(),
-                          bstats.switch.mean()+bstats.switch.sem(),
+ax2.axhline(bstats.reward.mean(), alpha=.5, color=style.getColor('stay'))
+ax2.fill_between([-11,1], bstats.reward.mean()-bstats.reward.sem(),
+                          bstats.reward.mean()+bstats.reward.sem(),
                           alpha=.2, color=style.getColor('stay'), lw=0)
 ax2.vlines(0, .05, .49, linestyle=':', color=style.getColor('switch'), zorder=-99,
            alpha=1, clip_on=False)
