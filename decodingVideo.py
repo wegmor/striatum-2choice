@@ -135,8 +135,8 @@ df = df.apply(getPredColor, axis=1)
 df = df.unstack('phase')
 
 # reindex to have colors per frame
-sess = next(readSessions.findSessions('data/endoData_2019.hdf', task='2choice', animal='5308',
-                                                                date='190201'))
+sess = next(readSessions.findSessions('data/endoData_2019.hdf', task='2choice',
+                                      animal='5308', date='190201'))
 lfa = sess.labelFrameActions(reward="fullTrial", switch=True).set_index(['actionNo','label'])
 df = df.reindex(lfa.index).fillna(mpl.colors.to_hex((0,0,0,.75), keep_alpha=True))
 #df.to_pickle('cache/oprm1_5308_190201_colored_decoding.pkl')
@@ -164,7 +164,7 @@ axs[0].axis('off')
 cax = axs[1]
 colors = svcCmap(np.linspace(0,1,100))
 colors = np.stack([colors]*100, axis=1)
-alpha = np.stack([np.linspace(1,0,100)]*100, axis=0)
+alpha = np.stack([np.linspace(0,1,100)]*100, axis=0)
 colors[:,:,3] = alpha
 cax.imshow(colors, origin='lower', aspect='equal')
 cax.set_xticks((0,50,100))
@@ -177,7 +177,7 @@ def update(frame):
     plt.sca(axs[0])
     plt.cla()
     fancyViz.drawBinnedSchematicPlot(df.iloc[frame])
-    return [img]
+    return []
 
 ani = animation.FuncAnimation(fig, update, frames=np.arange(10460,12260), blit=True)
 
