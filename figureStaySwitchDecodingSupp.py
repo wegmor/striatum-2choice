@@ -641,20 +641,20 @@ for p,tt in enumerate(('rst',)):
     strs, cs = pdict[tt]
     
     sns.distplot(df.loc[df.trialTypes == strs[0],'distance'], hist=False, color=cs[0],
-                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3}, ax=ax)
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
     sns.distplot(df.loc[df.trialTypes == strs[1],'distance'], hist=False, color=cs[1],
-                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3}, ax=ax)
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
     sns.distplot(df.loc[df.trialTypes == strs[2],'distance'], hist=False, color=cs[2],
-                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3}, ax=ax)
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
     
     ax.set_ylim((0,2))
     ax.set_yticks((0,1,2))
     ax.set_yticks((.5,1.5), minor=True)
     ax.set_yticklabels(())
     ax.set_ylabel('')
-    ax.set_xlim((0,5))
-    ax.set_xticks(np.arange(6))
-    ax.set_xticks(np.arange(5)+.5, minor=True)
+    ax.set_xlim((0,4))
+    ax.set_xticks((0,2,4))
+    ax.set_xticks((1,3), minor=True)
     ax.set_xticklabels(())
     ax.set_xlabel('')
     #if tt == 'osw':
@@ -671,7 +671,7 @@ legend_elements = [mpl.patches.Patch(color=color,
                                             'o!Xr.':'lose-switch'}[tt]) 
                        for tt, color in zip(*pdict['rst'])]
 lg = axs[0].legend(handles=legend_elements, ncol=1, title='win-stay vs ...',
-                   bbox_to_anchor=(.96,.96), loc='upper right')
+                   bbox_to_anchor=(1,1), loc='upper right')
 lg.get_title().set_fontsize(6)
 
 
@@ -685,8 +685,8 @@ for action, ds in aDurations.groupby('behavior'):
                  kde_kws={'alpha':.75}, ax=ax)
 
 ax.set_xlim((0,2))
-ax.set_xticks(np.arange(0,2.2,.5))
-ax.set_xticks(np.arange(0,2,.25), minor=True)
+ax.set_xticks((0,1,2))
+ax.set_xticks((.5,1.5), minor=True)
 ax.set_xlabel('turn duration (s)')
 ax.set_ylim((0,4))
 ax.set_yticks((0,2,4))
