@@ -131,36 +131,3 @@ def plotTop10Events(trace, tracking, axs, framesBefore=5, framesAfter=14, offset
     
     return pIdx
 
-
-def plot2CTrackingEvent(track, ax, color='k', lw=.5, alpha=1., portsUp=True):
-    body = track['body'][['x','y']]
-    head = (track['leftEar'][['x','y']] + track['rightEar'][['x','y']]) / 2
-    tail = track['tailBase'][['x','y']]
-    
-    t = ax.transData
-    if portsUp:
-        t = plt.matplotlib.transforms.Affine2D().rotate_deg_around(15/2, 15/2, 90) + t
-    
-    for n in range(len(head)):
-        ax.plot(np.stack([head.iloc[n].x, body.iloc[n].x, tail.iloc[n].x]),
-                np.stack([head.iloc[n].y, body.iloc[n].y, tail.iloc[n].y]),
-                color=color, lw=lw, alpha=alpha,
-                #alpha=np.clip(((len(head)-n)/len(head))**.8,0,1)*alpha,
-                clip_on=False, transform=t)
-            
-
-def get2CTrajectoryDist(track1, track2):
-    track1, track2 = track1.copy(), track2.copy()
-    head1 = (track1['leftEar'][['x','y']] + track1['rightEar'][['x','y']]) / 2
-    head2 = (track2['leftEar'][['x','y']] + track2['rightEar'][['x','y']]) / 2
-    track1[('head','x')], track1[('head','y')] = head1.x, head1.y
-    track2[('head','x')], track2[('head','y')] = head2.x, head2.y
-    track1 = (track1.loc[:,track1.columns.get_level_values(1).isin(['x','y'])]
-                    .loc[:,['body','head','tailBase']]
-                    .stack(0))
-    track2 = (track2.loc[:,track2.columns.get_level_values(1).isin(['x','y'])]
-                    .loc[:,['body','head','tailBase']]
-                    .stack(0))
-    dists = ((track1-track2)**2).sum(axis=1, skipna=False).map(np.sqrt).unstack(-1).mean().mean()
-    return dists
-    
