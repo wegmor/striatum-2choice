@@ -1,29 +1,33 @@
 # Requirements
 
-python          3.8.3
-cython          0.29.14
-numpy           1.18.4
-pandas          0.25.3
-scipy           1.4.1
-scikit-learn    0.22.1
-statsmodels     0.11.0
-h5py            2.9.0
-tqdm            4.45.0
-scikit-image    0.16.2
-pillow          7.0.0
-matplotlib      3.2.1
-seaborn         0.9.0
-cmocean         2.0
-figurefirst     0.0.6
-Inkscape        0.92.5
+software        | version
+----------------|----------
+python          | 3.8.3
+cython          | 0.29.14
+numpy           | 1.18.5
+pandas          | 0.25.3
+scipy           | 1.4.1
+scikit-learn    | 0.22.1
+statsmodels     | 0.11.0
+h5py            | 2.9.0
+tqdm            | 4.45.0
+scikit-image    | 0.16.2
+pillow          | 7.0.0
+matplotlib      | 3.2.1
+seaborn         | 0.9.0
+cmocean         | 2.0
+figurefirst     | 0.0.6
+Inkscape        | 0.92.5
 
 
-~~~
+```bash
 $ conda create -n striatum-2choice python=3.8.3
 $ conda activate striatum-2choice
-$ conda install cython=0.29.14 numpy=1.18.5 pandas=0.25.3 scipy=1.4.1 scikit-learn=0.22.1 statsmodels=0.11.0 h5py=2.9.0 tqdm=4.45.0 scikit-image=0.16.2 pillow=7.0.0 matplotlib=3.2.1 seaborn=0.9.0 pip
+$ conda install cython=0.29.14 numpy=1.18.5 pandas=0.25.3 scipy=1.4.1 scikit-learn=0.22.1 \
+  statsmodels=0.11.0 h5py=2.9.0 tqdm=4.45.0 scikit-image=0.16.2 pillow=7.0.0 matplotlib=3.2.1 \
+  seaborn=0.9.0 pip
 $ pip install cmocean==2.0 figurefirst==0.0.6
-~~~
+```
 
 
 # File -> Figure
