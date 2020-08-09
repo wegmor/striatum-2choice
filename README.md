@@ -17,8 +17,9 @@ matplotlib      | 3.2.1
 seaborn         | 0.9.0
 cmocean         | 2.0
 figurefirst     | 0.0.6
-Inkscape        | 0.92.5
 
+
+# Install
 
 ```bash
 $ conda create -n striatum-2choice python=3.8.3

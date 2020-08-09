@@ -1,12 +1,12 @@
-import numpy as np
+#import numpy as np
 import pandas as pd
-import seaborn as sns
-import matplotlib.pyplot as plt
+#import seaborn as sns
+#import matplotlib.pyplot as plt
 import matplotlib
 import pathlib
 import figurefirst
 import tqdm
-import subprocess
+#import subprocess
 
 from utils import fancyViz
 from utils import readSessions
@@ -53,5 +53,5 @@ for i, (session, neuron) in selection.iterrows():
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / svgName)
 
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

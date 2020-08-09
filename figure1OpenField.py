@@ -11,7 +11,7 @@ import pathlib
 import figurefirst
 import style
 import analysisOpenField
-import subprocess
+#import subprocess
 plt.ioff()
 
 #%%
@@ -473,5 +473,5 @@ cax.text(0.5, 1.1, 'recall', ha='center', va='bottom', fontdict={'fontsize':6})
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

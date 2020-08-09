@@ -5,14 +5,14 @@ import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
-from matplotlib.ticker import MultipleLocator, FixedLocator
+from matplotlib.ticker import MultipleLocator #, FixedLocator
 import pathlib
 import figurefirst
 import style
 import analysisQlearning, analysisStaySwitchDecoding
-import cmocean
-import scipy.stats
-from utils import readSessions, sessionBarPlot, fancyViz
+#import cmocean
+#import scipy.stats
+from utils import readSessions, fancyViz #, sessionBarPlot
 plt.ioff()
 
 #%%

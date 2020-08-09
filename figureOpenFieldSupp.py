@@ -1,18 +1,18 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import scipy.stats
+#import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import h5py
+#import h5py
 import pathlib
 import figurefirst
 import cmocean
 import itertools
-import subprocess
+#import subprocess
 from matplotlib.ticker import MultipleLocator
 
-import analysisOpenField, analysisTunings
+import analysisOpenField #, analysisTunings
 import style
 from utils import readSessions, fancyViz
 
@@ -259,5 +259,5 @@ cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

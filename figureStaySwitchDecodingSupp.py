@@ -22,7 +22,7 @@ from utils import readSessions
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator
-import subprocess
+#import subprocess
 plt.ioff()
 
 
@@ -698,5 +698,5 @@ sns.despine(ax=ax)
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

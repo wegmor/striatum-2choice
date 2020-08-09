@@ -18,13 +18,13 @@ import pathlib
 import figurefirst
 import style
 import analysisStaySwitchDecoding
-import cmocean
+#import cmocean
 #from scipy.stats import ttest_1samp
-import scipy.stats
+#import scipy.stats
 #import statsmodels.formula.api as smf
-from scipy.spatial.distance import pdist, squareform
+#from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, fancyViz, sessionBarPlot
-import subprocess
+#import subprocess
 plt.ioff()
 
 
@@ -908,5 +908,5 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

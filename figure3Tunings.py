@@ -15,7 +15,7 @@ import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator, FixedLocator
 import scipy.stats
-from utils import readSessions, fancyViz, alluvialPlot, roiPlot
+from utils import readSessions, fancyViz, roiPlot #, alluvialPlot
 from collections import defaultdict
 import pathlib
 import figurefirst
@@ -23,7 +23,7 @@ import style
 import analysisTunings
 import analysisDecoding
 import analysisStaySwitchDecoding
-import subprocess
+#import subprocess
 plt.ioff()
 
 #%%
@@ -606,5 +606,5 @@ print(avgCorr.groupby(level=0).size())
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
