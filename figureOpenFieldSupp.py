@@ -211,7 +211,7 @@ for i in range(3):
     cax = layout.axes["legend_ex{}_colorbar".format(i+1)]
     if i<=1: ticks = (0, 75, 150)
     else: ticks = (0, 50, 100)
-    cb1 = mpl.colorbar.ColorbarBase(cmap="Greens", ax=cax,
+    cb1 = mpl.colorbar.ColorbarBase(cmap=mpl.cm.Greens, ax=cax,
                                     norm=mpl.colors.Normalize(vmin=ticks[0], vmax=ticks[-1]),
                                     orientation='vertical', ticks=ticks)
     cb1.outline.set_visible(False)
