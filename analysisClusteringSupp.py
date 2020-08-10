@@ -110,6 +110,7 @@ def getKMeansScores(tunings):
                                                   'genotype':gt,
                                                   'n_clusters':n}),
                                        ignore_index=True)
+    return score_df
 
 @cachedDataFrame("populationDistMatrix.pkl")
 def populationDistMatrix(dataFile):
