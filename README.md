@@ -11,8 +11,8 @@ Create an isolated python environment and install the required packages using [c
 ```bash
 $ conda create -n striatum-2choice python=3.8.3
 $ conda activate striatum-2choice
-$ conda install -c conda-forge cython numpy pandas scipy scikit-learn statsmodels h5py tqdm scikit-image \
-  pillow matplotlib seaborn deprecated pytables opencv pip
+$ conda install -c conda-forge cython numpy pandas scipy scikit-learn statsmodels h5py \
+  tqdm scikit-image pillow matplotlib seaborn deprecated pytables opencv pip
 $ pip install cmocean figurefirst
 ```
 
