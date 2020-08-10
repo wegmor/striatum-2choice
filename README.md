@@ -1,4 +1,4 @@
-This repository contains the code that generated the figures in the publication "Complete representation of action space and value in all striatal pathways", available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.03.29.983825v1). The associated data files can be found here [TODO].
+This repository contains the python code that generated the figures in the publication "Complete representation of action space and value in all striatal pathways", available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.03.29.983825v1). The associated data files can be found here [TODO].
 
 ### How to recreate our figures
 
@@ -45,3 +45,9 @@ To generate any figure, activate the conda environment (`$ conda activate striat
 - **Fig. S8:**  `figureFollowNeuronsSupp.py`
 - **Fig. S9:**  `figureStaySwitchDecodingSupp.py`
 - **Fig. S10:** `figureQlearning.py`
+
+### Reference
+
+*Complete representation of action space and value in all striatal pathways*
+Moritz Weglage*, Emil Wärnberg*, Iakovos Lazaridis*, Ourania Tzortzi, Konstantinos Meletis
+bioRxiv 2020.03.29.983825; doi: https://doi.org/10.1101/2020.03.29.983825 
