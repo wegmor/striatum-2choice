@@ -20,6 +20,7 @@ $ pip install cmocean==2.0 figurefirst==0.0.6
 
 Navigate to the top of the repository folder structure and create a `data` subfolder.
 Copy the data files `endoData_2019.hdf` and `alignment_190227.hdf` into the `data` folder.
+
 `endoData_2019.hdf` includes the [CaImAn](https://github.com/flatironinstitute/CaImAn)-extracted calcium traces and behavioral data (operant chamber logs, [https://github.com/DeepLabCut/DeepLabCut](https://github.com/DeepLabCut/DeepLabCut)-tracked coordinates).
 `alignment_190227.hdf` includes ROI-mappings across days as well as the ROI spatial filters as images.
 
