@@ -1,4 +1,6 @@
-# Install
+This repository contains the code that generated the figures in the publication "Complete representation of action space and value in all striatal pathways", available on [bioRxiv](https://www.biorxiv.org/content/10.1101/2020.03.29.983825v1). The associated data files can be found here [TODO].
+
+### How to recreate our figures
 
 Git-clone the repository or download it as a zip file and unpack.
 
