@@ -48,6 +48,4 @@ To generate any figure, activate the conda environment (`$ conda activate striat
 
 ### Reference
 
-*Complete representation of action space and value in all striatal pathways*
-Moritz Weglage*, Emil Wärnberg*, Iakovos Lazaridis*, Ourania Tzortzi, Konstantinos Meletis
-bioRxiv 2020.03.29.983825; doi: https://doi.org/10.1101/2020.03.29.983825 
+Weglage, M., Wärnberg, E., Lazaridis, I., Tzortzi, O., & Meletis, K. (2020). *Complete representation of action space and value in all striatal pathways.* bioRxiv, 2020.03.29.983825. https://doi.org/10.1101/2020.03.29.983825
