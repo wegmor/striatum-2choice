@@ -29,17 +29,17 @@ Many of the figures require substantial, preparatory computation (e.g. due to 10
 
 To generate any figure, activate the conda environment (`$ conda activate striatum-2choice`), navigate to the top of the repository folder structure, and run the associated python script (`$ python figureX.py`). To see which script creates what figure, refer to the list below:
 
-- **Fig. 1:**   figure1OpenField.py
-- **Fig. 2:**   figure2ChoiceIntro.py
-- **Fig. 3:**   figure3Tunings.py
-- **Fig. 4:**   figure4FollowNeurons.py
-- **Fig. 5:**   figure5StaySwitchDecoding.py
-- **Fig. S2:**  figureOpenFieldSupp.py
-- **Fig. S3:**  figureContinuity.py
-- **Fig. S4:**  figureTuningsSupp.py
-- **Fig. S5:**  figureRewardSupp.py
-- **Fig. S6:**  figureClusteringSupp.py
-- **Fig. S7:**  figureDecodingSupp.py
-- **Fig. S8:**  figureFollowNeuronsSupp.py
-- **Fig. S9:**  figureStaySwitchDecodingSupp.py
-- **Fig. S10:** figureQlearning.py
+- **Fig. 1:**   `figure1OpenField.py`
+- **Fig. 2:**   `figure2ChoiceIntro.py`
+- **Fig. 3:**   `figure3Tunings.py`
+- **Fig. 4:**   `figure4FollowNeurons.py`
+- **Fig. 5:**   `figure5StaySwitchDecoding.py`
+- **Fig. S2:**  `figureOpenFieldSupp.py`
+- **Fig. S3:**  `figureContinuity.py`
+- **Fig. S4:**  `figureTuningsSupp.py`
+- **Fig. S5:**  `figureRewardSupp.py`
+- **Fig. S6:**  `figureClusteringSupp.py`
+- **Fig. S7:**  `figureDecodingSupp.py`
+- **Fig. S8:**  `figureFollowNeuronsSupp.py`
+- **Fig. S9:**  `figureStaySwitchDecodingSupp.py`
+- **Fig. S10:** `figureQlearning.py`
