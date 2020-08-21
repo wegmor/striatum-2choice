@@ -47,6 +47,32 @@ To see which script creates what figure, refer to the list below:
 - **Fig. S10:** `figureQlearning.py`
 
 
+### Software requirements
+
+The code was tested with the following versions of the python packages used:
+
+package       | version
+--------------|--------------
+python        | 3.8.3
+cython        | 0.29.14
+numpy         | 1.18.4
+pandas        | 0.25.3
+scipy         | 1.4.1
+scikit-learn  | 0.22.1
+statsmodels   | 0.11.0
+h5py          | 2.9.0
+tqdm          | 4.45.0
+scikit-image  | 0.16.2
+pillow        | 7.0.0
+matplotlib    | 3.2.1
+seaborn       | 0.9.0
+deprecated    | 1.2.10
+pytables      | 3.6.1
+opencv        | 4.4.0
+cmocean       | 2.0
+figurefirst   | 0.0.6
+
+
 ### Reference
 
 Weglage, M., Wärnberg, E., Lazaridis, I., Tzortzi, O., & Meletis, K. (2020). *Complete representation of action space and value in all striatal pathways.* bioRxiv, 2020.03.29.983825. https://doi.org/10.1101/2020.03.29.983825
