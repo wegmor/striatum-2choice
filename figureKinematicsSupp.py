@@ -33,7 +33,7 @@ templateFolder = pathlib.Path("templates")
 if not outputFolder.is_dir():
     outputFolder.mkdir()
     
-svgName = "oftVsChoiceSupp.svg"
+svgName = "kinematicsSupp.svg"
 layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
