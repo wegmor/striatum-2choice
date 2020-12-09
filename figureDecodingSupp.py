@@ -100,6 +100,12 @@ for nNeurons in (100, 175, "all"):
     else:
         ax.set_xticklabels([])
         ax.set_xlabel("animal", labelpad=6)
+    perGt = acc[~acc.animal.str.endswith("_shuffled")]
+    perGt = perGt.groupby(["genotype", "animal"]).accuracy.median()
+    print("nNeurons = {}".format(nNeurons))
+    print("N=", perGt.groupby(level=0).size())
+    print('\t', scipy.stats.kruskal(*[d[1].values for d in perGt.groupby(level=0)]))
+
 axt = layout.axes['decoding_legend_genotype']['axis']
 legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.3,
                                   label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
