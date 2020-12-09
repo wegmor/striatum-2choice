@@ -35,7 +35,7 @@ def getSmoothedTracking(dataFile, genotype, animal, date, task):
         tracking = _medSmooth(tracking)
         
         if task == 'openField':
-            coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
+            coords = particleFilter.particleFilter(tracking, flattening = 1e-12) # only used for segmentation
             coords.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
             coords.rename_axis("time", axis=0, inplace=True)
             coords['bodyDirection'] = np.rad2deg(coords.bodyDirection)
@@ -96,6 +96,7 @@ def plotTop10Events(trace, tracking, axs, framesBefore=5, framesAfter=14, offset
         tail = trackAll['tailBase'][['x','y']]
         tail -= origin
         
+        # problem to have x first?! it's pretty weird, should be rotation(-angle) as well
         angle = np.arctan2(tail.iloc[0]['x'], tail.iloc[0]['y']) + np.deg2rad(180)
         body.loc[:,['x','y']] = rotate(body, angle=angle)
         head.loc[:,['x','y']] = rotate(head, angle=angle)
