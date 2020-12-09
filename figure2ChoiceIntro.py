@@ -12,7 +12,7 @@ import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
 import matplotlib.patches as mpatches
-from mpl_toolkits.mplot3d import Axes3D
+#from mpl_toolkits.mplot3d import Axes3D
 from matplotlib.patches import FancyArrowPatch
 from mpl_toolkits.mplot3d import proj3d
 from matplotlib.patches import ArrowStyle
@@ -20,7 +20,7 @@ import pathlib
 import figurefirst
 import style
 import analysis2ChoiceIntro
-import subprocess
+#import subprocess
 plt.ioff()
 style.set_context()
 
@@ -149,9 +149,9 @@ e=ax2.errorbar(gstats.index, gstats['mean'], gstats['sem'], clip_on=False,
                color=style.getColor('stay'))
 e[0].set_clip_on(False)
 [b.set_clip_on(False) for b in e[2]]
-ax2.axhline(bstats.switch.mean(), alpha=.5, color=style.getColor('stay'))
-ax2.fill_between([-11,1], bstats.switch.mean()-bstats.switch.sem(),
-                          bstats.switch.mean()+bstats.switch.sem(),
+ax2.axhline(bstats.reward.mean(), alpha=.5, color=style.getColor('stay'))
+ax2.fill_between([-11,1], bstats.reward.mean()-bstats.reward.sem(),
+                          bstats.reward.mean()+bstats.reward.sem(),
                           alpha=.2, color=style.getColor('stay'), lw=0)
 ax2.vlines(0, .05, .49, linestyle=':', color=style.getColor('switch'), zorder=-99,
            alpha=1, clip_on=False)
@@ -464,5 +464,5 @@ ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='top',
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

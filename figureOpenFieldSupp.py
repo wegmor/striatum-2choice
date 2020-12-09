@@ -1,18 +1,18 @@
 import numpy as np
 import pandas as pd
 import seaborn as sns
-import scipy.stats
+#import scipy.stats
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import h5py
+#import h5py
 import pathlib
 import figurefirst
 import cmocean
 import itertools
-import subprocess
+#import subprocess
 from matplotlib.ticker import MultipleLocator
 
-import analysisOpenField, analysisTunings
+import analysisOpenField #, analysisTunings
 import style
 from utils import readSessions, fancyViz
 
@@ -211,7 +211,7 @@ for i in range(3):
     cax = layout.axes["legend_ex{}_colorbar".format(i+1)]
     if i<=1: ticks = (0, 75, 150)
     else: ticks = (0, 50, 100)
-    cb1 = mpl.colorbar.ColorbarBase(cmap="Greens", ax=cax,
+    cb1 = mpl.colorbar.ColorbarBase(cmap=mpl.cm.Greens, ax=cax,
                                     norm=mpl.colors.Normalize(vmin=ticks[0], vmax=ticks[-1]),
                                     orientation='vertical', ticks=ticks)
     cb1.outline.set_visible(False)
@@ -259,5 +259,5 @@ cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 layout.insert_figures('target_layer_name')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

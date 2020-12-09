@@ -7,7 +7,7 @@ import pathlib
 import figurefirst
 import cmocean
 import tqdm
-import os
+#import os
 from matplotlib.ticker import MultipleLocator
 from collections import defaultdict
 from utils import fancyViz

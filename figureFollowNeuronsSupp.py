@@ -8,12 +8,12 @@ import h5py
 import pathlib
 import figurefirst
 import cmocean
-from matplotlib.ticker import MultipleLocator
+#from matplotlib.ticker import MultipleLocator
 import itertools
 
 import analysisOpenField, analysisTunings
 import style
-from utils import readSessions, fancyViz, alluvialPlot
+from utils import readSessions, fancyViz #, alluvialPlot
 
 style.set_context()
 plt.ioff()

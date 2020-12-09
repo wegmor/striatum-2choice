@@ -9,8 +9,8 @@ import pathlib
 import figurefirst
 import cmocean
 
-from utils import fancyViz
-from utils import readSessions
+#from utils import fancyViz
+#from utils import readSessions
 from utils import sessionBarPlot
 import analysisDecoding
 import style

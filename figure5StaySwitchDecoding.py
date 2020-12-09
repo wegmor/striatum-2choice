@@ -18,13 +18,13 @@ import pathlib
 import figurefirst
 import style
 import analysisStaySwitchDecoding
-import cmocean
+#import cmocean
 #from scipy.stats import ttest_1samp
-import scipy.stats
+#import scipy.stats
 #import statsmodels.formula.api as smf
-from scipy.spatial.distance import pdist, squareform
+#from scipy.spatial.distance import pdist, squareform
 from utils import readSessions, fancyViz, sessionBarPlot
-import subprocess
+#import subprocess
 plt.ioff()
 
 
@@ -140,24 +140,14 @@ else:
 
 #%% Example neurons
 examples = [("5308", "190131", 292, "oprm1"),
-            #("5464", "190205", 10, "oprm1")]
-            #("5703", "190130", 130, "oprm1")]
-            #("5703", "190130", 100, "oprm1")]
             ("5703", "190130", 28, "oprm1")]
 
 for p, (a, d, n, gt) in enumerate(examples):
     s = next(readSessions.findSessions(endoDataPath, genotype=gt,
                                        animal=a, date=d, task='2choice'))
     traces = s.readDeconvolvedTraces(rScore=True)
-    
     lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
-    d_labels = ((lfa.set_index('actionNo').label.str.slice(0,5) + \
-                 lfa.groupby('actionNo').label.first().shift(1).str.slice(4))
-                .reset_index().set_index(lfa.index))
-    lfa.loc[lfa.label.str.contains('d.$'), 'label'] = d_labels.fillna('-')
-    
     trace = traces[n]
-    
     for trialType in ['r.','o.','o!']:
         axfv = layout.axes['f8_ex{}_{}'.format(p+1, trialType)]['axis']
         fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
@@ -918,5 +908,5 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])

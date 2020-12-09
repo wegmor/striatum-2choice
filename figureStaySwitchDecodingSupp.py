@@ -15,10 +15,14 @@ import pathlib
 import figurefirst
 import style
 import analysisStaySwitchDecoding
+import analysisStaySwitchDecodingSupp
+import analysisOftVs2Choice
+from utils import fancyViz
+from utils import readSessions
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator
-import subprocess
+#import subprocess
 plt.ioff()
 
 
@@ -455,9 +459,244 @@ legend_elements = [mpl.lines.Line2D([0],[0], color=style.getColor(gt),
 axt.legend(handles=legend_elements, loc='center', ncol=4, mode='expand')
 axt.axis('off')
 
+
+#%% value coding neuron example plots
+def avRegPlot(means, phase='mS2C', ax=None):
+    inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
+    data = means.loc[means.label.isin(inclLabels)]
+    for l, ldata in data.groupby('label'):
+        ax.scatter(ldata['value'], ldata['trialMean'],
+                   facecolor='w', edgecolor=style.getColor(l[-2:]),
+                   #marker='<' if 'L' in l else '>',
+                   marker='o', alpha=.25, s=3.5, lw=.5, clip_on=True)
+        ax.errorbar(ldata['value'].mean(), ldata['trialMean'].mean(),
+                    xerr=ldata['value'].sem(), yerr=ldata['trialMean'].sem(),
+                    color=sns.desaturate(style.getColor(l[-2:]),.8),
+                    #marker='<' if 'L' in l else '>',
+                    marker='o', ms=3, clip_on=False)
+    sns.regplot('value', 'trialMean', data=data, fit_reg=True, scatter=False,
+                ax=ax, color='k', ci=False, line_kws={'zorder':-99, 'lw':.5})
     
+    
+def avAvgTracePlot(wins, phase='mS2C', compression=40, ax=None):
+    inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
+    for l,ldata in wins.loc[wins.label.isin(inclLabels)].groupby('label'):
+        x = np.array(ldata['frameNo'].columns.values / compression + ldata['value'].mean(),
+                     dtype='float')
+        x_offset = -(len(x) // 2) / compression
+        y = ldata['frameNo'].mean().values
+        y[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
+        sem = ldata['frameNo'].sem().values
+        sem[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
+        ax.fill_between(x + x_offset, y-sem, y+sem, clip_on=False,
+                        color=style.getColor(l[-2:]), lw=0, alpha=.5)
+        ax.plot(x + x_offset, y, color=style.getColor(l[-2:]), alpha=.8,
+                clip_on=False)
+        ax.axvline(ldata['value'].mean(), ls=':', color='k', alpha=1,
+                   lw=mpl.rcParams['axes.linewidth'])
+        
+#%%
+exGenotype, exAnimal, exDate = 'oprm1', '5703', '190130'
+exNeurons = [100,26]
+
+#%% plot F8 schematic
+s = next(readSessions.findSessions(endoDataPath, genotype=exGenotype,
+                                   animal=exAnimal, date=exDate, task='2choice'))
+traces = s.readDeconvolvedTraces(rScore=True)
+lfa = s.labelFrameActions(reward='fullTrial', switch=True).set_index(traces.index)
+for p,n in enumerate(exNeurons):
+    trace = traces[n]  
+    for trialType in ['r.','o.','o!']:
+        axfv = layout.axes['f8_ex{}_{}'.format(p+1, trialType)]['axis']
+        fv = fancyViz.SchematicIntensityPlot(s, splitReturns=False,
+                                             linewidth=mpl.rcParams['axes.linewidth'],
+                                             smoothing=7.5, saturation=2)
+        fv.setMask(lfa.label.str.endswith(trialType).values)
+        img = fv.draw(trace, ax=axfv)
+        axfv.axis('on')
+        axfv.set_xlabel({'r.':'win-stay','o.':'lose-stay','o!':'lose-switch'}[trialType],
+                        color=style.getColor(trialType))
+        axfv.set_xticks(()); axfv.set_yticks(())
+        sns.despine(ax=axfv, left=True, bottom=True)
+
+cbs = []
+for c in [1,2]:
+    cax = layout.axes['colorbar'+str(c)]['axis']
+    cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+    cax.text(-2.05, -.3, '-2', ha='right', va='center', fontdict={'fontsize':6})
+    cax.text(2.05, -.3, '2', ha='left', va='center', fontdict={'fontsize':6})
+    cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+    cax.axis('off')
+    cbs.append(cb)
+[cb.outline.set_visible(False) for cb in cbs]
+        
+
+#%% plot regression an average trace plots of examples
+means = analysisStaySwitchDecodingSupp.getActionMeans(endoDataPath, exGenotype, exAnimal, exDate)
+means = means.loc[means.neuron.isin(exNeurons)].set_index('actionNo').sort_index()
+wins = analysisStaySwitchDecodingSupp.getActionWindows(endoDataPath, exGenotype, exAnimal, exDate)
+wins = wins.loc[wins.neuron.isin(exNeurons)].set_index('actionNo').sort_index()
+av = actionValues.set_index(['genotype','animal','date','actionNo']).sort_index().copy()
+
+av = av.loc[(exGenotype, exAnimal, exDate)].copy()
+means['value'] = av.value
+wins['value'] = av.value
+means = means.reset_index().set_index(['neuron','actionNo']).sort_index()
+wins = wins.reset_index().set_index(['neuron','actionNo']).sort_index()
+
+for p, neuron in enumerate(exNeurons):
+    regAx = layout.axes['ac1_ex{}'.format(p+1)]
+    avgAx = layout.axes['ac2_ex{}'.format(p+1)]
+    avRegPlot(means.loc[neuron],phase='mR2C',ax=regAx)
+    avAvgTracePlot(wins.loc[neuron],phase='mR2C',compression=15,ax=avgAx)
+    
+    for ax in [regAx, avgAx]:
+        ax.set_ylim((-.75,6))
+        ax.set_yticks((0,2,4,6))
+        ax.set_yticks((1,3,5), minor=True)
+        ax.set_xlim((-1,5))
+        ax.set_ylabel('z-score')
+    avgAx.set_xticks(np.arange(-1,6))
+    avgAx.set_xticks(np.arange(-1,5,.5), minor=True)
+    regAx.set_xticks(())
+    avgAx.set_xlabel('action value')
+    regAx.set_xlabel('')
+    sns.despine(ax=avgAx, trim=False)
+    sns.despine(ax=regAx, bottom=True, trim=True)
+
+
+#%% plot movement trajectory and duration plots
+chSess = next(readSessions.findSessions(endoDataPath, genotype=exGenotype,
+                                        animal=exAnimal, date=exDate))
+chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, exGenotype,
+                                                      exAnimal, exDate, '2choice')
+
+ax0, ax1, ax2 = [layout.axes['{}TrajMap'.format(tt)]['axis'] for tt in ['rst','ost','osw']]
+
+chTracking['bin'] = chTracking.actionProgress * 100 // 10
+
+# trajectories
+rst = chTracking.loc[chTracking.behavior.str.startswith('mR2Cr.')]
+rst_mean = rst.groupby('bin').mean()
+for actionNo, track in rst.groupby('actionNo'):
+    analysisStaySwitchDecodingSupp.plot2CTrackingEvent(track, ax0, color=style.getColor('r.'),
+                                                       alpha=.025)
+analysisStaySwitchDecodingSupp.plot2CTrackingEvent(rst_mean, ax0, color='k', lw=.5, alpha=.5)
+
+ost = chTracking.loc[chTracking.behavior.str.startswith('mR2Co.')]
+ost_mean = ost.groupby('bin').mean()
+for actionNo, track in ost.groupby('actionNo'):
+    analysisStaySwitchDecodingSupp.plot2CTrackingEvent(track, ax1, color=style.getColor('o.'),
+                                                       alpha=.025)
+analysisStaySwitchDecodingSupp.plot2CTrackingEvent(ost_mean, ax1, color='k', lw=.5, alpha=.5)
+
+osw = chTracking.loc[chTracking.behavior.str.startswith('mR2Co!')]
+osw_mean = osw.groupby('bin').mean()
+for actionNo, track in osw.groupby('actionNo'):
+    analysisStaySwitchDecodingSupp.plot2CTrackingEvent(track, ax2, color=style.getColor('o!'),
+                                                       alpha=.025)
+analysisStaySwitchDecodingSupp.plot2CTrackingEvent(osw_mean, ax2, color='k', lw=.5, alpha=.5)
+
+for ax in [ax0, ax1,ax2]:
+    t = ax.transData
+    t = plt.matplotlib.transforms.Affine2D().rotate_deg_around(15/2, 15/2, 90) + t
+    corners_x, corners_y = [0,0,15,15,0], [0,15,15,0,0]
+    ax.plot(corners_x, corners_y, 'k', lw=0.5, transform=t)
+    s = 15/7
+    for y in s*np.array([1, 3, 5]):
+        fancyViz.drawRoundedRect(ax, (15, y), s, s, [0, 0, s/4, s/4],
+                                 fill=False, edgecolor="k", lw=mpl.rcParams['axes.linewidth'],
+                                 transform=t)
+
+ax2.set_xlabel('right to center turn\nmovement trajectories', labelpad=3)
+ax0.set_ylabel('win-stay', color=style.getColor('r.'))
+ax1.set_ylabel('lose-stay', color=style.getColor('o.'))
+ax2.set_ylabel('lose-switch', color=style.getColor('o!'))
+for ax in [ax0,ax1,ax2]:
+    ax.set_aspect('equal')
+    ax.set_xlim((-1, 16))
+    ax.set_ylim((7.5, 18))
+    ax.set_xticks(())
+    ax.set_yticks(())
+    ax.yaxis.set_label_coords(0, .35)
+    sns.despine(top=True, left=True, right=True, bottom=True, ax=ax) 
+    
+
+# pairwise trajectory distance density plot
+trajectories = chTracking.loc[chTracking.behavior.isin(['mR2Cr.','mR2Co.','mR2Co!'])]
+df = analysisStaySwitchDecodingSupp.get2CTrajectoryDists(trajectories,
+                                        '{}_{}_{}'.format(exGenotype, exAnimal, exDate))
+
+axs = [layout.axes['{}TrajKde'.format(tt)]['axis'] for tt in ['rst',]]
+
+pdict = {'rst':(('r.Xr.','o.Xr.','o!Xr.'),
+                (style.getColor('r.'),style.getColor('o.'), style.getColor('o!'))),
+         'ost':(('o.Xo.','o.Xr.','o!Xo.'),
+                (style.getColor('o.'),style.getColor('r.'), style.getColor('o!'))),
+         'osw':(('o!Xo!','o!Xr.','o!Xo.'),
+                (style.getColor('o!'),style.getColor('r.'), style.getColor('o.')))}
+
+for p,tt in enumerate(('rst',)):
+    ax = axs[p]
+    strs, cs = pdict[tt]
+    
+    sns.distplot(df.loc[df.trialTypes == strs[0],'distance'], hist=False, color=cs[0],
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
+    sns.distplot(df.loc[df.trialTypes == strs[1],'distance'], hist=False, color=cs[1],
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
+    sns.distplot(df.loc[df.trialTypes == strs[2],'distance'], hist=False, color=cs[2],
+                 kde_kws={'clip_on':True, 'alpha':.75, 'cut':3, 'lw':.8}, ax=ax)
+    
+    ax.set_ylim((0,2))
+    ax.set_yticks((0,1,2))
+    ax.set_yticks((.5,1.5), minor=True)
+    ax.set_yticklabels(())
+    ax.set_ylabel('')
+    ax.set_xlim((0,4))
+    ax.set_xticks((0,2,4))
+    ax.set_xticks((1,3), minor=True)
+    ax.set_xticklabels(())
+    ax.set_xlabel('')
+    #if tt == 'osw':
+    ax.set_xticklabels(ax.get_xticks())
+    ax.set_xlabel('pairwise trajectory\ndistance (cm)')
+    #if tt == 'ost':
+    ax.set_yticklabels(ax.get_yticks())
+    ax.set_ylabel('density')
+    sns.despine(ax=ax, offset=.1)
+
+legend_elements = [mpl.patches.Patch(color=color,
+                                     label={'r.Xr.':'win-stay',
+                                            'o.Xr.':'lose-stay',
+                                            'o!Xr.':'lose-switch'}[tt]) 
+                       for tt, color in zip(*pdict['rst'])]
+lg = axs[0].legend(handles=legend_elements, ncol=1, title='win-stay vs ...',
+                   bbox_to_anchor=(1,1), loc='upper right')
+lg.get_title().set_fontsize(6)
+
+
+# duration density plot
+aDurations = chTracking.loc[chTracking.behavior.isin(['mR2Cr.','mR2Co.','mR2Co!'])]
+aDurations = aDurations.groupby(['behavior','actionNo']).size() / 20.
+
+ax = layout.axes['durationKde']['axis']
+for action, ds in aDurations.groupby('behavior'):
+    sns.distplot(ds, hist=False, color=style.getColor(action[-2:]),
+                 kde_kws={'alpha':.75}, ax=ax)
+
+ax.set_xlim((0,2))
+ax.set_xticks((0,1,2))
+ax.set_xticks((.5,1.5), minor=True)
+ax.set_xlabel('turn duration (s)')
+ax.set_ylim((0,4))
+ax.set_yticks((0,2,4))
+ax.set_yticks((1,3), minor=True)
+ax.set_ylabel('density')
+sns.despine(ax=ax)
+
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
+#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
