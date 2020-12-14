@@ -21,6 +21,8 @@ from skimage import exposure
 import figurefirst
 import style
 
+import analysisKinematicsSupp
+
 style.set_context()
 plt.ioff()
 
@@ -47,7 +49,7 @@ endoDataPath = "data/endoData_2019.hdf"
 ex_session = {'genotype': 'oprm1', 'animal': '5308', 'date': '190201'}
 ex_action = (0,204)
 oftSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='openField'))
-videoFolder = pathlib.Path('data/')
+videoFolder = pathlib.Path('/home/emil/2choice/openFieldVideos')
 
 #%%
 open_field_video = pims.open(str(videoFolder / oftSess.meta.video) + ".avi")
@@ -56,6 +58,7 @@ segmented = pd.read_pickle("cache/segmentedBehavior.pkl").loc[str(oftSess)]
 background = np.median([open_field_video.get_frame(i) for i in tqdm.trange(2000)], axis=0)
 
 chSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='2choice'))
+videoFolder = pathlib.Path('/mnt/dmclab/striatum_2choice/')
 two_choice_video = pims.open(str(videoFolder / chSess.meta.video) + ".avi")
 
 
@@ -140,6 +143,64 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
            color='yellow', zorder=1, marker='.', transform=tr)
 ax.axis('off')
+
+
+#%%
+#plt.close()
+nNeurons = []
+for sess in analysisKinematicsSupp.find2choiceSessionsFollowingOpenField(endoDataPath):
+    deconv = sess.readDeconvolvedTraces(zScore=False)
+    nNeurons.append((str(sess), deconv.shape[1]))
+nNeurons = pd.DataFrame(nNeurons, columns=["sess", "nNeurons"])
+nNeurons.set_index("sess", inplace=True)
+
+#fig, axs = plt.subplots(1, 3, sharey=True)
+#ax_dict = {'d1': axs[0], 'a2a': axs[1], 'oprm1': axs[2]}
+twoChoicePdists = analysisKinematicsSupp.twoChoicePdists(endoDataPath)
+openFieldPdists = analysisKinematicsSupp.openFieldPdists(endoDataPath)
+cdists = analysisKinematicsSupp.openFieldToTwoChoiceCdists(endoDataPath)
+dist_list = [twoChoicePdists, openFieldPdists, cdists]
+cols = ["C3", "C4", "C5"]
+gts = ["d1", "a2a", "oprm1"]
+for i, dist in enumerate(dist_list):
+    mean = {gt: np.zeros(20-1) for gt in gts}
+    nTot = {gt: 0 for gt in gts}
+    for s, g in dist.groupby(level=0):
+        bins = pd.cut(g.kinematics_dist, np.linspace(.1, 4, 20))
+        binned = g.groupby(bins).mean()
+        gt = s.split("_")[0]
+        n = nNeurons.loc[s].nNeurons
+        ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
+        ax.plot(binned.kinematics_dist, binned.deconv_dist, color=cols[i],
+                alpha=np.clip(n/500, 0.1, 1.0), lw=.5)
+        mean[gt] += n*binned.deconv_dist
+        nTot[gt] += n
+    for gt in gts:
+        mean[gt] /= nTot[gt]
+        ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
+        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i], lw=2)
+        
+gt_names = {"d1": "D1+", "a2a": "A2A+", "oprm1": "Oprm1+"}
+for gt in gts:
+    ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
+    ax.set_xlim(0, 4)
+    ax.set_ylim(-0.05, 0.12)
+    ax.axhline(0, color="k", alpha=0.3, lw=0.5, linestyle="--")
+    ax.set_title(gt_names[gt], color=style.getColor(gt))
+    ax.set_yticks(np.arange(-0.05, 0.15, 0.05))
+    if gt=="d1":
+        ax.set_ylabel("ensamble correlation")
+    else:
+        ax.set_yticklabels([])
+    if gt=="a2a":
+        ax.set_xlabel("kinematic similarity (Mahalanobis distance)")
+    if gt=="oprm1":
+        lines = [mpl.lines.Line2D([], [], color=c, label=l) 
+                 for c,l in zip(cols, ["open field → open field",
+                                       "2-choice → 2-choice",
+                                       "open field → 2-choice"])]
+        ax.legend(handles=lines, loc=(1.05, 0.4))#'center right')
+    sns.despine(ax=ax)
 
 
 #%%

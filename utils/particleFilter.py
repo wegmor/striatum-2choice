@@ -4,7 +4,7 @@ import tqdm
 
 #from IPython.core.debugger import set_trace
 
-def particleFilter(tracking, nParticles = 2000, flattening=0.0):
+def particleFilter(tracking, nParticles = 2000, flattening=0.0, tqdmKwargs={}):
     '''
     Particle filter for calculating speeds. Currently uses the body and tailBase markers, but
     I intend to add the ear markers to this as well.
@@ -36,7 +36,7 @@ def particleFilter(tracking, nParticles = 2000, flattening=0.0):
         'elongation':  np.abs(np.random.normal(meanElong, meanElong/2, nParticles))
     }
     means = {k: [] for k in state.keys()}
-    for i in tqdm.trange(len(tracking)):
+    for i in tqdm.trange(len(tracking), **tqdmKwargs):
         _step(**state)
 
         L = _likelihood(tracking.iloc[i], **state)
