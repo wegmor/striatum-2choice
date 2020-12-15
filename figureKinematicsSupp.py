@@ -165,6 +165,7 @@ gts = ["d1", "a2a", "oprm1"]
 for i, dist in enumerate(dist_list):
     mean = {gt: np.zeros(20-1) for gt in gts}
     nTot = {gt: 0 for gt in gts}
+    nPairs = {gt: np.zeros(20-1) for gt in gts}
     for s, g in dist.groupby(level=0):
         bins = pd.cut(g.kinematics_dist, np.linspace(.1, 4, 20))
         binned = g.groupby(bins).mean()
@@ -174,11 +175,15 @@ for i, dist in enumerate(dist_list):
         ax.plot(binned.kinematics_dist, binned.deconv_dist, color=cols[i],
                 alpha=np.clip(n/500, 0.1, 1.0), lw=.5)
         mean[gt] += n*binned.deconv_dist
+        nPairs[gt] += g.groupby(bins).size()
         nTot[gt] += n
     for gt in gts:
         mean[gt] /= nTot[gt]
         ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
         ax.plot(binned.kinematics_dist, mean[gt], color=cols[i], lw=2)
+        ax = layout.axes['kinematicsPairHist_'+gt]['axis']
+        nPairs[gt] /= nPairs[gt].sum()
+        ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i])
         
 gt_names = {"d1": "D1+", "a2a": "A2A+", "oprm1": "Oprm1+"}
 for gt in gts:
@@ -188,12 +193,11 @@ for gt in gts:
     ax.axhline(0, color="k", alpha=0.3, lw=0.5, linestyle="--")
     ax.set_title(gt_names[gt], color=style.getColor(gt))
     ax.set_yticks(np.arange(-0.05, 0.15, 0.05))
+    ax.set_xticklabels([])
     if gt=="d1":
         ax.set_ylabel("ensamble correlation")
     else:
         ax.set_yticklabels([])
-    if gt=="a2a":
-        ax.set_xlabel("kinematic similarity (Mahalanobis distance)")
     if gt=="oprm1":
         lines = [mpl.lines.Line2D([], [], color=c, label=l) 
                  for c,l in zip(cols, ["open field → open field",
@@ -201,7 +205,17 @@ for gt in gts:
                                        "open field → 2-choice"])]
         ax.legend(handles=lines, loc=(1.05, 0.4))#'center right')
     sns.despine(ax=ax)
-
+    
+    ax = layout.axes['kinematicsPairHist_'+gt]['axis']
+    ax.set_xlim(0, 4)
+    ax.set_ylim(0, 0.5)
+    if gt=="d1":
+        ax.set_ylabel("pdf")
+    else:
+        ax.set_yticklabels([])
+    if gt=="a2a":
+        ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
+    sns.despine(ax=ax)
 
 #%%
 layout.insert_figures('plots')

@@ -87,10 +87,20 @@ def openFieldSegmentKinematics(dataFile):
     grouped["label"] = segmented.reset_index("block").behavior
     return grouped
 
+def getVI(dataFile):
+    kinematicParams = ["bodyAngleSpeed", "speed", "elongation"]
+    kinematics_of_all = openFieldSegmentKinematics(dataFile)[kinematicParams]
+    kinematics_tc_all = twoChoiceSegmentKinematics(dataFile)[kinematicParams]
+    kinematics_all = pd.concat([kinematics_of_all, kinematics_tc_all])
+    V = np.cov(kinematics_all.T)
+    VI = np.linalg.inv(V)
+    return VI
+
 @cachedDataFrame("twoChoicePdists.pkl")
 def twoChoicePdists(dataFile):
     kinematics_all = twoChoiceSegmentKinematics(dataFile)
     pdists_all = []
+    VI = getVI(dataFile)
     for sess in tqdm.tqdm(find2choiceSessionsFollowingOpenField(dataFile)):
         deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
         lfa = sess.labelFrameActions(reward="never")
@@ -102,7 +112,7 @@ def twoChoicePdists(dataFile):
         kinematics = kinematics[mask]
         deconv_avg = deconv_avg[mask]
         kinematics.drop("label", axis=1, inplace=True)
-        kinematics_pdists = scipy.spatial.distance.pdist(kinematics, "mahalanobis")
+        kinematics_pdists = scipy.spatial.distance.pdist(kinematics, "mahalanobis", VI=VI)
         deconv_pdists = 1-scipy.spatial.distance.pdist(deconv_avg, "correlation")
         pdists = pd.DataFrame({'kinematics_dist': kinematics_pdists,
                                'deconv_dist': deconv_pdists})
@@ -117,6 +127,7 @@ def openFieldPdists(dataFile):
     kinematics_all = openFieldSegmentKinematics(dataFile)
     segmented_all = analysisOpenField.segmentAllOpenField(dataFile)
     pdists_all = []
+    VI = getVI(dataFile)
     for sess in readSessions.findSessions(dataFile, task="openField"):
         if sess.meta.date == '190224':
             #These don't have a 2-choice session before, so ignore
@@ -129,7 +140,7 @@ def openFieldPdists(dataFile):
         deconv_avg = deconv.groupby(reindexed.actionNo).mean()
 
         kinematics.drop("label", axis=1, inplace=True)
-        kinematics_pdists = scipy.spatial.distance.pdist(kinematics, "mahalanobis")
+        kinematics_pdists = scipy.spatial.distance.pdist(kinematics, "mahalanobis", VI=VI)
         deconv_pdists = 1-scipy.spatial.distance.pdist(deconv_avg, "correlation")
         pdists = pd.DataFrame({'kinematics_dist': kinematics_pdists,
                                'deconv_dist': deconv_pdists})
@@ -145,6 +156,7 @@ def openFieldToTwoChoiceCdists(dataFile):
     kinematics_tc_all = twoChoiceSegmentKinematics(dataFile)
     segmented_all = analysisOpenField.segmentAllOpenField(dataFile)
     cdists_all = []
+    VI = getVI(dataFile)
     for of_sess in readSessions.findSessions(dataFile, task="openField"):
         if of_sess.meta.date == '190224':
             continue
@@ -175,7 +187,7 @@ def openFieldToTwoChoiceCdists(dataFile):
         
         kinematics_cdists = scipy.spatial.distance.cdist(kinematics_of,
                                                          kinematics_tc,
-                                                         "mahalanobis")
+                                                         "mahalanobis", VI=VI)
         deconv_cdists = 1-scipy.spatial.distance.cdist(deconv_of_avg, deconv_tc_avg,
                                                        "correlation")
         
