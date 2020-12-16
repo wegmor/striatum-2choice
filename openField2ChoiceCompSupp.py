@@ -17,6 +17,7 @@ import cmocean
 import seaborn as sns
 import scipy.ndimage
 from utils import fancyViz, readSessions
+import analysisOpenField
 from skimage import exposure
 import figurefirst
 import style
@@ -29,6 +30,7 @@ plt.ioff()
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 outputFolder = pathlib.Path("svg")
 templateFolder = pathlib.Path("templates")
+videoFolder = pathlib.Path('data/')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
@@ -42,17 +44,14 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
                  'rightTurn': 'right turn'}
 
 
-#%%
-endoDataPath = "data/endoData_2019.hdf"
+#%% load example session data
 ex_session = {'genotype': 'oprm1', 'animal': '5308', 'date': '190201'}
 ex_action = (0,204)
-oftSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='openField'))
-videoFolder = pathlib.Path('data/')
 
-#%%
+oftSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='openField'))
 open_field_video = pims.open(str(videoFolder / oftSess.meta.video) + ".avi")
 tracking = oftSess.readTracking()
-segmented = pd.read_pickle("cache/segmentedBehavior.pkl").loc[str(oftSess)]
+segmented = analysisOpenField.segmentAllOpenField(endoDataPath).loc[str(oftSess)]
 background = np.median([open_field_video.get_frame(i) for i in tqdm.trange(2000)], axis=0)
 
 chSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='2choice'))
@@ -64,6 +63,7 @@ start, stop = segmented.loc[ex_action][["startFrame", "stopFrame"]]
 frame_ids = list(range(start, stop+1, 5))
 frames = np.array([open_field_video.get_frame(i) for i in frame_ids])
 coords = tracking.loc[start:stop]
+
 
 #%% plot first oft frame
 ax = layout.axes['trajectoryIllustration','openField']['axis']
@@ -140,6 +140,10 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
            color='yellow', zorder=1, marker='.', transform=tr)
 ax.axis('off')
+
+
+#%%
+
 
 
 #%%

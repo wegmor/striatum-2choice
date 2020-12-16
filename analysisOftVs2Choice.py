@@ -7,6 +7,7 @@ Created on Sat Jul 25 17:19:30 2020
 """
 
 import numpy as np
+import pandas as pd
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -16,6 +17,33 @@ from utils.cachedDataFrame import cachedDataFrame
 
 
 #%%
+# TODO: literal copy of filterAllOpenField in analysisOpenField
+@cachedDataFrame("filteredTwoChoice.pkl")
+def filterAllTwoChoice(dataFile):
+    all_filtered = []
+    for sess in readSessions.findSessions(dataFile, task="2choice", cohort='2019'):
+        print(sess)
+        deconv = sess.readDeconvolvedTraces(indicateBlocks=True)
+        tracking = sess.readTracking(inCm=True)
+        if len(tracking) != len(deconv): continue
+        tracking.index = deconv.index
+        blocks = tracking.index.levels[0]
+        filtered = []
+        for block in blocks:
+            t = tracking.loc[block]
+            filtered.append(particleFilter.particleFilter(t, nParticles=2000, flattening=1e-12))
+        filtered = pd.concat(filtered)
+        filtered.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
+        filtered.rename_axis("time", axis=0, inplace=True)
+        filtered.bodyDirection *= 180/np.pi
+        ind = tracking.index.to_frame()
+        ind.insert(0, "session", str(sess))
+        filtered.index = pd.MultiIndex.from_frame(ind)
+        all_filtered.append(filtered)
+    return pd.concat(all_filtered)
+
+
+# TODO: this could be done much better (especially unnecessary run of particle filter / segmentation)
 def getSmoothedTracking(dataFile, genotype, animal, date, task):
     def _medSmooth(tracking):
         tracking = tracking.copy()
@@ -32,10 +60,14 @@ def getSmoothedTracking(dataFile, genotype, animal, date, task):
         sess = next(readSessions.findSessions(dataFile, task=task, genotype=genotype,
                                               animal=animal, date=date))
         tracking = sess.readTracking(inCm=True).reset_index(drop=True)
+        # v necessary because particle filter doesn't smooth anything but the body trajectory atm
         tracking = _medSmooth(tracking)
         
         if task == 'openField':
-            coords = particleFilter.particleFilter(tracking, flattening = 1e-12) # only used for segmentation
+            # there's a cached version of all filtered oft videos available via analysisOpenField!
+            # that one also filters per block avoiding bug -> NaNs when recording is multi-block
+            # v only used for segmentation, not "additional smoothing"; but better to use cached segmentation!
+            coords = particleFilter.particleFilter(tracking, flattening = 1e-12)
             coords.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
             coords.rename_axis("time", axis=0, inplace=True)
             coords['bodyDirection'] = np.rad2deg(coords.bodyDirection)

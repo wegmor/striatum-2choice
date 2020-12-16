@@ -271,7 +271,7 @@ for tuning in ['stay','switch']:
 
 #%% pie charts
 df = staySwitchAUC.copy()
-df = df.query('action not in ["pL2C","pR2C"]')
+df = df.query('action not in ["pL2C","pR2C"]') # TODO: we might as well show these as well...
 df['sign'] = (df.pct > .995) | (df.pct < .005)
 
 # only keep max tuning for each neuron

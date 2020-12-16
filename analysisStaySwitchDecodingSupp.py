@@ -143,84 +143,101 @@ def getPhaseLabels(phase):
     else:
         inclLabels = [phase+tt for tt in ['r.','o.','o!']]
     return inclLabels
-        
 
 
-def getStSwCodingDirectionAvgs(endoDataPath, binPhases=False):
-    @cachedDataFrame('codingDirectionMeans{}.pkl'.format('Binned' if binPhases else ''))
-    def _aux():
-        # compute coding direction weights (stay-switch AUC-based)
-        incl_actions=['pL2C','mL2C','pC2L','mC2L','dL2C',#'dR2C','mC2R','pC2R','mR2C','pR2C']
-                      'pR2C','mR2C','pC2R','mC2R','dR2C']
-        AUCS = pd.read_pickle('cache/staySwitchAUC.pkl').set_index(['genotype','action']).sort_index()
-        AUCS.loc[~((AUCS.pct < .005) | (AUCS.pct > .995)), 'auc'] = 0  # zero non-significant aucs
-        AUCS['auc'] /= AUCS['auc'].abs().groupby(['genotype','action']).sum() # absolute aucs pooled over all neurons sum to 1
-        AUCS = AUCS.reset_index().set_index(['genotype','animal','date','action','neuron']).sort_index()
-        AUCS = AUCS[['auc']]
+def _getStSwCodingDirectionAvgs(endoDataPath, binPhases=False, resampleAUCs=False):
+    def _resampleSessAUCs(aucs):
+        aucs = aucs.set_index(aucs.neuron).copy()
+        sessNeurons = aucs.neuron.unique()
+        resampled = aucs.loc[np.random.choice(sessNeurons, size=len(sessNeurons), replace=True)]
+        resampled.reset_index(drop=True)
+        return resampled
+    
+    # compute coding direction weights (stay-switch AUC-based)
+    incl_actions=['pL2C','mL2C','pC2L','mC2L','dL2C',#'dR2C','mC2R','pC2R','mR2C','pR2C']
+                  'pR2C','mR2C','pC2R','mC2R','dR2C']
+    AUCS = pd.read_pickle('cache/staySwitchAUC.pkl') # TODO: shouldn't load that directly
+    if resampleAUCs: # resample for bootstrapping
+        AUCS = AUCS.groupby(['genotype','animal','date'], group_keys=False).apply(_resampleSessAUCs)
+    AUCS = AUCS.set_index(['genotype','action']).sort_index()
+    #AUCS.loc[~((AUCS.pct < .005) | (AUCS.pct > .995)), 'auc'] = 0  # zero non-significant aucs
+    AUCS['auc'] /= AUCS['auc'].abs().groupby(['genotype','action']).sum() # absolute aucs pooled over all neurons sum to 1
+    AUCS = AUCS.reset_index().set_index(['genotype','animal','date','action','neuron']).sort_index()
+    AUCS = AUCS[['auc']]
+    
+    # get auc-weighted means, i.e. "coding direction"
+    wAM = pd.DataFrame()
+    for sess in tqdm.tqdm(readSessions.findSessions(endoDataPath, task='2choice')):
+        try:
+            aucs = AUCS.loc[sess.meta.genotype,sess.meta.animal,sess.meta.date].copy()
+        except KeyError:
+            print('no AUCs available, skip!')
+            continue
         
-        # get auc-weighted means, i.e. "coding direction"
-        wAM = pd.DataFrame()
-        for sess in tqdm.tqdm(readSessions.findSessions(endoDataPath, task='2choice')):
-            try:
-                aucs = AUCS.loc[sess.meta.genotype,sess.meta.animal,sess.meta.date].copy()
-            except KeyError:
-                print('no AUCs available, skip!')
-                continue
-            
-            # compute, per neuron, (action | trial type) means and subtract overall action mean -> trial type-specific activity
-            deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
-            deconv.columns.name = 'neuron'
-            lfa = sess.labelFrameActions(reward='fullTrial', switch=True).reset_index(drop=True)
-            if binPhases:
-                lfa['bin'] = lfa.actionProgress // (1/5)
-                actionMeans = deconv.groupby([lfa['label'],lfa['actionNo'],lfa['bin']]).mean()
-            else:
-                actionMeans = deconv.groupby([lfa.label,lfa.actionNo]).mean()
-            acIndex = pd.Index(actionMeans.index.get_level_values(0).str.slice(0,-2), name='action')
-            ttIndex = pd.Index(actionMeans.index.get_level_values(0).str.slice(-2), name='trialType')
-            actionMeans = actionMeans.set_index([acIndex,ttIndex], append=True).reset_index('label',drop=True)
-            if binPhases:
-                actionMeans.index = actionMeans.index.reorder_levels((1,2,3,0))
-            else: 
-                actionMeans.index = actionMeans.index.reorder_levels((1,2,0))
-            actionMeans = actionMeans.query('action in @incl_actions & trialType in ["r.","o.","o!"]')
-            if binPhases:
-                meanSubActionMeans = (actionMeans.groupby(['action','bin','trialType']).mean() - \
-                                      actionMeans.groupby(['action','bin']).mean())
-            else:
-                meanSubActionMeans = (actionMeans.groupby(['action','trialType']).mean() - \
-                                      actionMeans.groupby('action').mean())
-        
-            # AUC-weigh means
-            wMeans = []
-            for action in incl_actions:
-                if not (meanSubActionMeans.columns == aucs.loc[action].index).all():
-                    print('something is fucked!')
-                    break
-                wMeanSubActionMeans = meanSubActionMeans * aucs.loc[action].values.T
-                wMeanSubActionMeans = pd.DataFrame(wMeanSubActionMeans.stack(0), columns=['meanF'])
-                wMeanSubActionMeans['tuning'] = action
-                wMeans.append(wMeanSubActionMeans.reset_index())
-            wMeans = pd.concat(wMeans)
-        
-            for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal), ('date',sess.meta.date)]:
-                wMeans.insert(0,k,v)
-            
-            wAM = wAM.append(wMeans, ignore_index=True)
-        
-        wAM['action'] = pd.Categorical(wAM['action'], incl_actions, ordered=True)
-        wAM['tuning'] = pd.Categorical(wAM['tuning'], incl_actions, ordered=True)
-        wAM['trialType'] = pd.Categorical(wAM['trialType'], ['r.','o.','o!'], ordered=True)
-        
-        # needs to be sum since weights add up to 1 and not number of neurons
+        # compute, per neuron, (action | trial type) means and subtract overall action mean -> trial type-specific activity
+        deconv = sess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
+        deconv.columns.name = 'neuron'
+        lfa = sess.labelFrameActions(reward='fullTrial', switch=True).reset_index(drop=True)
         if binPhases:
-            cdMeans = wAM.groupby(['genotype','tuning','action','trialType','bin'])[['meanF']].sum().unstack('tuning')['meanF']
-            cdMeans.index = cdMeans.index.reorder_levels((0,2,1,3))
+            lfa['bin'] = lfa.actionProgress // (1/5)
+            actionMeans = deconv.groupby([lfa['label'],lfa['actionNo'],lfa['bin']]).mean()
         else:
-            cdMeans = wAM.groupby(['genotype','tuning','action','trialType'])[['meanF']].sum().unstack('tuning')['meanF']
-            cdMeans.index = cdMeans.index.reorder_levels((0,2,1))
-        cdMeans.sort_index(axis=0, inplace=True)
+            actionMeans = deconv.groupby([lfa.label,lfa.actionNo]).mean()
+        acIndex = pd.Index(actionMeans.index.get_level_values(0).str.slice(0,-2), name='action')
+        ttIndex = pd.Index(actionMeans.index.get_level_values(0).str.slice(-2), name='trialType')
+        actionMeans = actionMeans.set_index([acIndex,ttIndex], append=True).reset_index('label',drop=True)
+        if binPhases:
+            actionMeans.index = actionMeans.index.reorder_levels((1,2,3,0))
+        else: 
+            actionMeans.index = actionMeans.index.reorder_levels((1,2,0))
+        actionMeans = actionMeans.query('action in @incl_actions & trialType in ["r.","o.","o!"]')
+        if binPhases:
+            meanSubActionMeans = (actionMeans.groupby(['action','bin','trialType']).mean() - \
+                                  actionMeans.groupby(['action','bin']).mean())
+        else:
+            meanSubActionMeans = (actionMeans.groupby(['action','trialType']).mean() - \
+                                  actionMeans.groupby('action').mean())
+    
+        # AUC-weigh means
+        wMeans = []
+        for action in incl_actions:
+            # v make sure to use resampled set of neurons
+            wMeanSubActionMeans = meanSubActionMeans.loc[:,aucs.loc[action].index] * aucs.loc[action].values.T
+            wMeanSubActionMeans = pd.DataFrame(wMeanSubActionMeans.stack(0), columns=['meanF'])
+            wMeanSubActionMeans['tuning'] = action
+            wMeans.append(wMeanSubActionMeans.reset_index())
+        wMeans = pd.concat(wMeans)
+    
+        for k,v in [('genotype',sess.meta.genotype), ('animal',sess.meta.animal), ('date',sess.meta.date)]:
+            wMeans.insert(0,k,v)
         
-        return cdMeans
-    return _aux()
+        wAM = wAM.append(wMeans, ignore_index=True)
+    
+    wAM['action'] = pd.Categorical(wAM['action'], incl_actions, ordered=True)
+    wAM['tuning'] = pd.Categorical(wAM['tuning'], incl_actions, ordered=True)
+    wAM['trialType'] = pd.Categorical(wAM['trialType'], ['r.','o.','o!'], ordered=True)
+    
+    # needs to be sum since weights add up to 1 and not number of neurons
+    if binPhases:
+        cdMeans = wAM.groupby(['genotype','tuning','action','trialType','bin'])[['meanF']].sum().unstack('tuning')['meanF']
+        cdMeans.index = cdMeans.index.reorder_levels((0,2,1,3))
+    else:
+        cdMeans = wAM.groupby(['genotype','tuning','action','trialType'])[['meanF']].sum().unstack('tuning')['meanF']
+        cdMeans.index = cdMeans.index.reorder_levels((0,2,1))
+    cdMeans.sort_index(axis=0, inplace=True)
+    
+    return cdMeans
+
+
+@cachedDataFrame('stSwCodingDirectionRaster.pkl')
+def getStSwCodingDirectionRaster(endoDataPath):
+    return _getStSwCodingDirectionAvgs(endoDataPath, binPhases=False, resampleAUCs=False)
+
+
+@cachedDataFrame('stSwCodingDirectionTraces.pkl')
+def getStSwCodingDirectionTraces(endoDataPath, n_bootstrap=1000):
+    actualTraces = _getStSwCodingDirectionAvgs(endoDataPath, binPhases=True, resampleAUCs=False)
+    resampledTraces = [_getStSwCodingDirectionAvgs(endoDataPath, binPhases=True, resampleAUCs=True) for n in range(n_bootstrap)]
+    return actualTraces, resampledTraces
+    
     
