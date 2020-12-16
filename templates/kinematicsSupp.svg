@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:figurefirst="http://flyranch.github.io/figurefirst/"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="215.89998mm"
+   height="279.39999mm"
+   viewBox="0 0 215.89998 279.39999"
+   version="1.1"
+   id="svg34632"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   sodipodi:docname="kinematicsSupp.svg">
+  <defs
+     id="defs34626">
+    <rect
+       x="74.566095"
+       y="180.26725"
+       width="100.22607"
+       height="15.501632"
+       id="rect34686" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.7"
+     inkscape:cx="279.09542"
+     inkscape:cy="408.81183"
+     inkscape:document-units="mm"
+     inkscape:current-layer="layer1"
+     inkscape:document-rotation="0"
+     showgrid="false"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:window-width="1620"
+     inkscape:window-height="1018"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:window-maximized="1"
+     showguides="true"
+     inkscape:guide-bbox="true">
+    <sodipodi:guide
+       position="29.772454,244.36736"
+       orientation="1,0"
+       id="guide34675" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata34629">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-11.490486,-13.758337)">
+    <g
+       id="g29731"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
+       transform="translate(11.690473,-3.8416521)">
+      <rect
+         height="279.39999"
+         id="rect29687"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41716;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="-0.19998679"
+         y="17.599989" />
+      <rect
+         height="279.39999"
+         id="rect29687-1"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.41716;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         width="19.050001"
+         x="196.64999"
+         y="17.599989" />
+      <rect
+         height="177.79999"
+         id="rect29687-3"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92823;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="17.599989"
+         y="-196.64999" />
+      <rect
+         height="177.79997"
+         id="rect29687-3-2"
+         style="opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:1.92823;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
+         transform="rotate(90)"
+         width="19.050001"
+         x="277.94995"
+         y="-196.64999" />
+    </g>
+    <g
+       id="g36078"
+       transform="translate(18.135003,0.07519586)"
+       style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
+      <rect
+         style="display:inline;fill:#b3b3b3;stroke-width:0.297277;stroke-linecap:square;stroke-linejoin:round"
+         id="rect18340-2"
+         width="23.846827"
+         height="23.846827"
+         x="75.543839"
+         y="48.715767">
+        <figurefirst:axis
+           figurefirst:name="choice" />
+      </rect>
+      <rect
+         style="display:inline;fill:#b3b3b3;stroke-width:0.295723;stroke-linecap:square;stroke-linejoin:round"
+         id="rect18340-1"
+         width="31.051203"
+         height="18.123264"
+         x="70.607254"
+         y="75.477448">
+        <figurefirst:axis
+           figurefirst:name="turnTrajectory" />
+      </rect>
+      <figurefirst:figure
+         figurefirst:name="trajectoryIllustration" />
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.558879;stroke-linecap:square"
+         id="rect34673"
+         width="44.832031"
+         height="44.832031"
+         x="23.127937"
+         y="48.715771">
+        <figurefirst:axis
+           figurefirst:name="openField" />
+      </rect>
+    </g>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.340223;stroke-linecap:square;stroke-linejoin:round"
+       id="rect18340"
+       width="27.737373"
+       height="26.853613"
+       x="104.59521"
+       y="118.15045">
+      <figurefirst:axis
+         figurefirst:name="kinematicsVsDeconv_oprm1" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.340223;stroke-linecap:square;stroke-linejoin:round"
+       id="rect34677"
+       width="27.737373"
+       height="26.853613"
+       x="41.262939"
+       y="118.15045">
+      <figurefirst:axis
+         figurefirst:name="kinematicsVsDeconv_d1" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.340223;stroke-linecap:square;stroke-linejoin:round"
+       id="rect34679"
+       width="27.737373"
+       height="26.853613"
+       x="72.929077"
+       y="118.15045">
+      <figurefirst:axis
+         figurefirst:name="kinematicsVsDeconv_a2a" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       id="rect34690"
+       width="27.737373"
+       height="11.218346"
+       x="104.5952"
+       y="147.78351">
+      <figurefirst:axis
+         figurefirst:name="kinematicsPairHist_oprm1" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       id="rect34692"
+       width="27.737373"
+       height="11.218346"
+       x="41.262939"
+       y="147.78351">
+      <figurefirst:axis
+         figurefirst:name="kinematicsPairHist_d1" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       id="rect34694"
+       width="27.737373"
+       height="11.218346"
+       x="72.929077"
+       y="147.78351">
+      <figurefirst:axis
+         figurefirst:name="kinematicsPairHist_a2a" />
+    </rect>
+  </g>
+</svg>
