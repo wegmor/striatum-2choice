@@ -47,7 +47,7 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
 #%%
 endoDataPath = "data/endoData_2019.hdf"
 ex_session = {'genotype': 'oprm1', 'animal': '5308', 'date': '190201'}
-ex_action = (0,204)
+ex_action = (0,80) #833, 54
 oftSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='openField'))
 videoFolder = pathlib.Path('/home/emil/2choice/openFieldVideos')
 
@@ -81,6 +81,9 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            color='yellow', zorder=1, marker='.')
 ax.set_xlim((120,709))
 ax.set_ylim((590,0))
+wallCorners = oftSess.getWallCorners()
+cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/49
+ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False)
 ax.axis('off')
 
 
@@ -105,6 +108,7 @@ xlims = ax.get_xlim()
 ylims = ax.get_ylim()
 
 cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
+plt.sca(ax)
 for i in range(len(frames)):
     frame = frames[i].mean(axis=-1) + i*255 - 255*len(frames)/2 + 256
     fancyViz.imshowWithAlpha(frame, .9*alpha[i], 255*len(frames)/2, cmap=cmap,
@@ -120,7 +124,16 @@ ax.vlines(coords.iloc[0].body.x, coords.iloc[0].body.y-60, coords.iloc[0].body.y
 ax.set_xlim(np.array(xlims) + [-40,40])
 ax.set_ylim(np.array(ylims)[::-1] + [20,-40])
 ax.axis('off')
-
+#sat = 255*len(frames)/2
+#mpl.colors.Normalize(-sat, sat)
+cax = layout.axes['trajectoryIllustration','turnTrajectory_colorbar']['axis']
+cb = plt.colorbar(mpl.cm.ScalarMappable(None, cmap), cax=cax, orientation='horizontal')
+cb.outline.set_visible(False)
+cax.set_axis_off()
+for t in (0, 0.5, 1.0):
+    text = '{:>2.0f}\n{:.2f}\n{:.0f}%'.format(t*(stop-start), t*(stop-start)/20.0, t*100)
+    cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
+cax.text(-0.1, -0.5, 'movie frame\ntime (s)\nprogress', ha='right', va="top", fontdict={'fontsize':6})
 
 #%% plot 2 choice frame
 chTracking = chSess.readTracking()
@@ -142,9 +155,47 @@ ax.plot([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
 ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
            color='yellow', zorder=1, marker='.', transform=tr)
+wallCorners = chSess.getWallCorners()
+cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/15
+ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False)
 ax.axis('off')
 
+#%%
+ofSegs = analysisKinematicsSupp.openFieldSegmentKinematics(endoDataPath)
+tcSegs = analysisKinematicsSupp.twoChoiceSegmentKinematics(endoDataPath)
+fps = 20
+#Change from per frame to per second
+tcSegs['bodyAngleSpeed'] *= -180/np.pi * fps
+tcSegs['speed'] *= fps
+ofSegs['bodyAngleSpeed'] *= -180/np.pi * fps
+ofSegs['speed'] *= fps
+kinematicParams = ["bodyAngleSpeed", "speed", "elongation"]
 
+phases = ['mC2L','mC2R','mL2C','mR2C','pC2L','pC2R','pL2C','pR2C', 'dL2C', 'dR2C']
+behaviors = ['leftTurn', 'rightTurn', 'running', 'stationary']
+lims = {'speed': (-10, 30), 'bodyAngleSpeed': (-150, 150),
+        'elongation': (2.25, 3.75)}
+xlabels = {'speed': 'speed (cm/s)',
+           'bodyAngleSpeed': 'turning speed (deg/s)',
+           'elongation': 'elongation (cm)'}
+for k in kinematicParams:
+    ax = layout.axes['kinematicHist_twoChoice_'+k]['axis']
+    for p in phases:
+        sns.kdeplot(tcSegs[tcSegs.label==p][k], cut=0, ax=ax,
+                    color=style.getColor(p), alpha=.7, legend=False)
+    ax.set_xlim(*lims[k])
+    ax.set_yticks([])
+    ax.set_xticklabels([])
+    sns.despine(ax=ax)
+    ax = layout.axes['kinematicHist_openField_'+k]['axis']
+    for b in behaviors:
+        sns.kdeplot(ofSegs[ofSegs.label==b][k], cut=0, ax=ax,
+                    color=style.getColor(b), alpha=.7, legend=False)
+    ax.set_xlim(*lims[k])
+    ax.set_yticks([])
+    ax.set_xlabel(xlabels[k])
+    sns.despine(ax=ax)
+'''
 #%%
 #plt.close()
 nNeurons = []
@@ -216,7 +267,7 @@ for gt in gts:
     if gt=="a2a":
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
     sns.despine(ax=ax)
-
+'''
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
