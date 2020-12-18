@@ -102,7 +102,6 @@ ax.legend(handles=legend_elements, ncol=len(legend_elements), loc='upper center'
 
 #%% load coding direction data (traces and means)
 cdMeans = analysisStaySwitchDecodingSupp.getStSwCodingDirectionRaster(endoDataPath)
-
 cmap = (mpl.colors.LinearSegmentedColormap
            .from_list('wStLSw', [style.getColor('o!'), (1,1,1), style.getColor('r.')], 256))
 cbar = mpl.colors.LinearSegmentedColormap.from_list('test',[style.getColor(c) for c in cdMeans.columns],
@@ -112,45 +111,8 @@ cdMeansBinned, cdMeansBinnedRS = analysisStaySwitchDecodingSupp.getStSwCodingDir
 cdSEMs = (pd.concat(cdMeansBinnedRS, keys=np.arange(len(cdMeansBinnedRS)), names=['sampleNo'])
             .groupby(['genotype','trialType','action','bin']).std())
 
-#%%
-sem = (pd.concat(cdMeansBinnedRS, keys=np.arange(len(cdMeansBinnedRS)), names=['sampleNo'])
-         .groupby(['genotype','trialType','action','bin']).std()).loc['oprm1','r.']
-rst = cdMeansBinned.loc['oprm1','r.']
 
-
-#%% plot coding direction trace examples
-leftTrial = ['pL2C','mL2C','pC2L','mC2L','dL2C']
-rightTrial = ['pR2C','mR2C','pC2R','mC2R','dR2C']
-ax = layout.axes['CDTraces']['axis']
-for tuning in rst.columns:
-    offset = -.225 if tuning in rightTrial else .025
-    ax.plot(np.arange(len(rst)), rst[tuning].values+offset, color=style.getColor(tuning),
-            clip_on=False, lw=1, zorder=-99)
-    ax.fill_between(np.arange(len(rst)),
-                    rst[tuning].values+sem[tuning].values+offset,
-                    rst[tuning].values-sem[tuning].values+offset,
-                    color=style.getColor(tuning), alpha=.35, zorder=-99)
-ax.hlines([-.25, 0, .25], -6, 50, ls='-', color='k', clip_on=False)
-ax.vlines([-.5,24.5,49.5], -.25, .25, ls='-', color='k', clip_on=False)
-ax.vlines(np.arange(-.5,50.5,5), -.25, .25, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
-          clip_on=False)
-ax.set_ylim((-.25,.25))
-ax.set_xlim((-.5,49.5))
-ax.set_xticks(())
-ax.set_yticks(())
-ax.set_ylabel('trial phase-specific\ntrial type-coding', labelpad=12, fontsize=8)
-ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
-
-cbarXAx = layout.axes['oprm1CD_xbar2']['axis']
-cbarXAx.pcolormesh((rst.index.get_level_values(0).codes / 10)[np.newaxis,:], cmap=cbar, lw=0)
-cbarXAx.vlines(np.arange(0,50,5), 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'])
-cbarXAx.vlines([25,], 1, -2, ls='-', color='k', clip_on=False)
-cbarXAx.vlines([0,50], 1, -4, ls='-', color='k', clip_on=False)
-cbarXAx.set_ylim((0,1))
-cbarXAx.axis('off')
-
-
-#%%
+#%% plot right to center turn CD traces
 rightStay = ['pR2C','mR2C','pC2R','mC2R','dR2C']
 rightSwitch = ['pR2C','mR2C','pC2L','mC2L','dL2C']
 rst = cdMeansBinned.loc['oprm1','r.'].loc[rightStay]
@@ -192,7 +154,7 @@ ax.set_ylabel('coding direction\n(z-score)')
 sns.despine(ax=ax, bottom=True, trim=True)
 
 
-#%%
+#%% plot oprm1 left win-stay traces
 ax = layout.axes['leftRewardStayCD']['axis']
 
 leftStay = ['pL2C','mL2C','pC2L','mC2L','dL2C']
@@ -235,26 +197,29 @@ ax.set_title('Oprm1 phase-specific\ntrial type coding\n(left win-stay trial)',
 
 #%% plot matrices
 cax = layout.axes['CDlegend']['axis']
+vMinMax = .1
 
-for gt in ['d1','a2a','oprm1']:
-    ax = layout.axes[gt+'CD']['axis']
-    sns.heatmap(cdMeans.loc[gt].T, center=0, cmap=cmap, square=True, vmin=-.1, vmax=.1, ax=ax,
-                cbar_ax=cax, cbar_kws={'orientation':'horizontal'})
-    ax.vlines(np.arange(0,31,5), 0, 10, color='k', clip_on=False)
-    ax.vlines(np.arange(0,31), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
-              clip_on=False)
-    ax.hlines(np.arange(1,10), 0, 30, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
-              clip_on=False)
-    ax.hlines([0,5,10], 0, 30, ls='-', color='k', clip_on=False)
-    ax.set_yticks(())
-    ax.set_xticks(())
-    ax.set_ylabel('trial phase-specific\ntrial type-coding population', labelpad=18, fontsize=8)
-    ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
+gt = 'oprm1'
+ax = layout.axes[gt+'CD']['axis']
+sns.heatmap(cdMeans.loc[gt].T, center=0, cmap=cmap, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax,
+            cbar_ax=cax, cbar_kws={'orientation':'horizontal'})
+ax.vlines(np.arange(0,31,5), 0, 10, color='k', clip_on=False)
+ax.vlines(np.arange(0,31), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
+          clip_on=False)
+ax.hlines(np.arange(1,10), 0, 30, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+          clip_on=False)
+ax.hlines([0,5,10], 0, 30, ls='-', color='k', clip_on=False)
+ax.set_yticks(())
+ax.set_xticks(())
+ax.set_ylabel('trial phase-specific\ntrial type-coding population', labelpad=18, fontsize=8)
+ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
+#ax.set_title('Oprm1', pad=4, loc='left')
 
 cax.set_ylabel('', fontsize=7)
 cax.tick_params(axis='x', length=0)
-cbarYAx = layout.axes['oprm1CD_ybar']['axis']
-cbarXAx = layout.axes['oprm1CD_xbar']['axis']
+cax.invert_xaxis()
+cbarYAx = layout.axes['{}CD_ybar'.format(gt)]['axis']
+cbarXAx = layout.axes['{}CD_xbar'.format(gt)]['axis']
 cbarYAx.pcolormesh((cdMeans.columns.codes / 10)[:,np.newaxis], cmap=cbar)
 cbarYAx.hlines(np.arange(1,10), 0, 1, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'])
 cbarYAx.hlines([0,5,10], -2, 1, ls='-', color='k', clip_on=False)
@@ -267,6 +232,57 @@ cbarXAx.set_ylim((0,1))
 cbarYAx.axis('off')
 cbarYAx.invert_yaxis()
 cbarXAx.axis('off')
+
+
+for gt in ['d1','a2a']:
+    ax = layout.axes[gt+'CD']['axis']
+    sns.heatmap(cdMeans.loc[gt,'r.'].T, center=0, cmap=cmap, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax,
+                cbar=False)
+    ax.vlines(np.arange(0,11,5), 0, 10, color='k', clip_on=False)
+    ax.vlines(np.arange(0,11), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines(np.arange(1,10), 0, 10, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines([0,5,10], 0, 10, ls='-', color='k', clip_on=False)
+    ax.set_yticks(())
+    ax.set_xticks(())
+    ax.set_ylabel('population', labelpad=18, fontsize=8)
+    ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
+    ax.set_title({'a2a':'A2A', 'd1':'D1'}[gt], pad=4)
+
+    cbarYAx = layout.axes['{}CD_ybar'.format(gt)]['axis']
+    cbarXAx = layout.axes['{}CD_xbar'.format(gt)]['axis']
+    cbarYAx.pcolormesh((cdMeans.columns.codes / 10)[:,np.newaxis], cmap=cbar)
+    cbarYAx.hlines(np.arange(1,10), 0, 1, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarYAx.hlines([0,5,10], -2, 1, ls='-', color='k', clip_on=False)
+    cbarYAx.set_xlim((0,1))
+    cbarXAx.pcolormesh((cdMeans.loc[gt,'r.'].index.get_level_values(0).codes / 10)[np.newaxis,:], cmap=cbar)
+    cbarXAx.vlines(np.arange(1,10), 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarXAx.vlines([5,], 1, -2, ls='-', color='k', clip_on=False)
+    cbarXAx.vlines([0,10], 1, -4, ls='-', color='k', clip_on=False)
+    cbarXAx.set_ylim((0,1))
+    cbarYAx.axis('off')
+    cbarYAx.invert_yaxis()
+    cbarXAx.axis('off')
+
+
+#%% plot same left win-stay traces as above as inset in oprm1 raster plot
+ax = layout.axes['CDRasterInset']['axis']
+
+transY = mpl.transforms.blended_transform_factory(ax.transData, ax.transAxes)
+transX = mpl.transforms.blended_transform_factory(ax.transAxes, ax.transData)
+for p, tuning in enumerate(leftStay):
+    offset = offsets[p]
+    ax.plot(rst[tuning].values+offset, color='k', lw=.8, clip_on=False)
+    ax.fill_between(np.arange(len(rst)), 
+                    rst[tuning].values+rstSem[tuning].values+offset,
+                    rst[tuning].values-rstSem[tuning].values+offset,
+                    color='k', alpha=.35, lw=0)
+ax.hlines(offsets, 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
+          alpha=.25, transform=transX)
+ax.set_ylim((-.45,.05))
+ax.set_xlim((-.5,24.5))
+ax.axis('off')
 
 
 #%%
