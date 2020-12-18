@@ -44,8 +44,7 @@ behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': '
                  'rightTurn': 'right turn'}
 
 
-#%%
-endoDataPath = "data/endoData_2019.hdf"
+#%% load example session data
 ex_session = {'genotype': 'oprm1', 'animal': '5308', 'date': '190201'}
 ex_action = (0,80) #833, 54
 oftSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='openField'))
@@ -67,6 +66,7 @@ start, stop = segmented.loc[ex_action][["startFrame", "stopFrame"]]
 frame_ids = list(range(start, stop+1, 5))
 frames = np.array([open_field_video.get_frame(i) for i in frame_ids])
 coords = tracking.loc[start:stop]
+
 
 #%% plot first oft frame
 ax = layout.axes['trajectoryIllustration','openField']['axis']
