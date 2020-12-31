@@ -37,11 +37,6 @@ layout = figurefirst.FigureLayout(templateFolder / "rewardSupp.svg")
 layout.make_mplfigures()
 
 
-#%% load tuning data
-tuningData = analysisTunings.getTuningData(endoDataPath)
-tuningData['signp'] = tuningData['pct'] > .995
-tuningData['signn'] = tuningData['pct'] < .005
-
 #%% Panel A
 cdf = analysisMethods.getChoiceData(endoDataPath)
 ##%%
@@ -101,34 +96,64 @@ analysisMethods.align_xaxis(ax2, 0, ax1, 0)
 
 
 #%% Panel B
-lt_avg_trial, rt_avg_trial, lt_avg_frame, rt_avg_frame = \
-        analysisRewardSupp.getRewardRespData(endoDataPath, tuningData)
-##%% 
+trialsDf, tuningsDf, activityDf = analysisRewardSupp.getOutcomeResponseData(endoDataPath)
+
+lRewTuned = tuningsDf.loc[tuningsDf.leftReward==1,'neuron']
+rRewTuned = tuningsDf.loc[tuningsDf.rightReward==1, 'neuron']
+lTrials = trialsDf.loc[trialsDf.side == 'L', ['trial','rSize']]
+rTrials = trialsDf.loc[trialsDf.side == 'R', ['trial','rSize']]
+rTrials = rTrials.loc[rTrials.trial != 'a2a_6043_190126_4817'] # huge artifact in trial
+
+# compute left trial averages / reward size for left win-stay neurons
+lt_avg_trial = activityDf.query('trial in @lTrials.trial & neuron in @lRewTuned').copy()
+lt_avg_trial = pd.DataFrame(lt_avg_trial.iloc[:,7:].mean(axis=1), columns=['f']).reset_index() # drop delay period and average trials
+lt_avg_trial = lt_avg_trial.merge(lTrials, on='trial', how='left')
+lt_avg_trial = lt_avg_trial.groupby(['rSize','neuron']).mean().unstack('rSize').f
+lt_avg_trial['genotype'] = lt_avg_trial.index.map(lambda n: n.split('_')[0])
+lt_avg_trial = lt_avg_trial.reset_index().set_index(['genotype','neuron'])
+
+# compute right trial averages / reward size for right win-stay neurons
+rt_avg_trial = activityDf.query('trial in @rTrials.trial & neuron in @rRewTuned').copy()
+rt_avg_trial = pd.DataFrame(rt_avg_trial.iloc[:,7:].mean(axis=1), columns=['f']).reset_index() # drop delay period and average
+rt_avg_trial = rt_avg_trial.merge(rTrials, on='trial', how='left')
+rt_avg_trial = rt_avg_trial.groupby(['rSize','neuron']).mean().unstack('rSize').f
+rt_avg_trial['genotype'] = rt_avg_trial.index.map(lambda n: n.split('_')[0])
+rt_avg_trial = rt_avg_trial.reset_index().set_index(['genotype','neuron'])
+
+# compute left trial frame-by-frame averages / reward size for left win-stay neurons
+lt_avg_frame = activityDf.query('trial in @lTrials.trial & neuron in @lRewTuned').copy()
+lt_avg_frame = lt_avg_frame.reset_index().merge(lTrials, on='trial', how='left').set_index(['trial','neuron','rSize'])
+lt_avg_frame = lt_avg_frame.groupby(['neuron','rSize']).mean()
+lt_avg_frame['genotype'] = lt_avg_frame.index.get_level_values(0).map(lambda n: n.split('_')[0])
+lt_avg_frame = lt_avg_frame.reset_index().set_index(['genotype','rSize','neuron'])
+
+# compute left trial frame-by-frame averages / reward size for right win-stay neurons
+rt_avg_frame = activityDf.query('trial in @rTrials.trial & neuron in @rRewTuned').copy()
+rt_avg_frame = rt_avg_frame.reset_index().merge(rTrials, on='trial', how='left').set_index(['trial','neuron','rSize'])
+rt_avg_frame = rt_avg_frame.groupby(['neuron','rSize']).mean()
+rt_avg_frame['genotype'] = rt_avg_frame.index.get_level_values(0).map(lambda n: n.split('_')[0])
+rt_avg_frame = rt_avg_frame.reset_index().set_index(['genotype','rSize','neuron'])
+
+
+#%%
 for genotype in ['d1','a2a','oprm1']:
-    resp_lt = (lt_avg_trial.query('genotype == @genotype')
-                           .set_index(['side','reward','animal','date','neuron'])[['avg']]
-                           .unstack(['animal','date','neuron']))
-    resp_rt = (rt_avg_trial.query('genotype == @genotype')
-                           .set_index(['side','reward','animal','date','neuron'])[['avg']]
-                           .unstack(['animal','date','neuron']))
-    
-    for (side, df) in zip(('L','R'), (resp_lt, resp_rt)):
+    for (side, df) in zip(('L','R'), (lt_avg_trial.loc[genotype,[0,1,2]], rt_avg_trial.loc[genotype,[0,1,2]])):
         ax = layout.axes['{}_pointplot_{}'.format(genotype, {'L':'lt','R':'rt'}[side])]
 
-        sns.stripplot(data=(df.loc[side].loc[[0,2]] - df.loc[side,1]).T,
+        sns.stripplot(data=(df[[0,2]] - df[[1]].values),
                       ax=ax, color=style.getColor('p'+side),
                       size=1.5, alpha=.5, jitter=.32, linewidth=0, zorder=-1,
-                      clip_on=False)
-        means = (df.loc[side].loc[[0,1,2]] - df.loc[side,1]).T.mean()
-        sems = (df.loc[side].loc[[0,1,2]] - df.loc[side,1]).T.sem()
-        ax.errorbar([0,.5,1], means, yerr=sems,
-                    fmt='ko-', markersize=3.2, markeredgewidth=0)
+                      clip_on=True)
+        means = (df - df[[1]].values).mean()
+        sems = (df - df[[1]].values).sem()
+        ax.errorbar([0,.5,1], means.loc[[0,1,2]], yerr=sems.loc[[0,1,2]],
+                    fmt='ko-', markersize=3.2, markeredgewidth=0, zorder=1)
         
-        ax.axhline(0, ls='--', zorder=-5, c='k', alpha=.35, lw=mpl.rcParams['axes.linewidth'])
-        ax.axvline(.5, ls='--', zorder=-5, c='k', alpha=.35, lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(0, ls='--', zorder=0, c='k', alpha=.35, lw=mpl.rcParams['axes.linewidth'])
+        ax.axvline(.5, ls='--', zorder=0, c='k', alpha=.35, lw=mpl.rcParams['axes.linewidth'])
         
-        ax.text(.975, .99, 'n={}'.format(df.shape[1]), fontsize=6, ha='right',
-                va='top', transform=ax.transAxes)
+        # ax.text(.975, .99, 'n={}'.format(df.shape[0]), fontsize=6, ha='right',
+        #         va='top', transform=ax.transAxes)
 
         ax.set_xticks((0,.5,1))
         ax.set_xticklabels(())
@@ -145,30 +170,23 @@ for genotype in ['d1','a2a','oprm1']:
 
 
 #%%
-for gt in ['d1','a2a','oprm1']:
-    lt_df = (lt_avg_frame.query('genotype == @gt')
-                         .set_index(['side','reward','animal','date','neuron','actionFrame'])
-                         .sort_index().unstack('actionFrame')['avg'])
-    rt_df = (rt_avg_frame.query('genotype == @gt')
-                         .set_index(['side','reward','animal','date','neuron','actionFrame'])
-                         .sort_index().unstack('actionFrame')['avg'])
-    
-    for (side, df) in zip(('L','R'), (lt_df, rt_df)):
-        ax = layout.axes['{}_trace_{}'.format(gt, {'L':'lt','R':'rt'}[side])]
+for genotype in ['d1','a2a','oprm1']:
+    for (side, df) in zip(('L','R'), (lt_avg_frame.loc[genotype], rt_avg_frame.loc[genotype])):
+        ax = layout.axes['{}_trace_{}'.format(genotype, {'L':'lt','R':'rt'}[side])]
         
-        df = df.query('side == @side').groupby('reward').agg(['mean','sem']).loc[:,:36].copy()
+        df = df.groupby('rSize').agg(['mean','sem']).loc[:,:36].copy()
         df.columns = df.columns.reorder_levels((1,0))
         
         ax.axvline(-.5, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
         ax.axvline(6.5, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
         ax.axhline(0, ls='--', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
         
-        ax.fill_between(np.arange(26),
-                        df.loc[0,'mean'][:26]+df.loc[0,'sem'][:26],
-                        df.loc[0,'mean'][:26]-df.loc[0,'sem'][:26],
+        ax.fill_between(np.arange(36),
+                        df.loc[0,'mean'][:36]+df.loc[0,'sem'][:36],
+                        df.loc[0,'mean'][:36]-df.loc[0,'sem'][:36],
                         alpha=.25, lw=0, clip_on=False, zorder=-3,
                         color=style.getColor('o!'))
-        ax.plot(df.loc[0,'mean'][:26], color=style.getColor('o!'), alpha=.8,
+        ax.plot(df.loc[0,'mean'][:36], color=style.getColor('o!'), alpha=.8,
                 zorder=1, label=' '*6)
         ax.fill_between(np.arange(37),
                         df.loc[1,'mean']+df.loc[1,'sem'],
@@ -185,20 +203,40 @@ for gt in ['d1','a2a','oprm1']:
         ax.plot(df.loc[2,'mean'], color=style.getColor('double'), alpha=.8,
                 zorder=2, label=' '*6)
         
-        ax.set_ylim((-.25,.5))
+        ax.set_ylim((-.25,.25))
         ax.set_xlim((-3.5,36.5))
-        ax.set_yticks((-.25,0,.25,.5))
+        ax.set_yticks((-.25,0,.25))
         ax.set_xticks((-.5,6.5,16.5,26.5,36.5))
         ax.set_xticklabels(('','',.5,1.,1.5), rotation=0)
-        if not (gt == 'd1' and side == 'L'):
+        if not (genotype == 'd1' and side == 'L'):
             ax.set_yticklabels(())
         else:
             ax.set_ylabel('sd')
-            ax.legend(bbox_to_anchor=(1,.2), loc='center right')
+            ax.legend(bbox_to_anchor=(1,.85), loc='center right')
         
         sns.despine(ax=ax, trim=False)
 
-    
+
+#%%
+pieDf = tuningsDf[['leftReward','rightReward']].stack().reset_index()
+pieDf.columns = list(pieDf.columns[:-2]) + ['phase','tuning']
+pieDf = pd.DataFrame(pieDf.groupby(['genotype','phase','tuning']).size(),
+                     columns=['noNeurons'])[::-1]
+pieDf['label'] = pieDf.index.get_level_values('tuning').map({-1:'lose-switch',0:'none',1:'win-stay'}).values
+
+for (gt,phase), df in pieDf.groupby(['genotype','phase']):
+    ax = layout.axes['{}_pie_{}'.format(gt, {'leftReward':'lt', 'rightReward':'rt'}[phase])]['axis']
+    ax.pie(df.noNeurons, #labels=df.label,
+           colors=df.label.map({'win-stay':style.getColor({'leftReward':'pL2C','rightReward':'pR2C'}[phase]),
+                                'lose-switch':[0,0,0,.1],
+                                'none':[0,0,0,.1]}),
+           explode=[.3,0,0])
+    ax.text(1.3, .6, 'n={}\n({:.1%})'.format(df.loc[gt,phase,1].noNeurons,
+                                        df.loc[gt,phase,1].noNeurons/df.noNeurons.sum()),
+            transform=ax.transAxes, ha='left', va='center', fontsize=6)
+
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "rewardSupp.svg")
+
