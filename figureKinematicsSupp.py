@@ -195,9 +195,8 @@ for k in kinematicParams:
     ax.set_yticks([])
     ax.set_xlabel(xlabels[k])
     sns.despine(ax=ax)
-'''
+
 #%%
-#plt.close()
 nNeurons = []
 for sess in analysisKinematicsSupp.find2choiceSessionsFollowingOpenField(endoDataPath):
     deconv = sess.readDeconvolvedTraces(zScore=False)
@@ -267,7 +266,7 @@ for gt in gts:
     if gt=="a2a":
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
     sns.despine(ax=ax)
-'''
+
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
