@@ -132,8 +132,8 @@ def getOutcomeResponseData(endoDataPath):
         trialsDf = trialsDf.loc[trialsDf.label.str.contains('^p[LR]2.[ro].')].copy()
         trialsDf['rSize'] = sensors.rewardNo.diff().groupby('actionNo').first()
         trialsDf['prevRSize'] = trialsDf.rSize.shift(1)
-        trialsDf['value'] = avs.value
-        trialsDf['prevValue'] = trialsDf.value.shift(1)
+        trialsDf['prevValue'] = avs.value # value is updated in side->center movement phase
+        trialsDf['value'] = trialsDf.prevValue.shift(-1)
         trialsDf['side'] = trialsDf.label.str[1]
         trialsDf['prevSide'] = trialsDf.side.shift(1)
         trialsDf.set_index([list(map(lambda an: str(sess)+'_{0:d}'.format(an), trialsDf.index.values.astype('int')))],
