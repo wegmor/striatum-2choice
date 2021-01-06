@@ -14,7 +14,7 @@
    version="1.1"
    id="svg34632"
    inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
-   sodipodi:docname="kinematicsSupp.svg">
+   sodipodi:docname="kinematicsSupp_template.svg">
   <defs
      id="defs34626">
     <rect
@@ -412,11 +412,11 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.979899"
-     inkscape:cx="542.27262"
-     inkscape:cy="221.92213"
+     inkscape:zoom="0.9899495"
+     inkscape:cx="426.83807"
+     inkscape:cy="192.02855"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="g36078"
      inkscape:document-rotation="0"
      showgrid="false"
      fit-margin-top="0"
@@ -442,6 +442,22 @@
        position="106.03518,244.36736"
        orientation="0,-1"
        id="guide34720" />
+    <sodipodi:guide
+       position="74.604484,199.53532"
+       orientation="1,0"
+       id="guide220" />
+    <sodipodi:guide
+       position="78.997021,209.47439"
+       orientation="1,0"
+       id="guide222" />
+    <sodipodi:guide
+       position="102.84385,244.36736"
+       orientation="1,0"
+       id="guide224" />
+    <sodipodi:guide
+       position="65.344066,196.87786"
+       orientation="0,-1"
+       id="guide226" />
   </sodipodi:namedview>
   <metadata
      id="metadata34629">
@@ -451,7 +467,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -505,7 +521,7 @@
          id="rect18340-2"
          width="23.846827"
          height="23.846827"
-         x="75.543839"
+         x="72.352509"
          y="48.715767">
         <figurefirst:axis
            figurefirst:name="choice" />
@@ -533,14 +549,64 @@
            figurefirst:name="openField" />
       </rect>
       <rect
-         style="display:inline;fill:#b3b3b3;stroke-width:0.0861816;stroke-linecap:square;stroke-linejoin:round"
+         style="display:inline;fill:#b3b3b3;stroke-width:0.075525;stroke-linecap:square;stroke-linejoin:round"
          id="rect34696"
-         width="31.051142"
+         width="23.846825"
          height="1.5392079"
-         x="70.607254"
-         y="95.236504">
+         x="72.352509"
+         y="96.205269">
         <figurefirst:axis
            figurefirst:name="turnTrajectory_colorbar" />
+      </rect>
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         id="rect210"
+         width="7.7903647"
+         height="7.7903647"
+         x="23.127937"
+         y="96.205269">
+        <figurefirst:axis
+           figurefirst:name="openField_sub1" />
+      </rect>
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         id="rect212"
+         width="7.7903647"
+         height="7.7903647"
+         x="32.388355"
+         y="96.205269">
+        <figurefirst:axis
+           figurefirst:name="openField_sub2" />
+      </rect>
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         id="rect214"
+         width="7.7903647"
+         height="7.7903647"
+         x="41.648773"
+         y="96.205269">
+        <figurefirst:axis
+           figurefirst:name="openField_sub3" />
+      </rect>
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         id="rect216"
+         width="7.7903647"
+         height="7.7903647"
+         x="50.909187"
+         y="96.205269">
+        <figurefirst:axis
+           figurefirst:name="openField_sub4" />
+      </rect>
+      <rect
+         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         id="rect218"
+         width="7.7903647"
+         height="7.7903647"
+         x="60.169605"
+         y="96.205269">
+        <figurefirst:axis
+           figurefirst:name="openField_sub5" />
       </rect>
     </g>
     <rect

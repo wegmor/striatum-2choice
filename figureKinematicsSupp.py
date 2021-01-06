@@ -60,6 +60,7 @@ chSess = next(readSessions.findSessions(endoDataPath, **ex_session, task='2choic
 videoFolder = pathlib.Path('/mnt/dmclab/striatum_2choice/')
 two_choice_video = pims.open(str(videoFolder / chSess.meta.video) + ".avi")
 
+cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
 
 #%% get example oft turn
 start, stop = segmented.loc[ex_action][["startFrame", "stopFrame"]]
@@ -81,12 +82,34 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            color='yellow', zorder=1, marker='.')
 ax.set_xlim((120,709))
 ax.set_ylim((590,0))
+ax.fill([120, 300, 120, 120], [0, 0, 80, 0], color=cmap(0.0), alpha=.6)
+ax.text(120+10, 10, "+0.00s", fontsize=6, va="top",
+        color="w")#bbox=dict(facecolor=cmap(0.0), alpha=1.0))
 wallCorners = oftSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/49
 ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False)
 ax.axis('off')
 
 
+
+for i in range(1, 6):
+    ax = layout.axes['trajectoryIllustration','openField_sub{}'.format(i)]['axis']
+    ax.imshow(exposure.adjust_log(frames[i],1.3))
+    xy = coords.iloc[i*5]
+    ax.plot([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
+            [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
+            color='yellow', lw=mpl.rcParams['axes.linewidth']/5, zorder=1)
+    ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
+               [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
+               color='yellow', s=.2, zorder=1, marker='.')
+    ax.set_xlim((120,709))
+    ax.set_ylim((590,0))
+    ax.axhspan(0, 190, color=cmap(i*5/(stop-start)), alpha=.6)
+    ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
+            ha="center", color="w")#))
+    ax.axis('off')
+
+    
 #%% plot example oft turn trajectory
 ax = layout.axes['trajectoryIllustration','turnTrajectory']['axis']
 
@@ -107,10 +130,10 @@ for i,xy in coords.iterrows():
 xlims = ax.get_xlim()
 ylims = ax.get_ylim()
 
-cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
+
 plt.sca(ax)
 for i in range(len(frames)):
-    frame = frames[i].mean(axis=-1) + i*255 - 255*len(frames)/2 + 256
+    frame = frames[i].mean(axis=-1) + i*255 - 255*len(frames)/2# + 256
     fancyViz.imshowWithAlpha(frame, .9*alpha[i], 255*len(frames)/2, cmap=cmap,
                              transform=tr, interpolation='antialiased')
 
@@ -131,9 +154,9 @@ cb = plt.colorbar(mpl.cm.ScalarMappable(None, cmap), cax=cax, orientation='horiz
 cb.outline.set_visible(False)
 cax.set_axis_off()
 for t in (0, 0.5, 1.0):
-    text = '{:>2.0f}\n{:.2f}\n{:.0f}%'.format(t*(stop-start), t*(stop-start)/20.0, t*100)
+    text = '+{:.2f}s\n({:.0f}%)'.format(t*(stop-start)/20.0, t*100)
     cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
-cax.text(-0.1, -0.5, 'movie frame\ntime (s)\nprogress', ha='right', va="top", fontdict={'fontsize':6})
+cax.text(0.5, -3.5, 'time (progess)', ha='center', va="top", fontdict={'fontsize':6})
 
 #%% plot 2 choice frame
 chTracking = chSess.readTracking()
@@ -159,6 +182,7 @@ wallCorners = chSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/15
 ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False)
 ax.axis('off')
+
 
 #%%
 ofSegs = analysisKinematicsSupp.openFieldSegmentKinematics(endoDataPath)
