@@ -158,7 +158,7 @@ for tuning in ['leftTurn', 'rightTurn']:
     data = signTuned.loc[:,signTuned.columns.get_level_values(1) == tuning].droplevel(1, axis=1)
     
     noNeurons = data.groupby(['genotype','animal','date']).size()
-    pctTund = data.groupby(['genotype','animal','date']).sum(axis=1) / noNeurons.values[:,np.newaxis]
+    pctTund = data.astype('int').groupby(['genotype','animal','date']).sum() / noNeurons.values[:,np.newaxis]
     pctTund *= 100
     
     obsOvlp = ((data.oft * data.choice).groupby(['genotype','animal','date']).sum() / \
