@@ -8,6 +8,8 @@ Created on Sat Jul 25 17:19:30 2020
 
 import numpy as np
 import pandas as pd
+import itertools
+import tqdm
 from scipy.signal import find_peaks
 import matplotlib.pyplot as plt
 import matplotlib as mpl
@@ -17,32 +19,6 @@ from utils.cachedDataFrame import cachedDataFrame
 
 
 #%%
-# TODO: literal copy of filterAllOpenField in analysisOpenField
-@cachedDataFrame("filteredTwoChoice.pkl")
-def filterAllTwoChoice(dataFile):
-    all_filtered = []
-    for sess in readSessions.findSessions(dataFile, task="2choice", cohort='2019'):
-        print(sess)
-        deconv = sess.readDeconvolvedTraces(indicateBlocks=True)
-        tracking = sess.readTracking(inCm=True)
-        if len(tracking) != len(deconv): continue
-        tracking.index = deconv.index
-        blocks = tracking.index.levels[0]
-        filtered = []
-        for block in blocks:
-            t = tracking.loc[block]
-            filtered.append(particleFilter.particleFilter(t, nParticles=2000, flattening=1e-12))
-        filtered = pd.concat(filtered)
-        filtered.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
-        filtered.rename_axis("time", axis=0, inplace=True)
-        filtered.bodyDirection *= 180/np.pi
-        ind = tracking.index.to_frame()
-        ind.insert(0, "session", str(sess))
-        filtered.index = pd.MultiIndex.from_frame(ind)
-        all_filtered.append(filtered)
-    return pd.concat(all_filtered)
-
-
 # TODO: this could be done much better (especially unnecessary run of particle filter / segmentation)
 def getSmoothedTracking(dataFile, genotype, animal, date, task):
     def _medSmooth(tracking):
@@ -164,3 +140,115 @@ def plotTop10Events(trace, tracking, axs, framesBefore=5, framesAfter=14, offset
     
     return pIdx
 
+
+def centerTrackingEvent(track):
+    body = track['body'][['x','y']]
+    head = (track['leftEar'][['x','y']] + track['rightEar'][['x','y']]) / 2
+    tail = track['tailBase'][['x','y']]
+    
+    # center
+    origin = body.iloc[0]
+    body -= origin
+    head -= origin
+    tail -= origin
+    
+    # rotate
+    angle = np.arctan2(tail.iloc[0]['x'], tail.iloc[0]['y']) + np.deg2rad(180)
+    body.loc[:,['x','y']] = rotate(body, angle=angle)
+    head.loc[:,['x','y']] = rotate(head, angle=angle)
+    tail.loc[:,['x','y']] = rotate(tail, angle=angle)
+    
+    track = pd.concat([head, body, tail], keys=['head','body','tail'], axis=1)
+    return track
+
+
+def processTracking(tracking):
+    tracking = tracking.copy()
+    
+    # remove turns with nans
+    nanANs = tracking.groupby('actionNo').apply(lambda an: an.isna().any())
+    nanANs = nanANs.loc[:,nanANs.columns.get_level_values(1).isin(['x','y'])].any(axis=1)
+    nanANs = nanANs.loc[nanANs].index.values
+    tracking = tracking.loc[~tracking.actionNo.isin(nanANs)]
+    
+    # add progress
+    tracking['progress'] = tracking.groupby('actionNo').cumcount() + .5
+    tracking.set_index('actionNo', inplace=True)
+    tracking['progress'] = tracking.progress / tracking.groupby('actionNo').size()
+    tracking.reset_index(inplace=True)
+    tracking['bin'] = tracking.progress * 100 // 10
+    
+    # center & rotate
+    centered = tracking.groupby('actionNo').apply(centerTrackingEvent)
+    centered = centered.merge(tracking[['behavior','actionNo','bin']], left_index=True, right_index=True)
+    centered.set_index(['behavior','actionNo','bin'], inplace=True)
+    
+    return centered 
+
+
+def plotTrackingEvent(track, ax, offsets=(0,0), alpha=1., color='k', lw=.8):
+    for n, r in track.iterrows():
+        ax.plot(np.stack([r['head','x'], r['body','x'], r['tail','x']]) + offsets[0],
+                np.stack([r['head','y'], r['body','y'], r['tail','y']]) + offsets[1],
+                color=color, lw=lw, alpha=alpha,
+                clip_on=False)
+
+
+def getTrajectoryDists(trajectories, cache_prefix):
+    # would be better to use scipy.spatial.distance.cdist on headMat, ...
+    def _getDist(track1, track2):
+        track1, track2 = track1.copy(), track2.copy()
+        track1 = track1.stack(0)
+        track2 = track2.stack(0)
+        dists = ((track1-track2)**2).sum(axis=1, skipna=False).map(np.sqrt).unstack(-1).mean().mean()
+        return dists
+    
+    @cachedDataFrame('{}_trajectories.pkl'.format(cache_prefix))
+    def _aux(trajectories):
+        trajectories = trajectories.reset_index().copy()
+        trajectories['action'] = trajectories.task + '_' + trajectories.behavior + '_' + trajectories.actionNo.astype('str')
+        trajectories = trajectories.groupby(['action','bin']).mean()
+        trajectories = trajectories.drop(columns='actionNo')
+        
+        pairIdxs = itertools.combinations(trajectories.index.get_level_values(0).unique(), 2)
+        out = []
+        for idx in tqdm.tqdm(pairIdxs):
+            dist = _getDist(trajectories.loc[idx[0]], trajectories.loc[idx[1]])
+            tts = '{}_{}'.format(idx[0], idx[1])
+            out.append([tts, dist])
+        out = pd.DataFrame(out, columns=['trialType','distance'])
+        out.index = pd.MultiIndex.from_frame(out.trialType.apply(
+                        lambda r: pd.Series(r.split('_'),
+                                            index=['task1','action1','actionNo1',
+                                                   'task2','action2','actionNo2'])))
+        return out['distance']
+    
+    return _aux(trajectories)
+
+
+#%%
+# function available in analysisKinematicsSupp
+# # TODO: literal copy of filterAllOpenField in analysisOpenField
+# @cachedDataFrame("filteredTwoChoice.pkl")
+# def filterAllTwoChoice(dataFile):
+#     all_filtered = []
+#     for sess in readSessions.findSessions(dataFile, task="2choice", cohort='2019'):
+#         print(sess)
+#         deconv = sess.readDeconvolvedTraces(indicateBlocks=True)
+#         tracking = sess.readTracking(inCm=True)
+#         if len(tracking) != len(deconv): continue
+#         tracking.index = deconv.index
+#         blocks = tracking.index.levels[0]
+#         filtered = []
+#         for block in blocks:
+#             t = tracking.loc[block]
+#             filtered.append(particleFilter.particleFilter(t, nParticles=2000, flattening=1e-12))
+#         filtered = pd.concat(filtered)
+#         filtered.rename(columns={"bodyAngle": "bodyDirection"}, inplace=True)
+#         filtered.rename_axis("time", axis=0, inplace=True)
+#         filtered.bodyDirection *= 180/np.pi
+#         ind = tracking.index.to_frame()
+#         ind.insert(0, "session", str(sess))
+#         filtered.index = pd.MultiIndex.from_frame(ind)
+#         all_filtered.append(filtered)
+#     return pd.concat(all_filtered)

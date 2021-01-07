@@ -27,7 +27,7 @@ endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
 alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path('svg')
 templateFolder = pathlib.Path('templates')
-videoFolder = pathlib.Path('/home/emil/2choice/openFieldVideos') #TODO: make this relative
+videoFolder = pathlib.Path('data')
 
 if not outputFolder.is_dir():
     outputFolder.mkdir()
@@ -49,23 +49,24 @@ def bootstrapSEM(values, weights, iterations=1000):
         avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
     return np.std(avgs)
 
+
+#%% example session
 ofSess =  next(readSessions.findSessions(endoDataPath, task='openField',
                                          animal='5308', date='190201'))
 chSess = next(readSessions.findSessions(endoDataPath, task='2choice',
                                         animal=ofSess.meta.animal,
                                         date=ofSess.meta.date))
-
-#%%
+#%% load videos
 open_field_video = pims.open(str(videoFolder / ofSess.meta.video) + ".avi")
 tracking = ofSess.readTracking()
-segmented = pd.read_pickle("cache/segmentedBehavior.pkl").loc[str(ofSess)]
+segmented = pd.read_pickle("cache/segmentedBehavior.pkl").loc[str(ofSess)] # TODO: shouldn't read from cache directly
 background = np.median([open_field_video.get_frame(i) for i in tqdm.trange(2000)], axis=0)
 
-videoFolder = pathlib.Path('/mnt/dmclab/striatum_2choice/') #Again, this should be a relative path
+videoFolder = pathlib.Path('data')
 two_choice_video = pims.open(str(videoFolder / chSess.meta.video) + ".avi")
 cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
 
-#%% get example oft turn
+#%% get example oft turn from example session
 ex_action = (0,80)
 start, stop = segmented.loc[ex_action][["startFrame", "stopFrame"]]
 frame_ids = list(range(start, stop+1, 5))
@@ -110,6 +111,7 @@ for i in range(1, 6):
     ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
             ha="center", color="w")#))
     ax.axis('off')
+    
     
 #%% plot example oft turn trajectory
 ax = layout.axes['trajectoryIllustration','turnTrajectory']['axis']
@@ -159,6 +161,7 @@ for t in (0, 0.5, 1.0):
     cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
 cax.text(0.5, -3.5, 'time (progess)', ha='center', va="top", fontdict={'fontsize':6})
 
+
 #%% plot 2 choice frame
 chTracking = chSess.readTracking()
 n = 3933
@@ -184,7 +187,53 @@ cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/15
 ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False)
 ax.axis('off')
 
+
+#%% plot example session turn trajectories & average
+oftTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath,
+                                                       ofSess.meta.genotype, ofSess.meta.animal,
+                                                       ofSess.meta.date, 'openField')
+oftTracking['behavior'] = oftTracking.behavior.astype('str')
+oftTracking = oftTracking.loc[oftTracking.behavior.isin(['leftTurn','rightTurn'])]
+oftTracking = analysisOftVs2Choice.processTracking(oftTracking) # add progress, center and rotate
+
+chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath,
+                                                       ofSess.meta.genotype, ofSess.meta.animal,
+                                                       ofSess.meta.date, '2choice')
+chTracking['behavior'] = chTracking.behavior.str.slice(0,4)
+chTracking = chTracking.loc[chTracking.behavior.isin(['mL2C','mR2C','mC2L','mC2R'])]
+chTracking = analysisOftVs2Choice.processTracking(chTracking)
+tracking = pd.concat([oftTracking, chTracking], keys=['oft','2ch'], names=['task'])
+
+
 #%%
+ax = layout.axes['turnTrajectories']['axis']
+
+for (task,behavior), bdf in tracking.groupby(['task','behavior']):
+    mean = bdf.groupby('bin').mean()
+    offsets = ({'leftTurn':-2, 'rightTurn':2, 'mR2C':-10, 'mC2L':-2, 'mC2R':2, 'mL2C':10}[behavior],
+               {'oft':11, '2ch':-9}[task])
+    for an, track in bdf.groupby('actionNo'):
+        analysisOftVs2Choice.plotTrackingEvent(track, ax, alpha=.05, color=style.getColor(behavior),
+                                               offsets=offsets, lw=mpl.rcParams['axes.linewidth'])
+    analysisOftVs2Choice.plotTrackingEvent(mean, ax, offsets=offsets)
+
+ax.text(0, 22, 'open field', color='k', fontsize=7, va='center', ha='center')
+ax.text(-2, 21, 'left turn', color=style.getColor('leftTurn'), fontsize=6, va='top', ha='right')
+ax.text(2, 21, 'right turn', color=style.getColor('rightTurn'), fontsize=6, va='top', ha='left')
+ax.text(0, 1, '2-choice', color='k', fontsize=7, va='center', ha='center')
+ax.text(-2, 0, 'center to\nleft turn', color=style.getColor('mC2L'), fontsize=6, va='top', ha='right')
+ax.text(2, 0, 'center to\nright turn', color=style.getColor('mC2R'), fontsize=6, va='top', ha='left')
+ax.text(-10, 0, 'right to\ncenter turn', color=style.getColor('mR2C'), fontsize=6, va='top', ha='right')
+ax.text(10, 0, 'left to\ncenter turn', color=style.getColor('mL2C'), fontsize=6, va='top', ha='left')
+ax.hlines(-15, -2.5, 2.5, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+ax.text(0, -15.2, '5cm', ha='center', va='top', fontsize=6)
+ax.set_xlim((-17,17))
+ax.set_ylim((-15,23))
+ax.set_aspect('equal')
+ax.axis('off')
+
+
+#%% kinematic paramters density plots
 ofSegs = analysisKinematicsSupp.openFieldSegmentKinematics(endoDataPath)
 tcSegs = analysisKinematicsSupp.twoChoiceSegmentKinematics(endoDataPath)
 fps = 20
@@ -219,6 +268,7 @@ for k in ["bodyAngleSpeed"]:#kinematicParams:
     ax.set_yticks([])
     ax.set_xlabel(xlabels[k])
     sns.despine(ax=ax)
+
 
 
 #%% remapping example neurons plot
@@ -310,6 +360,7 @@ cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
 cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
 cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
+
 #%%
 openFieldTunings = analysisOpenField.getTuningData(endoDataPath)
 twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
@@ -362,6 +413,7 @@ for i in range(1,2):#4):
     cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fontdict={'fontsize':6})
     cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdict={'fontsize':6})
     cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+
 
 #%% oft vs choice left/right tuning comparison
 ofTuningData = analysisOpenField.getTuningData(endoDataPath)
@@ -566,6 +618,7 @@ for ax in (layout.axes['kinematics3d_openField']['axis'],
     ax.set_ylabel("speed (cm/s)")
     ax.set_zlabel("elongation (cm)")
 
+
 #%%
 nNeurons = []
 for sess in analysisKinematicsSupp.find2choiceSessionsFollowingOpenField(endoDataPath):
@@ -635,6 +688,8 @@ for gt in gts:
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
     sns.despine(ax=ax)
 
+
+#%%
 '''
 #%% Panel C
 sel_neurons = [92,44,16]
