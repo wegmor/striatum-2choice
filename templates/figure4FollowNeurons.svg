@@ -22,8 +22,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer1"
-     inkscape:cx="244.00395"
-     inkscape:cy="807.80583"
+     inkscape:cx="715.25943"
+     inkscape:cy="206.08995"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -32,11 +32,11 @@
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-bbox-midpoints="true"
      inkscape:snap-global="true"
-     inkscape:window-height="988"
+     inkscape:window-height="1018"
      inkscape:window-maximized="1"
-     inkscape:window-width="1680"
-     inkscape:window-x="-1686"
-     inkscape:window-y="550"
+     inkscape:window-width="1620"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
      inkscape:zoom="2.8"
      pagecolor="#ffffff"
      showgrid="false"
@@ -54,7 +54,7 @@
        orientation="0,-1"
        id="guide3506" />
     <sodipodi:guide
-       position="133.5177,83.547722"
+       position="187.28343,83.547714"
        orientation="0,-1"
        id="guide3508" />
     <sodipodi:guide
@@ -69,6 +69,18 @@
        position="46.59679,146.34281"
        orientation="0,-1"
        id="guide3570" />
+    <sodipodi:guide
+       position="63.882034,257.70414"
+       orientation="0,-1"
+       id="guide242" />
+    <sodipodi:guide
+       position="63.882034,212.8721"
+       orientation="0,-1"
+       id="guide244" />
+    <sodipodi:guide
+       position="196.84999,260.34999"
+       orientation="1,0"
+       id="guide246" />
   </sodipodi:namedview>
   <defs
      id="defs2">
@@ -805,24 +817,14 @@
       </rect>
     </g>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.245226;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
        id="rect34710"
-       width="24.344301"
-       height="15.895562"
-       x="172.50568"
-       y="42.369083">
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="39.29586">
       <figurefirst:axis
-         figurefirst:name="kinematicHist_twoChoice_bodyAngleSpeed" />
-    </rect>
-    <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.245226;stroke-linecap:square;stroke-linejoin:round"
-       id="rect34712"
-       width="24.344301"
-       height="15.895562"
-       x="172.50568"
-       y="63.556313">
-      <figurefirst:axis
-         figurefirst:name="kinematicHist_openField_bodyAngleSpeed" />
+         figurefirst:name="turnSpeedHist_leftTurn" />
     </rect>
     <rect
        y="147.9472"
@@ -908,76 +910,70 @@
          figurefirst:name="colorbar_means_1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.340222;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
        id="rect277"
-       width="27.737373"
-       height="26.853613"
-       x="169.11261"
-       y="66.452278"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="19.049999"
+       x="177.71686"
+       y="213.45229">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_oprm1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.340222;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
        id="rect279"
-       width="27.737373"
-       height="26.853613"
-       x="105.78033"
-       y="66.452278"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="19.049999"
+       x="134.03049"
+       y="213.45229">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_d1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.340222;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
        id="rect281"
-       width="27.737373"
-       height="26.853613"
-       x="137.44647"
-       y="66.452278"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="19.049999"
+       x="155.87367"
+       y="213.45229">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_a2a" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
        id="rect283"
-       width="27.737373"
-       height="11.218346"
-       x="169.11259"
-       y="96.085327"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="8.3927765"
+       x="177.71683"
+       y="236.70724">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_oprm1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
        id="rect285"
-       width="27.737373"
-       height="11.218346"
-       x="105.78033"
-       y="96.085327"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="8.3927765"
+       x="134.03049"
+       y="236.70724">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_d1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.219901;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
        id="rect287"
-       width="27.737373"
-       height="11.218346"
-       x="137.44647"
-       y="96.085327"
-       transform="translate(0,147)">
+       width="19.049999"
+       height="8.3927765"
+       x="155.87366"
+       y="236.70724">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_a2a" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.436844;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.494174;stroke-linecap:square;stroke-linejoin:round"
        id="rect3504"
-       width="33.270756"
-       height="36.909"
+       width="38.467571"
+       height="40.851387"
        x="19.050001"
        y="213.45229">
       <figurefirst:axis
@@ -985,15 +981,65 @@
          figurefirst:projection="3d" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.436844;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.494174;stroke-linecap:square;stroke-linejoin:round"
        id="rect3512"
-       width="33.270756"
-       height="36.909"
-       x="59.584908"
+       width="38.467571"
+       height="40.851387"
+       x="66.974701"
        y="213.45229">
       <figurefirst:axis
          figurefirst:name="kinematics3d_2choice"
          figurefirst:projection="3d" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       id="rect248"
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="46.890667">
+      <figurefirst:axis
+         figurefirst:name="turnSpeedHist_rightTurn" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       id="rect250"
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="54.485474">
+      <figurefirst:axis
+         figurefirst:name="turnSpeedHist_mR2C" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       id="rect252"
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="62.080284">
+      <figurefirst:axis
+         figurefirst:name="turnSpeedHist_mC2L" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       id="rect254"
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="69.675095">
+      <figurefirst:axis
+         figurefirst:name="turnSpeedHist_mC2R" />
+    </rect>
+    <rect
+       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       id="rect256"
+       width="25.4"
+       height="6.8580003"
+       x="171.45"
+       y="77.269897">
+      <figurefirst:axis
+         figurefirst:name="turnSpeedHist_mL2C" />
     </rect>
   </g>
   <g
@@ -1146,32 +1192,32 @@
     <text
        id="text3500"
        y="66.452278"
-       x="102.54022"
+       x="129.52766"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan3502"
-         x="102.54022"
+         x="129.52766"
          y="66.452278">O</tspan></text>
     <text
        id="text3516"
        y="66.452278"
-       x="18.814356"
+       x="25.693529"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan3518"
-         x="18.814356"
+         x="25.693529"
          y="66.452278">M</tspan></text>
     <text
        id="text3522"
        y="66.452278"
-       x="59.343063"
+       x="73.630577"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan3524"
-         x="59.343063"
+         x="73.630577"
          y="66.452278">N</tspan></text>
     <path
        inkscape:connector-curvature="0"
@@ -1210,30 +1256,6 @@
        d="m 136.92912,145.35438 h 5.19171"
        style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend-1)"
        transform="translate(0,-147)" />
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.46944px;line-height:1.25;font-family:sans-serif;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="172.65273"
-       y="62.126705"
-       id="text35076"
-       transform="translate(0,-147)"><tspan
-         sodipodi:role="line"
-         id="tspan35074"
-         x="172.65273"
-         y="62.126705"
-         style="font-size:2.46944px;stroke-width:0.264583">open field</tspan></text>
-    <text
-       xml:space="preserve"
-       style="font-style:normal;font-weight:normal;font-size:2.46944px;line-height:1.25;font-family:sans-serif;display:inline;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="172.78635"
-       y="41.012417"
-       id="text35080"
-       transform="translate(0,-147)"><tspan
-         sodipodi:role="line"
-         id="tspan35078"
-         x="172.78635"
-         y="41.012417"
-         style="font-size:2.46944px;stroke-width:0.264583">2-choice</tspan></text>
   </g>
   <g
      transform="scale(0.35277778)"

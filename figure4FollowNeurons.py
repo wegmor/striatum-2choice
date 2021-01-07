@@ -39,8 +39,11 @@ layout.make_mplfigures()
 
 #%%
 genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
-behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn':
-                 'left turn', 'rightTurn': 'right turn'}
+behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
+                 'rightTurn': 'right turn', 'none': 'untuned'}
+phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
+              'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
+              'pR2C': 'right port', 'none': 'untuned'}
 
 def bootstrapSEM(values, weights, iterations=1000):
     avgs = []
@@ -193,33 +196,26 @@ tcSegs['bodyAngleSpeed'] *= -180/np.pi * fps
 tcSegs['speed'] *= fps
 ofSegs['bodyAngleSpeed'] *= -180/np.pi * fps
 ofSegs['speed'] *= fps
-kinematicParams = ["bodyAngleSpeed", "speed", "elongation"]
-
-phases = ['mC2L','mC2R','mL2C','mR2C','pC2L','pC2R','pL2C','pR2C', 'dL2C', 'dR2C']
-behaviors = ['leftTurn', 'rightTurn', 'running', 'stationary']
-lims = {'speed': (-10, 30), 'bodyAngleSpeed': (-150, 150),
-        'elongation': (2.25, 3.75)}
-xlabels = {'speed': 'speed (cm/s)',
-           'bodyAngleSpeed': 'turning speed (deg/s)',
-           'elongation': 'elongation (cm)'}
-for k in ["bodyAngleSpeed"]:#kinematicParams:
-    ax = layout.axes['kinematicHist_twoChoice_'+k]['axis']
-    for p in phases:
-        sns.kdeplot(tcSegs[tcSegs.label==p][k], cut=0, ax=ax,
-                    color=style.getColor(p), alpha=.7, legend=False)
-    ax.set_xlim(*lims[k])
+phases = ['leftTurn', 'rightTurn', 'mC2L','mC2R','mL2C','mR2C']
+for p in phases:
+    ax = layout.axes['turnSpeedHist_'+p]['axis']
+    if p.endswith("Turn"):
+        data = ofSegs[ofSegs.label==p].bodyAngleSpeed
+    else:
+        data = tcSegs[tcSegs.label==p].bodyAngleSpeed
+    sns.kdeplot(data, cut=0, ax=ax, color=style.getColor(p),
+                alpha=1, shade=True, legend=False)
+    ax.set_xlim(-150, 150)
+    ax.set_ylim(0, 0.04)
+    ax.set_xticks([-150,0,150])
     ax.set_yticks([])
-    ax.set_xticklabels([])
-    sns.despine(ax=ax)
-    ax = layout.axes['kinematicHist_openField_'+k]['axis']
-    for b in behaviors:
-        sns.kdeplot(ofSegs[ofSegs.label==b][k], cut=0, ax=ax,
-                    color=style.getColor(b), alpha=.7, legend=False)
-    ax.set_xlim(*lims[k])
-    ax.set_yticks([])
-    ax.set_xlabel(xlabels[k])
-    sns.despine(ax=ax)
-
+    title = ("open field "+behaviorNames[p]) if p.endswith("Turn") else ("2-choice "+phaseNames[p])
+    ax.text(0, 0.022, title, fontsize=6, color=style.getColor(p), ha="center")
+    if p == "mL2C":
+        ax.set_xlabel("turning speed (deg/s)")
+    else:
+        ax.set_xticklabels([])
+    sns.despine(ax=ax, left=True, trim=True)
 
 #%% remapping example neurons plot
 ofTraces = ofSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
@@ -490,12 +486,6 @@ primaryPairs.action_openField = pd.Categorical(primaryPairs.action_openField, or
 colormap = {a: style.getColor(a[:4]) for a in primaryPairs.action_2choice.unique()}
 colormap.update({a: style.getColor(a) for a in primaryPairs.action_openField.unique()})
 
-genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
-behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
-                 'rightTurn': 'right turn', 'none': 'untuned'}
-phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
-              'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
-              'pR2C': 'right port', 'none': 'untuned'}
 
 for gt in ("d1", "a2a", "oprm1"):
     ax = layout.axes['alluvial_{}'.format(gt)]['axis']
@@ -537,15 +527,14 @@ ax = layout.axes['kinematics3d_openField']['axis']
 ax.view_init(60, -70)#(30, -60)
 ax.scatter(kinematics_of_all.bodyAngleSpeed,
            kinematics_of_all.speed,
-           kinematics_of_all.elongation, s=1,
+           kinematics_of_all.elongation, s=.5,
            c=[style.getColor(l) for l in kinematics_of_all.label],
-           alpha=.2, lw=0)
-ax.set_xlim(-120, 120)
-ax.set_ylim(-7.5, 25)
-ax.set_zlim(2.5, 4)
+           alpha=.2, lw=0, rasterized=True)
 ax.set_title("open field")
 
 ax = layout.axes['kinematics3d_2choice']['axis']
+#fig = plt.figure(figsize=(1.5, 1.6))
+#ax = fig.add_axes([0,0,1,1], projection="3d")
 ax.view_init(60, -70)#(30, -60)
 validPhases = ["mC2L", "mC2R", "mL2C", "mR2C",
                "pC2L", "pC2R", "dL2C", "dR2C",
@@ -553,18 +542,22 @@ validPhases = ["mC2L", "mC2R", "mL2C", "mR2C",
 mask = kinematics_tc_all.label.isin(validPhases)
 ax.scatter(kinematics_tc_all.bodyAngleSpeed[mask],
            kinematics_tc_all.speed[mask],
-           kinematics_tc_all.elongation[mask], s=1,
+           kinematics_tc_all.elongation[mask], s=.5,
            c=[style.getColor(l) for l in kinematics_tc_all.label[mask]],
-           alpha=.2, lw=0)
-ax.set_xlim(-120, 120)
-ax.set_ylim(-5, 15)
-ax.set_zlim(2.5, 3.4)
+           alpha=.2, lw=0, rasterized=True)
+
 ax.set_title("2-choice")
 for ax in (layout.axes['kinematics3d_openField']['axis'],
            layout.axes['kinematics3d_2choice']['axis']):
-    ax.set_xlabel("turning speed (deg/s)")
-    ax.set_ylabel("speed (cm/s)")
-    ax.set_zlabel("elongation (cm)")
+    ax.set_xlim(-120, 120)
+    ax.set_ylim(-7.5, 25)
+    ax.set_zlim(2.5, 4)
+    ax.set_zticks(np.arange(2.5, 4.5, 0.5))
+    ax.tick_params(pad=-3.5)
+    ax.set_xlabel("turning speed (deg/s)", labelpad=-8)
+    ax.set_ylabel("speed (cm/s)", labelpad=-8)
+    ax.set_zlabel("elongation (cm)", labelpad=-8)
+#plt.show()
 
 #%%
 nNeurons = []
@@ -598,7 +591,7 @@ for i, dist in enumerate(dist_list):
     for gt in gts:
         mean[gt] /= nTot[gt]
         ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
-        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i], lw=2)
+        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i])#, lw=2)
         ax = layout.axes['kinematicsPairHist_'+gt]['axis']
         nPairs[gt] /= nPairs[gt].sum()
         ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i])
@@ -609,19 +602,15 @@ for gt in gts:
     ax.set_xlim(0, 4)
     ax.set_ylim(-0.05, 0.12)
     ax.axhline(0, color="k", alpha=0.3, lw=0.5, linestyle="--")
-    ax.set_title(gt_names[gt], color=style.getColor(gt))
+    ax.set_title(gt_names[gt])#, color=style.getColor(gt))
     ax.set_yticks(np.arange(-0.05, 0.15, 0.05))
     ax.set_xticklabels([])
     if gt=="d1":
         ax.set_ylabel("ensamble correlation")
     else:
         ax.set_yticklabels([])
-    if gt=="oprm1":
-        lines = [mpl.lines.Line2D([], [], color=c, label=l) 
-                 for c,l in zip(cols, ["open field → open field",
-                                       "2-choice → 2-choice",
-                                       "open field → 2-choice"])]
-        ax.legend(handles=lines, loc=(1.05, 0.4))#'center right')
+    #if gt=="a2a":
+    #    #'center right')
     sns.despine(ax=ax)
     
     ax = layout.axes['kinematicsPairHist_'+gt]['axis']
@@ -633,9 +622,15 @@ for gt in gts:
         ax.set_yticklabels([])
     if gt=="a2a":
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
+        lines = [mpl.lines.Line2D([], [], color=c, label=l) 
+                 for c,l in zip(cols, ["open field → open field",
+                                       "2-choice → 2-choice",
+                                       "open field → 2-choice"])]
+        ax.legend(handles=lines, ncol=3, mode="expand",
+                  bbox_to_anchor=(-1.6, -1.2, 3.8, .1))
     sns.despine(ax=ax)
-
 '''
+
 #%% Panel C
 sel_neurons = [92,44,16]
 sel_colors = list(cmocean.cm.phase(i) for i in [.25,.5,.75])
