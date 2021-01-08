@@ -1,30 +1,28 @@
+import pathlib
+import itertools
 import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
-import h5py
-import pathlib
 import figurefirst
 import cmocean
 import pims
 import tqdm
 import skimage
-import itertools
 from utils import readSessions, fancyViz, alluvialPlot
+from utils.sessionBarPlot import bootstrapSEM
 import analysisOpenField
 import analysisTunings
-import analysisDecoding
 import analysisOftVs2Choice
 import analysisKinematicsSupp
 import style
-#import subprocess
+
 style.set_context()
 plt.ioff()
 
 #%%
 endoDataPath = pathlib.Path('data') / "endoData_2019.hdf"
-alignmentDataPath = pathlib.Path('data') / "alignment_190227.hdf"
 outputFolder = pathlib.Path('svg')
 templateFolder = pathlib.Path('templates')
 videoFolder = pathlib.Path('data')
@@ -45,14 +43,6 @@ phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left
               'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
               'pR2C': 'right port', 'none': 'untuned'}
 
-def bootstrapSEM(values, weights, iterations=1000):
-    avgs = []
-    for _ in range(iterations):
-        idx = np.random.choice(len(values), len(values), replace=True)
-        avgs.append(np.average(values.iloc[idx], weights=weights.iloc[idx]))
-    return np.std(avgs)
-
-
 #%% example session
 ofSess =  next(readSessions.findSessions(endoDataPath, task='openField',
                                          animal='5308', date='190201'))
@@ -62,10 +52,10 @@ chSess = next(readSessions.findSessions(endoDataPath, task='2choice',
 #%% load videos
 open_field_video = pims.open(str(videoFolder / ofSess.meta.video) + ".avi")
 tracking = ofSess.readTracking()
-segmented = pd.read_pickle("cache/segmentedBehavior.pkl").loc[str(ofSess)] # TODO: shouldn't read from cache directly
+
+segmented = analysisOpenField.segmentAllOpenField().loc[str(ofSess)]
 background = np.median([open_field_video.get_frame(i) for i in tqdm.trange(2000)], axis=0)
 
-videoFolder = pathlib.Path('data')
 two_choice_video = pims.open(str(videoFolder / chSess.meta.video) + ".avi")
 cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
 
@@ -114,8 +104,8 @@ for i in range(1, 6):
     ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
             ha="center", color="w")#))
     ax.axis('off')
-    
-    
+
+
 #%% plot example oft turn trajectory
 ax = layout.axes['trajectoryIllustration','turnTrajectory']['axis']
 
@@ -224,10 +214,14 @@ ax.text(0, 22, 'open field', color='k', fontsize=7, va='center', ha='center')
 ax.text(-2, 21, 'left turn', color=style.getColor('leftTurn'), fontsize=6, va='top', ha='right')
 ax.text(2, 21, 'right turn', color=style.getColor('rightTurn'), fontsize=6, va='top', ha='left')
 ax.text(0, 1, '2-choice', color='k', fontsize=7, va='center', ha='center')
-ax.text(-2, 0, 'center to\nleft turn', color=style.getColor('mC2L'), fontsize=6, va='top', ha='right')
-ax.text(2, 0, 'center to\nright turn', color=style.getColor('mC2R'), fontsize=6, va='top', ha='left')
-ax.text(-10, 0, 'right to\ncenter turn', color=style.getColor('mR2C'), fontsize=6, va='top', ha='right')
-ax.text(10, 0, 'left to\ncenter turn', color=style.getColor('mL2C'), fontsize=6, va='top', ha='left')
+ax.text(-2, 0, 'center to\nleft turn', color=style.getColor('mC2L'),
+        fontsize=6, va='top', ha='right')
+ax.text(2, 0, 'center to\nright turn', color=style.getColor('mC2R'),
+        fontsize=6, va='top', ha='left')
+ax.text(-10, 0, 'right to\ncenter turn', color=style.getColor('mR2C'),
+        fontsize=6, va='top', ha='right')
+ax.text(10, 0, 'left to\ncenter turn', color=style.getColor('mL2C'),
+        fontsize=6, va='top', ha='left')
 ax.hlines(-15, -2.5, 2.5, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
 ax.text(0, -15.2, '5cm', ha='center', va='top', fontsize=6)
 ax.set_xlim((-17,17))
@@ -266,11 +260,10 @@ for p in phases:
         ax.set_xticklabels([])
     sns.despine(ax=ax, left=True, trim=True)
 
-
 #%% remapping example neurons plot
 ofTraces = ofSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
 chTraces = chSess.readDeconvolvedTraces(rScore=True).reset_index(drop=True)
-ofTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.genotype, 
+ofTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.genotype,
                                                       ofSess.meta.animal, ofSess.meta.date,
                                                       'openField')
 chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.genotype,
@@ -289,18 +282,18 @@ for n,neuron in enumerate([86,192][::-1]):
     fv = fancyViz.OpenFieldSchematicPlot(ofSess, linewidth=mpl.rcParams['axes.linewidth'],
                                          smoothing=3, saturation=1)
     img = fv.draw(ofTrace, ax=schemAx)
-    
+
     # top events
     topTenEventsAx = layout.axes[('n{}'.format(n),'ofTopTen')]['axis']
     topTenTracesAxOf = layout.axes[('n{}'.format(n),'ofTopTenTraces')]['axis']
-    pIdx = analysisOftVs2Choice.plotTop10Events(ofTrace, ofTracking, 
+    pIdx = analysisOftVs2Choice.plotTop10Events(ofTrace, ofTracking,
                                                 axs=[topTenEventsAx, topTenTracesAxOf],
                                                 offset=10)
     topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
     topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
     topTenTracesAxOf.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
     topTenTracesAxOf.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    
+
     # map
     mapAx = layout.axes[('n{}'.format(n),'ofMap')]['axis']
     fig.sca(mapAx)
@@ -311,7 +304,7 @@ for n,neuron in enumerate([86,192][::-1]):
     mapAx.scatter(headCoords[pIdx,0], headCoords[pIdx,1], marker='x',
                   linewidth=mpl.rcParams['axes.linewidth'],
                   c=cmocean.cm.phase(np.arange(10)/11))
-    
+
     ### 2-choice
     # schematic
     schemAx = layout.axes[('n{}'.format(n),'chSchematic')]['axis']
@@ -319,7 +312,7 @@ for n,neuron in enumerate([86,192][::-1]):
     fv = fancyViz.SchematicIntensityPlot(chSess, linewidth=mpl.rcParams['axes.linewidth'],
                                          smoothing=5, splitReturns=False, saturation=1)
     img = fv.draw(chTrace, ax=schemAx)
-    
+
     # top events
     topTenEventsAx = layout.axes[('n{}'.format(n),'chTopTen')]['axis']
     topTenTracesAxCh = layout.axes[('n{}'.format(n),'chTopTenTraces')]['axis']
@@ -330,7 +323,7 @@ for n,neuron in enumerate([86,192][::-1]):
     topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
     topTenTracesAxCh.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
     topTenTracesAxCh.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    
+
     # map
     mapAx = layout.axes[('n{}'.format(n),'chMap')]['axis']
     fig.sca(mapAx)
@@ -342,7 +335,7 @@ for n,neuron in enumerate([86,192][::-1]):
                   marker='x', linewidth=mpl.rcParams['axes.linewidth'],
                   c=cmocean.cm.phase(np.arange(10)/11),
                   transform=fv.transform)
-    
+
     traceAxLims = np.concatenate([topTenTracesAxCh.get_ylim(),topTenTracesAxOf.get_ylim()])
     traceAxLims = (traceAxLims.min(), traceAxLims.max())
     topTenTracesAxCh.set_ylim(traceAxLims)
@@ -372,7 +365,7 @@ for key in itertools.product(('d1', 'a2a', 'oprm1'), labels):
     fvs[("2choice",)+key] = fancyViz.SchematicIntensityPlot(splitReturns=False,
                                 linewidth=mpl.rcParams['axes.linewidth'],
                                 smoothing=5, saturation=saturation)
-    
+
 for key in itertools.product(('d1', 'a2a', 'oprm1'), labels):
     fvs[("openField",)+key] = fancyViz.OpenFieldSchematicPlot(
                                 linewidth=mpl.rcParams['axes.linewidth'],
@@ -380,8 +373,10 @@ for key in itertools.product(('d1', 'a2a', 'oprm1'), labels):
 
 for sess in readSessions.findSessions(endoDataPath, task=["2choice", "openField"]):
     shortKey = (sess.meta.animal, sess.meta.date)
-    if shortKey not in openFieldTunings.index: continue
-    if shortKey not in twoChoiceTunings.index: continue
+    if shortKey not in openFieldTunings.index:
+        continue
+    if shortKey not in twoChoiceTunings.index:
+        continue
     traces = sess.readDeconvolvedTraces(zScore=True)
     genotype = sess.meta.genotype
     task = sess.meta.task
@@ -406,8 +401,8 @@ for i in range(1,2):#4):
     cb = plt.colorbar(img, cax=cax, orientation='horizontal')
     cb.outline.set_visible(False)
     cax.set_axis_off()
-    cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fontdict={'fontsize':6})
-    cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontdict={'fontsize':6})
+    cax.text(-0.325, -.1, "{:.1f}".format(-saturation), ha='right', va='center', fontsize=6)
+    cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontsize=6)
     cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 
@@ -425,10 +420,10 @@ signTuned = tuningData.unstack(['task','action']).dropna()['signp']
 #signTuned[('choice','port')] = signTuned.choice.loc[:,signTuned.choice.columns.str.contains('^p|^d')].any(axis=1)
 signTuned[('choice','leftTurn')] = signTuned.choice[['mC2L-','mR2C-']].any(axis=1)
 signTuned[('choice','rightTurn')] = signTuned.choice[['mC2R-','mC2R-']].any(axis=1)
-    
+
 for tuning in ['leftTurn', 'rightTurn']:
     data = signTuned.loc[:,signTuned.columns.get_level_values(1) == tuning].droplevel(1, axis=1)
-    
+
     noNeurons = data.groupby(['genotype','animal','date']).size()
     pctTund = data.astype('int').groupby(['genotype','animal','date']).sum() / noNeurons.values[:,np.newaxis]
     pctTund *= 100
@@ -440,10 +435,10 @@ for tuning in ['leftTurn', 'rightTurn']:
                (data.choice.groupby(['genotype','animal','date']).sum() / \
                 noNeurons))
     ovlpDf = pd.concat([obsOvlp, expOvlp], axis=1, keys=['observed','expected']) * 100
-    
+
     axs = [layout.axes['{}PctTuned'.format(tuning)]['axis'], 
            layout.axes['{}Ovlp'.format(tuning)]['axis']]
-    
+
     for gt,df in pctTund.groupby('genotype'):
         x = {'d1':0,'a2a':1,'oprm1':2}[gt]
         ax = axs[0]
@@ -458,7 +453,7 @@ for tuning in ['leftTurn', 'rightTurn']:
                 color=style.getColor(gt), alpha=.25, zorder=-99, clip_on=False)
         ax.axhline(0, ls=':', alpha=.5, color='k', zorder=-100,
                    lw=mpl.rcParams['axes.linewidth'])
-    
+
     for gt,df in ovlpDf.groupby('genotype'):
         x = {'d1':0,'a2a':1,'oprm1':2}[gt]
         ax = axs[1]
@@ -518,7 +513,7 @@ twoChoiceTunings = analysisTunings.getTuningData(endoDataPath)
 for t in (twoChoiceTunings, openFieldTunings):
     t['signp'] = t['pct'] > .995
     t['signn'] = t['pct'] < .005
-    
+
 primaryTwoChoice = twoChoiceTunings.loc[twoChoiceTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
 primaryTwoChoice.loc[~primaryTwoChoice.signp, 'action'] = 'none'
 primaryOpenField = openFieldTunings.loc[openFieldTunings.groupby(['genotype','animal','date','neuron']).tuning.idxmax()]
@@ -585,8 +580,6 @@ ax.scatter(kinematics_of_all.bodyAngleSpeed,
 ax.set_title("open field")
 
 ax = layout.axes['kinematics3d_2choice']['axis']
-#fig = plt.figure(figsize=(1.5, 1.6))
-#ax = fig.add_axes([0,0,1,1], projection="3d")
 ax.view_init(60, -70)#(30, -60)
 validPhases = ["mC2L", "mC2R", "mL2C", "mR2C",
                "pC2L", "pC2R", "dL2C", "dR2C",
@@ -597,8 +590,8 @@ ax.scatter(kinematics_tc_all.bodyAngleSpeed[mask],
            kinematics_tc_all.elongation[mask], s=.5,
            c=[style.getColor(l) for l in kinematics_tc_all.label[mask]],
            alpha=.2, lw=0, rasterized=True)
-
 ax.set_title("2-choice")
+
 for ax in (layout.axes['kinematics3d_openField']['axis'],
            layout.axes['kinematics3d_2choice']['axis']):
     ax.set_xlim(-120, 120)
@@ -609,8 +602,6 @@ for ax in (layout.axes['kinematics3d_openField']['axis'],
     ax.set_xlabel("turning speed (deg/s)", labelpad=-8)
     ax.set_ylabel("speed (cm/s)", labelpad=-8)
     ax.set_zlabel("elongation (cm)", labelpad=-8)
-#plt.show()
-
 
 #%%
 nNeurons = []
@@ -648,7 +639,7 @@ for i, dist in enumerate(dist_list):
         ax = layout.axes['kinematicsPairHist_'+gt]['axis']
         nPairs[gt] /= nPairs[gt].sum()
         ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i])
-        
+
 gt_names = {"d1": "D1+", "a2a": "A2A+", "oprm1": "Oprm1+"}
 for gt in gts:
     ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
@@ -665,7 +656,7 @@ for gt in gts:
     #if gt=="a2a":
     #    #'center right')
     sns.despine(ax=ax)
-    
+
     ax = layout.axes['kinematicsPairHist_'+gt]['axis']
     ax.set_xlim(0, 4)
     ax.set_ylim(0, 0.5)
@@ -675,7 +666,7 @@ for gt in gts:
         ax.set_yticklabels([])
     if gt=="a2a":
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
-        lines = [mpl.lines.Line2D([], [], color=c, label=l) 
+        lines = [mpl.lines.Line2D([], [], color=c, label=l)
                  for c,l in zip(cols, ["open field → open field",
                                        "2-choice → 2-choice",
                                        "open field → 2-choice"])]
@@ -688,4 +679,3 @@ layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
 #subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
 #                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
-
