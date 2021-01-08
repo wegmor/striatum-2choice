@@ -277,7 +277,7 @@ chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.
                                                       ofSess.meta.animal, ofSess.meta.date,
                                                       '2choice')
 
-for n,neuron in [(1,86)]:#enumerate([86,192][::-1]):
+for n,neuron in enumerate([86,192][::-1]):
     ofTrace = ofTraces[neuron]
     chTrace = chTraces[neuron]
 
