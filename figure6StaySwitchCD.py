@@ -40,7 +40,7 @@ if not cacheFolder.is_dir():
 
 #%%
 cachedDataPaths = [cacheFolder / name for name in ['stsw_m.pkl','stsw_p.pkl',
-                                                    'stsw_c.pkl']]
+                                                   'stsw_c.pkl']]
 if np.all([path.is_file() for path in cachedDataPaths]):
     M = pd.read_pickle(cachedDataPaths[0])
     P = pd.read_pickle(cachedDataPaths[1])
@@ -50,7 +50,7 @@ else:
     P = pd.DataFrame() # action (probability) predictions
     C = pd.DataFrame() # svm coefficients
     
-    for action in ['dL2C','mL2C','pC2L','mC2L','dR2C','mR2C','pC2R','mC2R']:
+    for action in ['dL2C','pL2C','mL2C','pC2L','mC2L','dR2C','pR2C','mR2C','pC2R','mC2R']:
         (rm,rp,rc), (sm,sp,sc) = analysisStaySwitchDecoding.decodeStaySwitch(endoDataPath, action)
         
         for df in [rm,rp,rc,sm,sp,sc]:
@@ -360,18 +360,18 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
     
     decs = [('activity',True), ('activity',False), ('speed',False)]
     for x, (dec,shuffle) in enumerate(decs):
-        ax.errorbar(x, wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
+        ax.errorbar([.1,1,1.9][x], wAvgs[dec,shuffle], yerr=wSems[dec,shuffle],
                     color=style.getColor(a), clip_on=False,
                     marker={0:'o',1:'v',2:'s'}[x],
                     markersize={0:3.2,1:3.6,2:2.8}[x],
                     markerfacecolor='w',
                     markeredgewidth=.8)
    
-    ax.plot([0,1,2], [wAvgs.loc[dec,shuffle] for dec,shuffle in decs],
+    ax.plot([0.1,1,1.9], [wAvgs.loc[dec,shuffle] for dec,shuffle in decs],
             color=style.getColor(a), clip_on=False)
     
     for s, sdata in gdata.groupby(['animal','date']):
-        ax.plot([0,1,2], [sdata.loc[dec,shuffle].accuracy for dec,shuffle in decs],
+        ax.plot([0.1,1,1.9], [sdata.loc[dec,shuffle].accuracy for dec,shuffle in decs],
                 color=style.getColor(a), alpha=.2,zorder=-99,
                 lw=.5, clip_on=False)
     
@@ -382,7 +382,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
     ax.set_xticks(())
     ax.set_yticklabels(())
     ax.axis('off')
-    if a == 'mL2C':
+    if a == 'pL2C':
         ax.axis('on')
         ax.set_yticks((.5,.75,1))
         if gt == 'a2a':
@@ -605,3 +605,4 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
+
