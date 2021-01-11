@@ -9,7 +9,7 @@ import sklearn.model_selection
 import tqdm
 import multiprocessing
 import functools
-import pyximport; pyximport.install()
+import pyximport; pyximport.install(setup_args={"include_dirs":np.get_include()})
 import scipy.stats
 
 from utils import readSessions, particleFilter, segmentBehaviors

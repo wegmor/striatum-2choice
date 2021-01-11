@@ -252,11 +252,13 @@ for p in phases:
     ax.set_ylim(0, 0.04)
     ax.set_xticks([-150,0,150])
     ax.set_yticks([])
+    ax.set_ylabel(None)
     title = ("open field "+behaviorNames[p]) if p.endswith("Turn") else ("2-choice "+phaseNames[p])
     ax.text(0, 0.022, title, fontsize=6, color=style.getColor(p), ha="center")
     if p == "mL2C":
         ax.set_xlabel("turning speed (deg/s)")
     else:
+        ax.set_xlabel(None)
         ax.set_xticklabels([])
     sns.despine(ax=ax, left=True, trim=True)
 
