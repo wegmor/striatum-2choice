@@ -223,7 +223,7 @@ def decodeStaySwitchAcrossDays(dataFile, alignmentFile):
                     if len(fromDeconv) != len(fromLfa): continue
                     suffledLfa = fromSess.shuffleFrameLabels(reward="fullTrial", switch=True)[0]
 
-                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C", "dL2C", "dR2C"):
+                    for baseLabel in ("pC2L", "mC2L", "pC2R", "mC2R", "mL2C", "mR2C", "dL2C", "dR2C", "pL2C", "pR2C"):
                         selectedLabels = [baseLabel+"r.", baseLabel+"o!"]
                         fromX, fromY = _prepareTrials(fromDeconv, fromLfa, selectedLabels)
                         shuffledX, shuffledY = _prepareTrials(fromDeconv, suffledLfa, selectedLabels)

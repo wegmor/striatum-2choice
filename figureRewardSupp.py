@@ -11,11 +11,12 @@ import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib as mpl
+import matplotlib.patches as mpatches
 #from matplotlib.ticker import MultipleLocator, FixedLocator
 import pathlib
 import figurefirst
 import style
-import analysisTunings
+import analysisStaySwitchDecoding
 import analysisRewardSupp
 import analysisMethods
 plt.ioff()
@@ -32,12 +33,102 @@ templateFolder = pathlib.Path("templates")
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 
+
+#%%
+cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
+if cachedDataPath.is_file():
+    staySwitchAUC = pd.read_pickle(cachedDataPath)
+else:
+    staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
+    staySwitchAUC.to_pickle(cachedDataPath)
+
+cachedDataPath = cacheFolder / 'staySwitchAUC_shuffled.pkl'
+if cachedDataPath.is_file():
+    staySwitchAUC_shuffled = pd.read_pickle(cachedDataPath)
+else:
+    staySwitchAUC_shuffled = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath,
+                                                                           n_shuffles=1,
+                                                                           on_shuffled=True)
+    staySwitchAUC_shuffled.to_pickle(cachedDataPath)
+    
+    
 #%%
 layout = figurefirst.FigureLayout(templateFolder / "rewardSupp.svg")
 layout.make_mplfigures()
 
 
 #%% Panel A
+staySwitch_shuffled = staySwitchAUC_shuffled.copy()
+staySwitch_shuffled['genotype'] = 'shuffled'
+staySwitch = pd.concat([staySwitchAUC, staySwitch_shuffled])
+palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1','shuffled']}
+
+# plot kde
+for a, adata in staySwitch.groupby('action'):
+    #if a.startswith('pL2C') or a.startswith('pR2C'): continue
+    if a.startswith('mR2C'): continue
+    ax = layout.axes['{}_auc_kde'.format(a)]['axis']
+    
+    for gt, agdata in adata.groupby('genotype'):
+#        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
+#                color=style.getColor(gt), label=gt, density=True,
+#                lw=2, alpha=.8)
+        sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
+                     ax=ax, color=style.getColor(gt), hist=False,
+                     kde_kws={'clip_on':False, 'alpha':.75,
+                              'zorder':-1 if gt == 'shuffled' else 1})
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_ylim((0,4))
+    ax.set_yticks((1,3), minor=True)
+    ax.set_yticks((0,2,4))
+    ax.set_yticklabels(())
+    ax.set_ylabel('')
+    if a == 'pL2C':
+        ax.set_ylabel('density')
+        ax.set_yticklabels(ax.get_yticks())
+    ax.set_xlim((-1,1))
+    ax.set_xticks(())
+    #ax.set_xticks((-1,0,1))
+    #ax.set_xticklabels((-1,0,1))
+    #ax.set_xticks((-.5,.5), minor=True)
+    #ax.set_xlabel('selectivity score')
+    ax.set_xlabel('')
+    sns.despine(bottom=True, trim=True, ax=ax)
+       
+    ax = layout.axes['{}_auc_bp'.format(a)]['axis']
+
+    sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
+                palette=palette, saturation=.85, showcaps=False, showfliers=False,
+                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
+                medianprops={'c':'k','zorder':99, 'clip_on':False},
+                order=['d1','a2a','oprm1','shuffled'][::-1])
+    
+    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.set_xlim((-1,1))
+    ax.set_ylim((-.75,3.75))
+    ax.set_xticks((-1,0,1))
+    #ax.set_xticklabels((-1,'',1))
+    ax.set_xticks((-.5,.5), minor=True)
+    ax.set_xlabel('')
+    ax.set_yticks(())
+    ax.set_ylabel('')
+    sns.despine(left=True, trim=True, ax=ax)
+        
+axt = layout.axes['auc_legend']['axis']
+legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
+                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
+                                        'shuffled':'shuffled'}[gt])
+                   for gt in ['d1','a2a','oprm1','shuffled']
+                  ]
+axt.legend(handles=legend_elements, ncol=4, loc='center',
+           mode='expand')
+axt.set_title('selectivity score', fontsize=7)
+axt.axis('off')
+
+
+#%% Panel B & C
 cdf = analysisMethods.getChoiceData(endoDataPath)
 ##%%
 ax1 = layout.axes['rel_switch_bp']['axis']
@@ -106,7 +197,7 @@ sns.despine(ax=ax2, trim=False)
 #analysisMethods.align_xaxis(ax2, 0, ax1, 0)
 
 
-#%% Panel B
+#%% Panel D
 trialsDf, tuningsDf, activityDf = analysisRewardSupp.getOutcomeResponseData(endoDataPath)
 
 lRewTuned = tuningsDf.loc[tuningsDf.leftReward==1,'neuron']
