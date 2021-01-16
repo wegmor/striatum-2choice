@@ -60,7 +60,11 @@ bp = sns.boxplot(x='sinceReward', y='switch', hue='rewardx', data=astats.reset_i
                  medianprops={'c':'w','zorder':99, 'clip_on':False}, ax=ax1)
 for i,line in enumerate(bp.lines):
     line.set_color({0:style.getColor('r.'), 1:style.getColor('double')}[(i // 3) % 2])
-ax1.legend_.remove()
+[l.set_text(' '*6) for l in bp.legend_.texts]
+#[p.set_alpha(.25) for p in bp.legend_.get_patches()]
+[p.set_lw(0) for p in bp.legend_.get_patches()]
+bp.legend_.set_title('')
+bp.legend_.set_bbox_to_anchor((.35, 1))
 for x, data in astats.unstack('rewardx').groupby('sinceReward'):
     ax1.plot(np.array([[x-.25,x+.25]]*len(data)).T, data.values.T, c='k',
              alpha=1, lw=mpl.rcParams['axes.linewidth'], zorder=99, clip_on=False)
