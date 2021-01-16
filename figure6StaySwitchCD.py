@@ -134,6 +134,12 @@ ax.vlines(np.array([1/3,2/3,2+1/3,2+2/3,4+1/3,4+2/3])*x-.5, -.35, .85, ls=':', c
 ax.text(x*1.5, .225, '−', ha='center', va='center', fontsize=10)
 ax.text(x*3.5, .225, '=', ha='center', va='center', fontsize=10)
 
+ax.vlines(-5, -.4, -.2, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+ax.hlines(-.4, -5, 0, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+
+ax.set_title('right to center turn\ntrial type modulation\n\n#{}_{}'.format(str(sess), int(neuron)),
+             pad=6)
+
 ax.set_ylabel('z-score')
 ax.set_ylim((-.35,.85))
 ax.set_xticks(())
@@ -141,6 +147,7 @@ ax.set_xlim((-.2*x,5.2*x))
 ax.set_yticks((0,.5))
 ax.set_yticks((0.25,), minor=True)
 sns.despine(trim=True, ax=ax, bottom=True, offset=.1)
+ax.axis('off')
 
 legend_elements = [mpl.lines.Line2D([],[], color=style.getColor('r.'), alpha=1,
                                     label='win-stay'),                          
@@ -150,7 +157,7 @@ legend_elements = [mpl.lines.Line2D([],[], color=style.getColor('r.'), alpha=1,
                                     label='lose-switch'),
                   ]
 ax.legend(handles=legend_elements, ncol=len(legend_elements), loc='upper center',
-          bbox_to_anchor=(.4,-.1), columnspacing=1)
+          bbox_to_anchor=(.5,-.15), columnspacing=1)
 
 
 #%% load coding direction data (traces and means)
@@ -203,7 +210,7 @@ ax.axhline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], alpha=.5,
 ax.set_yticks((-.1,0,.1))
 ax.set_ylim((-.2,.2))
 ax.set_xticks(())
-ax.set_ylabel('coding direction\n(z-score)')
+ax.set_ylabel('right to center turn\nCD (a.u.)')
 sns.despine(ax=ax, bottom=True, trim=True)
 
 
@@ -239,11 +246,11 @@ ax.set_ylim((-.45,.05))
 ax.set_xlim((-.5,24.5))
 ax.set_xticks(())
 ax.set_yticks(offsets)
-ax.set_yticklabels(['left outcome\n(in port)', 'left to center\n(turn)', 'center to left\n(in port)',
-                    'center to left\n(turn)', 'left wait\n(in port)'])
+ax.set_yticklabels(['left outcome\n(in port) CD', 'left to center\n(turn) CD', 'center to left\n(in port) CD',
+                    'center to left\n(turn) CD', 'left wait\n(in port) CD'])
 [l.set_color(style.getColor(t)) for l,t in zip(ax.get_yticklabels(), leftStay)]
 ax.set_xlabel('trial phase', labelpad=8)
-ax.set_ylabel('trial phase-specific\ntrial type-coding population')
+#ax.set_ylabel('trial phase-specific\ntrial type-coding population')
 ax.set_title('Oprm1+ phase-specific\ntrial type coding\n(left win-stay trial)',
              pad=10)
 
@@ -255,7 +262,7 @@ vMinMax = .1
 gt = 'oprm1'
 ax = layout.axes[gt+'CD']['axis']
 sns.heatmap(cdMeans.loc[gt].T, center=0, cmap=cmap, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax,
-            cbar_ax=cax, cbar_kws={'orientation':'horizontal'})
+            cbar_ax=cax, cbar_kws={'orientation':'vertical', 'ticks':()})
 ax.vlines(np.arange(0,31,5), 0, 10, color='k', clip_on=False)
 ax.vlines(np.arange(0,31), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
           clip_on=False)
@@ -264,13 +271,17 @@ ax.hlines(np.arange(1,10), 0, 30, ls='-', color='k', lw=mpl.rcParams['axes.linew
 ax.hlines([0,5,10], 0, 30, ls='-', color='k', clip_on=False)
 ax.set_yticks(())
 ax.set_xticks(())
-ax.set_ylabel('trial phase-specific\ntrial type-coding population', labelpad=18, fontsize=8)
+ax.set_ylabel('coding direction', labelpad=18, fontsize=8)
 ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
-#ax.set_title('Oprm1', pad=4, loc='left')
+ax.set_title('Oprm1+', pad=4)#, loc='left')
 
-cax.set_ylabel('', fontsize=7)
-cax.tick_params(axis='x', length=0)
-cax.invert_xaxis()
+cax.set_ylabel('CD (a.u.)', fontsize=6)
+cax.text(0.5,1.025,str(vMinMax), ha='center', va='bottom', transform=cax.transAxes,
+         fontsize=6)
+cax.text(0.5,-.025,str(-vMinMax), ha='center', va='top', transform=cax.transAxes,
+         fontsize=6)
+# cax.tick_params(axis='x', length=0)
+# cax.invert_xaxis()
 cbarYAx = layout.axes['{}CD_ybar'.format(gt)]['axis']
 cbarXAx = layout.axes['{}CD_xbar'.format(gt)]['axis']
 cbarYAx.pcolormesh((cdMeans.columns.codes / 10)[:,np.newaxis], cmap=cbar)
@@ -299,7 +310,7 @@ for gt in ['d1','a2a']:
     ax.hlines([0,5,10], 0, 10, ls='-', color='k', clip_on=False)
     ax.set_yticks(())
     ax.set_xticks(())
-    ax.set_ylabel('population', labelpad=18, fontsize=8)
+    ax.set_ylabel('coding direction', labelpad=18, fontsize=8)
     ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
     ax.set_title({'a2a':'A2A+', 'd1':'D1+'}[gt], pad=4)
 
@@ -387,7 +398,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
         ax.set_yticks((.5,.75,1))
         if gt == 'a2a':
             ax.set_yticklabels((50,75,100))
-            ax.set_ylabel('decoder accuracy (%)')
+            ax.set_ylabel('win-stay vs. lose-switch\ndecoder accuracy (%)')
     else:
         ax.set_yticklabels(())
     

@@ -51,48 +51,55 @@ astats = pd.concat([sstats1.loc[:,:3], sstats2.loc[:,:3]], axis=0,
 gstats1 = sstats1.groupby('sinceReward').agg(['mean','sem']).loc[0:10]
 gstats2 = sstats2.groupby('sinceReward').agg(['mean','sem']).loc[0:10]
 
-sns.boxplot(x='sinceReward', y='switch', hue='rewardx', data=astats.reset_index(),
-            saturation=.85, showcaps=False,  showfliers=False,
-            boxprops={'alpha':0.4, 'lw':0, 'zorder':-99, 'clip_on':False}, 
-            width=1, palette={1:style.getColor('r.'), 2:style.getColor('double')},
-            whiskerprops={'c':'k','zorder':99, 'clip_on':False},
-            medianprops={'c':'k','zorder':99, 'clip_on':False}, ax=ax1)
+bp = sns.boxplot(x='sinceReward', y='switch', hue='rewardx', data=astats.reset_index(),
+                 saturation=.85, showcaps=False,  showfliers=False,
+                 boxprops={'alpha':0.25, 'lw':0, 'zorder':-99, 'clip_on':False}, 
+                 width=1, palette={1:style.getColor('r.'), 2:style.getColor('double')},
+                 whiskerprops={'c':{1:style.getColor('r.'), 2:style.getColor('double')},
+                               'zorder':99, 'clip_on':False},
+                 medianprops={'c':'w','zorder':99, 'clip_on':False}, ax=ax1)
+for i,line in enumerate(bp.lines):
+    line.set_color({0:style.getColor('r.'), 1:style.getColor('double')}[(i // 3) % 2])
 ax1.legend_.remove()
 for x, data in astats.unstack('rewardx').groupby('sinceReward'):
     ax1.plot(np.array([[x-.25,x+.25]]*len(data)).T, data.values.T, c='k',
-             alpha=1, lw=.5, zorder=99, clip_on=False)
+             alpha=1, lw=mpl.rcParams['axes.linewidth'], zorder=99, clip_on=False)
+ax1.vlines(0, .0, .3, linestyle=':', color=style.getColor('r.'), zorder=-99,
+           alpha=1, clip_on=False)
+#ax1.vlines(3.5, .05, .3, linestyle=':', color='k', zorder=100)
 
-ax1.set_xlabel('')
-ax1.set_ylim((.05,.3))
+ax1.set_xlabel('side port entry\n(relative to reward)')
+ax1.set_ylim((.0,.3))
 ax1.set_xlim((-.6, 3.6))
-ax1.set_xticks(())
-ax1.set_yticks((.1,.2,.3))
-ax1.set_yticklabels((10,20,30))
+ax1.set_xticks((0,1,2,3))
+ax1.set_xticklabels((0,1,2,3))
+ax1.set_yticks((0,.1,.2,.3))
+ax1.set_yticklabels((0,10,20,30))
 ax1.set_zorder(99)
-ax1.set_ylabel('')
-sns.despine(ax=ax1, bottom=True, left=True, right=False, trim=True)
-ax1.yaxis.tick_right()
+ax1.set_ylabel('% switches')
+sns.despine(ax=ax1, trim=False)#, bottom=True, left=True, right=False, trim=True)
+#ax1.yaxis.tick_right()
 
 ax2.errorbar(gstats1.index, gstats1['mean'], gstats1['sem'], clip_on=False,
              color=style.getColor('r.'), capsize=1, alpha=1, label=' '*6)
 ax2.errorbar(gstats2.index, gstats2['mean'], gstats2['sem'], clip_on=False,
              color=style.getColor('double'), capsize=1, alpha=1, label=' '*6)
-ax2.vlines(0, .05, .53, linestyle=':', color=style.getColor('r.'), zorder=-99,
+ax2.vlines(0, .0, .3, linestyle=':', color=style.getColor('r.'), zorder=-99,
            alpha=1, clip_on=False)
-ax2.vlines(3.5, .05, .28, linestyle=':', color='k', zorder=100)
+# ax2.vlines(3.5, .0, .3, linestyle=':', color='k', zorder=100)
 
 ax2.legend(bbox_to_anchor=(1,.2), loc='center right', labelspacing=.4)
 
 ax2.set_xticks((0,5,10))
 ax2.set_xlim((-1,11))
 ax2.set_xlabel('side port entry\n(relative to reward)')
-ax2.set_yticks(np.arange(0.1,.35,.1))
-ax2.set_yticklabels(np.arange(10,35,10))
-ax2.set_ylim((.05,.3))
+ax2.set_yticks((0,.1,.2,.3))
+ax2.set_yticklabels((0,10,20,30))
+ax2.set_ylim((0,.3))
 ax2.set_ylabel('% switches')
 sns.despine(ax=ax2, trim=False)
 
-analysisMethods.align_xaxis(ax2, 0, ax1, 0)
+#analysisMethods.align_xaxis(ax2, 0, ax1, 0)
 
 
 #%% Panel B
@@ -295,7 +302,8 @@ for genotype in ['d1','a2a','oprm1']:
         wAvg = np.average(winAvgs[order], axis=0, weights=winNeurons)
         wSem = bootstrap(winAvgs[order], weights=winNeurons)
         ax.errorbar(np.arange(len(order)), wAvg, yerr=wSem, marker='o',
-                    markersize=3.2, markeredgewidth=0, color=style.getColor('r.'))
+                    markersize=3.2, markeredgewidth=0, color=style.getColor('r.'),
+                    label='win-stay selective')
         # sns.stripplot(data=winAvgs[order], color='b', zorder=-1,
         #               alpha=.05, size=1.5, jitter=.3, lw=0, ax=ax)
         # ax.plot(winAvgs[order].T.values, color='b', zorder=-1, alpha=.1,
@@ -307,7 +315,8 @@ for genotype in ['d1','a2a','oprm1']:
         wAvg = np.average(loseAvgs[order], axis=0, weights=loseNeurons)
         wSem = bootstrap(loseAvgs[order], weights=loseNeurons)
         ax.errorbar(np.arange(len(order)), wAvg, yerr=wSem, marker='o',
-                    markersize=3.2, markeredgewidth=0, color=style.getColor('o!'))
+                    markersize=3.2, markeredgewidth=0, color=style.getColor('o!'),
+                    label='lose-switch selective')
         # sns.stripplot(data=loseAvgs[order], color='r', zorder=-1,
         #               alpha=.05, size=1.5, jitter=.3, lw=0, ax=ax)
         # ax.plot(loseAvgs[order].T.values, color='r', zorder=-1, alpha=.1,
@@ -333,6 +342,9 @@ for genotype in ['d1','a2a','oprm1']:
         ax.axhline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'])
         sns.despine(ax=ax, trim=True)
 
+ax = layout.axes['a2aLByOutcome']['axis']
+ax.legend(ncol=2, bbox_to_anchor=(-.3,1), loc='upper left', columnspacing=1)
+
 
 #%%
 valueDf = trialsDf.loc[trialsDf.side == trialsDf.prevSide].copy()
@@ -354,7 +366,7 @@ for side in ['L','R']:
                  label={'L':'left port', 'R':'right port'}[side])
 vax.set_ylim((0,5))
 vax.set_yticks(np.arange(6))
-vax.set_ylabel('action value*')
+vax.set_ylabel('action value')
 vax.set_xlabel('outcomes', labelpad=6)
 vax.set_xticks(np.arange(len(order)))
 vax.set_xticklabels(())
@@ -371,12 +383,13 @@ dax.set_ylim((-1.5,1.5))
 dax.set_yticks((-1,0,1))
 dax.set_yticks((-.5,.5), minor=True)
 dax.axhline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
-dax.set_ylabel('Δaction value*')
+dax.set_ylabel('Δaction value')
 dax.set_xlabel('outcomes', labelpad=6)
 dax.set_xticks(np.arange(len(order)))
 dax.set_xticklabels(())
 sns.despine(ax=dax, trim=True)
 
 
+#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / "rewardSupp.svg")

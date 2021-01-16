@@ -620,7 +620,8 @@ def avAvgTracePlot(wins, phase='mS2C', compression=40, ax=None):
         ax.plot(x + x_offset, y, color=style.getColor(l[-2:]), alpha=.8,
                 clip_on=False)
         ax.axvline(ldata['value'].mean(), ls=':', color='k', alpha=1,
-                   lw=mpl.rcParams['axes.linewidth'])
+                    lw=mpl.rcParams['axes.linewidth'])
+    
         
 #%%
 exGenotype, exAnimal, exDate = 'oprm1', '5703', '190130'
@@ -674,22 +675,32 @@ wins = wins.reset_index().set_index(['neuron','actionNo']).sort_index()
 for p, neuron in enumerate(exNeurons):
     regAx = layout.axes['ac1_ex{}'.format(p+1)]
     avgAx = layout.axes['ac2_ex{}'.format(p+1)]
+    
     avRegPlot(means.loc[neuron],phase='mR2C',ax=regAx)
     avAvgTracePlot(wins.loc[neuron],phase='mR2C',compression=15,ax=avgAx)
     
+    # v: 15->"compression factor" transforming frames to value
+    avgAx.hlines(-1, 2-(10/15), 2+(10/15), ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+                 clip_on=False)
+    avgAx.text(2, -1.15, '1s', ha='center', va='top', color='k', fontsize=6)
+    
     for ax in [regAx, avgAx]:
-        ax.set_ylim((-.75,6))
-        ax.set_yticks((0,2,4,6))
-        ax.set_yticks((1,3,5), minor=True)
         ax.set_xlim((-1,5))
         ax.set_ylabel('z-score')
-    avgAx.set_xticks(np.arange(-1,6))
-    avgAx.set_xticks(np.arange(-1,5,.5), minor=True)
-    regAx.set_xticks(())
-    avgAx.set_xlabel('action value')
-    regAx.set_xlabel('')
-    sns.despine(ax=avgAx, trim=False)
-    sns.despine(ax=regAx, bottom=True, trim=True)
+    regAx.set_title('right to center\nturn', y=.9, fontsize=7)
+    regAx.set_ylim((-.75,6))
+    avgAx.set_ylim((-.75,4.75))
+    regAx.set_xticks(np.arange(-1,6))
+    regAx.set_xticks(np.arange(-1,5,.5), minor=True)
+    avgAx.set_xticks(())
+    regAx.set_xlabel('action value')
+    avgAx.set_xlabel('')
+    avgAx.set_yticks((0,2,4))
+    avgAx.set_yticks((1,3,), minor=True)
+    regAx.set_yticks((0,2,4,6))
+    regAx.set_yticks((1,3,5), minor=True)
+    sns.despine(ax=regAx, trim=False)
+    sns.despine(ax=avgAx, bottom=True, trim=True)
 
 
 #%% plot movement trajectory and duration plots

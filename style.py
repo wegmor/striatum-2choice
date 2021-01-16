@@ -47,8 +47,8 @@ def set_context():
                 'patch.force_edgecolor': False,
                 'hatch.linewidth': .35,
                 'svg.fonttype': 'none',
-                'savefig.dpi': 300,
-                'figure.dpi':300})
+                'savefig.dpi': 600,
+                'figure.dpi':600})
     
     
 def getColor(key):
