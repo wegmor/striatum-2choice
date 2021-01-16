@@ -605,23 +605,39 @@ def avRegPlot(means, phase='mS2C', ax=None):
                 ax=ax, color='k', ci=False, line_kws={'zorder':-99, 'lw':.5})
     
     
-def avAvgTracePlot(wins, phase='mS2C', compression=40, ax=None):
+# def avAvgTracePlot(wins, phase='mS2C', compression=40, ax=None):
+#     inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
+#     for l,ldata in wins.loc[wins.label.isin(inclLabels)].groupby('label'):
+#         x = np.array(ldata['frameNo'].columns.values / compression + ldata['value'].mean(),
+#                      dtype='float')
+#         x_offset = -(len(x) // 2) / compression
+#         y = ldata['frameNo'].mean().values
+#         y[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
+#         sem = ldata['frameNo'].sem().values
+#         sem[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
+#         ax.fill_between(x + x_offset, y-sem, y+sem, clip_on=False,
+#                         color=style.getColor(l[-2:]), lw=0, alpha=.5)
+#         ax.plot(x + x_offset, y, color=style.getColor(l[-2:]), alpha=.8,
+#                 clip_on=False)
+#         ax.axvline(ldata['value'].mean(), ls=':', color='k', alpha=1,
+#                     lw=mpl.rcParams['axes.linewidth'])
+
+def avAvgTracePlot(wins, axs, phase='mR2C'):
     inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
     for l,ldata in wins.loc[wins.label.isin(inclLabels)].groupby('label'):
-        x = np.array(ldata['frameNo'].columns.values / compression + ldata['value'].mean(),
-                     dtype='float')
-        x_offset = -(len(x) // 2) / compression
+        ax = axs[{'o!':0,'o.':1,'r.':2}[l[-2:]]]
+        x = np.array(ldata['frameNo'].columns.values, dtype='float')
         y = ldata['frameNo'].mean().values
         y[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
         sem = ldata['frameNo'].sem().values
         sem[ldata['frameNo'].notna().sum(axis=0) < 20] = np.nan
-        ax.fill_between(x + x_offset, y-sem, y+sem, clip_on=False,
+        ax.fill_between(x, y-sem, y+sem, clip_on=False,
                         color=style.getColor(l[-2:]), lw=0, alpha=.5)
-        ax.plot(x + x_offset, y, color=style.getColor(l[-2:]), alpha=.8,
+        ax.plot(x, y, color=style.getColor(l[-2:]), alpha=.8,
                 clip_on=False)
-        ax.axvline(ldata['value'].mean(), ls=':', color='k', alpha=1,
-                    lw=mpl.rcParams['axes.linewidth'])
-    
+        # v: assumes symmetric window
+        ax.axvline(np.median(x), ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
+        
         
 #%%
 exGenotype, exAnimal, exDate = 'oprm1', '5703', '190130'
@@ -673,34 +689,44 @@ means = means.reset_index().set_index(['neuron','actionNo']).sort_index()
 wins = wins.reset_index().set_index(['neuron','actionNo']).sort_index()
 
 for p, neuron in enumerate(exNeurons):
-    regAx = layout.axes['ac1_ex{}'.format(p+1)]
-    avgAx = layout.axes['ac2_ex{}'.format(p+1)]
+    regAx = layout.axes['ac1_ex{}'.format(p+1)]['axis']
+    avgAxs = [layout.axes['ac2_ex{}_{}'.format(p+1, tt)]['axis'] for tt in (1,2,3)]
     
     avRegPlot(means.loc[neuron],phase='mR2C',ax=regAx)
-    avAvgTracePlot(wins.loc[neuron],phase='mR2C',compression=15,ax=avgAx)
+    avAvgTracePlot(wins.loc[neuron],phase='mR2C',axs=avgAxs)
     
-    # v: 15->"compression factor" transforming frames to value
-    avgAx.hlines(-1, 2-(10/15), 2+(10/15), ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
-                 clip_on=False)
-    avgAx.text(2, -1.15, '1s', ha='center', va='top', color='k', fontsize=6)
+    # # v: 15->"compression factor" transforming frames to value
+    # avgAx.hlines(-1, 2-(10/15), 2+(10/15), ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+    #              clip_on=False)
+    # avgAx.text(2, -1.15, '1s', ha='center', va='top', color='k', fontsize=6)
     
-    for ax in [regAx, avgAx]:
-        ax.set_xlim((-1,5))
-        ax.set_ylabel('z-score')
-    regAx.set_title('right to center\nturn', y=.9, fontsize=7)
+    regAx.set_xlim((-1,5))
     regAx.set_ylim((-.75,6))
-    avgAx.set_ylim((-.75,4.75))
     regAx.set_xticks(np.arange(-1,6))
     regAx.set_xticks(np.arange(-1,5,.5), minor=True)
-    avgAx.set_xticks(())
-    regAx.set_xlabel('action value')
-    avgAx.set_xlabel('')
-    avgAx.set_yticks((0,2,4))
-    avgAx.set_yticks((1,3,), minor=True)
     regAx.set_yticks((0,2,4,6))
     regAx.set_yticks((1,3,5), minor=True)
+    regAx.set_title('right to center\nturn', y=.9, fontsize=7)
+    regAx.set_xlabel('action value')
+    
+    for ax in avgAxs:
+        ax.set_xlim((4.5,34.5))
+        ax.set_ylim((-.75,4.75))
+        ax.set_xticks((9.5, 29.5))
+        ax.set_xticks((19.5,), minor=True)
+        ax.set_xticklabels(())
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+        ax.set_yticks(())
+    avgAxs[0].set_yticks((0,2,4))
+    avgAxs[0].set_yticks((1,3,), minor=True)
+    avgAxs[0].set_ylabel('z-score')
+    avgAxs[1].set_xlabel('time - turn onset (s)')
+    avgAxs[1].set_xticklabels((-0.5,0.5))
+    
     sns.despine(ax=regAx, trim=False)
-    sns.despine(ax=avgAx, bottom=True, trim=True)
+    [sns.despine(ax=ax, left=True, trim=True) for ax in avgAxs[1:]]
+    sns.despine(ax=avgAxs[0], trim=True)
 
 
 #%% plot movement trajectory and duration plots

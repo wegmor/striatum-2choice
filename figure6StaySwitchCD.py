@@ -137,7 +137,7 @@ ax.text(x*3.5, .225, '=', ha='center', va='center', fontsize=10)
 ax.vlines(-5, -.4, -.2, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
 ax.hlines(-.4, -5, 0, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
 
-ax.set_title('right to center turn\ntrial type modulation\n\n#{}_{}'.format(str(sess), int(neuron)),
+ax.set_title('right to center turn\ntrial type modulation\n\nOprm1+ example neuron',
              pad=6)
 
 ax.set_ylabel('z-score')

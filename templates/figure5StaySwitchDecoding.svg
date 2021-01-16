@@ -4765,9 +4765,9 @@
      id="base"
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
-     inkscape:current-layer="layer2"
-     inkscape:cx="515.87039"
-     inkscape:cy="382.97272"
+     inkscape:current-layer="layer1"
+     inkscape:cx="395.29029"
+     inkscape:cy="664.76554"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:lockguides="false"
@@ -4787,12 +4787,37 @@
      inkscape:window-width="1920"
      inkscape:window-x="1920"
      inkscape:window-y="0"
-     inkscape:zoom="1.051808"
+     inkscape:zoom="2.295867"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
      units="in"
-     inkscape:document-rotation="0" />
+     inkscape:document-rotation="0">
+    <sodipodi:guide
+       position="63.998636,92.255219"
+       orientation="0,-1"
+       id="guide3958" />
+    <sodipodi:guide
+       position="61.136581,109.17316"
+       orientation="0,-1"
+       id="guide3960" />
+    <sodipodi:guide
+       position="53.112624,103.59632"
+       orientation="1,0"
+       id="guide3962" />
+    <sodipodi:guide
+       position="74.884647,103.8268"
+       orientation="1,0"
+       id="guide3964" />
+    <sodipodi:guide
+       position="135.77228,104.02365"
+       orientation="1,0"
+       id="guide3966" />
+    <sodipodi:guide
+       position="114.00026,105.20972"
+       orientation="1,0"
+       id="guide3968" />
+  </sodipodi:namedview>
   <metadata
      id="metadata2138">
     <rdf:RDF>
@@ -4801,7 +4826,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -5462,13 +5487,13 @@
     </rect>
     <rect
        id="rect16240-7-2-35-2"
-       width="21.772022"
+       width="6.5316067"
        height="16.917938"
        x="53.112625"
        y="187.82684"
-       style="display:inline;fill:#b3b3b3;stroke-width:0.148979;stroke-linecap:butt;stroke-linejoin:round">
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815992;stroke-linecap:butt;stroke-linejoin:round">
       <figurefirst:axis
-         figurefirst:name="ac2_ex1" />
+         figurefirst:name="ac2_ex1_1" />
     </rect>
     <rect
        y="159.95189"
@@ -5511,16 +5536,6 @@
          figurefirst:name="ac1_ex2" />
     </rect>
     <rect
-       id="rect16240-7-2-35-2-6"
-       width="21.772022"
-       height="16.917938"
-       x="114.00026"
-       y="187.82684"
-       style="display:inline;fill:#b3b3b3;stroke-width:0.148979;stroke-linecap:butt;stroke-linejoin:round">
-      <figurefirst:axis
-         figurefirst:name="ac2_ex2" />
-    </rect>
-    <rect
        y="157.31712"
        x="84.134819"
        width="17.423391"
@@ -5554,6 +5569,56 @@
        width="7.6848135"
        id="rect41104-9-36"
        style="display:inline;fill:#ff00ff;fill-opacity:0.0980392;stroke:none;stroke-width:2.05475;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1" />
+    <rect
+       id="rect16240-7-2-35-2-62"
+       width="6.5316067"
+       height="16.917938"
+       x="60.732834"
+       y="187.82684"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815991;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="ac2_ex1_2" />
+    </rect>
+    <rect
+       id="rect16240-7-2-35-2-9"
+       width="6.5316067"
+       height="16.917938"
+       x="68.353035"
+       y="187.82684"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815991;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="ac2_ex1_3" />
+    </rect>
+    <rect
+       id="rect16240-7-2-35-2-1"
+       width="6.5316067"
+       height="16.917938"
+       x="114.00026"
+       y="187.82684"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815991;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="ac2_ex2_1" />
+    </rect>
+    <rect
+       id="rect16240-7-2-35-2-62-2"
+       width="6.5316067"
+       height="16.917938"
+       x="121.62047"
+       y="187.82684"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815991;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="ac2_ex2_2" />
+    </rect>
+    <rect
+       id="rect16240-7-2-35-2-9-7"
+       width="6.5316067"
+       height="16.917938"
+       x="129.24068"
+       y="187.82684"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.0815991;stroke-linecap:butt;stroke-linejoin:round">
+      <figurefirst:axis
+         figurefirst:name="ac2_ex2_3" />
+    </rect>
   </g>
   <g
      id="layer4"
