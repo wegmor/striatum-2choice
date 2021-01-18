@@ -88,22 +88,47 @@ cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/49
 ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False)
 ax.axis('off')
 
+def getMPLRotationTransform(coords_row, ax, inv=False):
+    '''Get the matplotlib axis transform that rotates
+    the axis so that the mouse points upwards.'''
+    dx = coords_row.body.x - coords_row.tailBase.x
+    dy = coords_row.body.y - coords_row.tailBase.y
+    rot = np.rad2deg(np.arctan2(dy, dx))+90
+    if inv:
+        rot = -rot
+    t = ax.transData
+    rot = mpl.transforms.Affine2D().rotate_deg_around(coords_row.body.x,
+                                                      coords_row.body.y, -rot)
+    return rot + t
+
+big_ax = layout.axes['trajectoryIllustration','openField']['axis']
 for i in range(1, 6):
-    ax = layout.axes['trajectoryIllustration','openField_sub{}'.format(i)]['axis']
-    ax.imshow(skimage.exposure.adjust_log(frames[i],1.3))
     xy = coords.iloc[i*5]
+    ax = layout.axes['trajectoryIllustration','openField_sub{}'.format(i)]['axis']
+    tr = getMPLRotationTransform(xy, ax)
+    ax.imshow(skimage.exposure.adjust_log(frames[i],1.3), transform=tr)
     ax.plot([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
             [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
-            color='yellow', lw=mpl.rcParams['axes.linewidth']/5, zorder=1)
+            color='yellow', lw=mpl.rcParams['axes.linewidth'], zorder=1, transform=tr)
     ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
                [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
-               color='yellow', s=.2, zorder=1, marker='.')
-    ax.set_xlim((120,709))
-    ax.set_ylim((590,0))
-    ax.axhspan(0, 190, color=cmap(i*5/(stop-start)), alpha=.6)
-    ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
-            ha="center", color="w")#))
+               color='yellow', s=3, zorder=1, marker='.', transform=tr)
+    ax.set_xlim((xy.body.x-51,xy.body.x+51))
+    ax.set_ylim((xy.body.y+41,xy.body.y-61))
+    #ax.set_xlim((120,709))
+    #ax.set_ylim((590,0))
+    #ax.axhspan(0, 190, color=cmap(i*5/(stop-start)), alpha=.6)
+    #ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
+    #        ha="center", color="w")#))
+    ax.fill_between([0, 1], [.75, .75], [1, 1], 
+                    color=cmap(i*5/(stop-start)), alpha=.6, transform=ax.transAxes)
+    ax.text(0.5, .85, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="center",
+            ha="center", color="w", transform=ax.transAxes)
     ax.axis('off')
+    tr = getMPLRotationTransform(xy, big_ax, inv=True)
+    big_ax.plot(np.array([-51, 51,  51, -51, -51])+xy.body.x,
+                np.array([ 41, 41, -61, -61,  41])+xy.body.y,
+                color=cmap(i*5/(stop-start)), transform=tr)
 
 
 #%% plot example oft turn trajectory
@@ -111,12 +136,7 @@ ax = layout.axes['trajectoryIllustration','turnTrajectory']['axis']
 
 diff = (frames - background).mean(axis=-1)
 alpha = ((np.clip(diff, -75, -40) + 40) / -35)
-dx = coords.iloc[0].body.x - coords.iloc[0].tailBase.x
-dy = coords.iloc[0].body.y - coords.iloc[0].tailBase.y
-rot = np.rad2deg(np.arctan2(dy, dx))+90
-t = ax.transData
-tr = mpl.transforms.Affine2D().rotate_deg_around(coords.iloc[0].body.x,
-                                                 coords.iloc[0].body.y, -rot) + t
+tr = getMPLRotationTransform(coords.iloc[0], ax)
 
 for i,xy in coords.iterrows():
     ax.plot([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
@@ -150,9 +170,10 @@ cb = plt.colorbar(mpl.cm.ScalarMappable(None, cmap), cax=cax, orientation='horiz
 cb.outline.set_visible(False)
 cax.set_axis_off()
 for t in (0, 0.5, 1.0):
-    text = '+{:.2f}s\n({:.0f}%)'.format(t*(stop-start)/20.0, t*100)
+    #text = '+{:.2f}s\n({:.0f}%)'.format(t*(stop-start)/20.0, t*100)
+    text = '+{:.2f}s'.format(t*(stop-start)/20.0)
     cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
-cax.text(0.5, -3.5, 'time (progess)', ha='center', va="top", fontdict={'fontsize':6})
+cax.text(0.5, -2, 'time (progess)', ha='center', va="top", fontdict={'fontsize':6})
 
 
 #%% plot 2 choice frame
@@ -272,7 +293,7 @@ chTracking = analysisOftVs2Choice.getSmoothedTracking(endoDataPath, ofSess.meta.
                                                       ofSess.meta.animal, ofSess.meta.date,
                                                       '2choice')
 
-for n,neuron in enumerate([86,192][::-1]):
+for n,neuron in enumerate([86,192]):#[::-1]):
     ofTrace = ofTraces[neuron]
     chTrace = chTraces[neuron]
 
@@ -669,11 +690,11 @@ for gt in gts:
     if gt=="a2a":
         ax.set_xlabel("kinematic dissimilarity (Mahalanobis distance)")
         lines = [mpl.lines.Line2D([], [], color=c, label=l)
-                 for c,l in zip(cols, ["open field → open field",
-                                       "2-choice → 2-choice",
-                                       "open field → 2-choice"])]
+                 for c,l in zip(cols, ["within open field",
+                                       "within 2-choice",
+                                       "between tasks"])]
         ax.legend(handles=lines, ncol=3, mode="expand",
-                  bbox_to_anchor=(-1.6, -1.2, 3.8, .1))
+                  bbox_to_anchor=(-1.1, -1.1, 3.35, .1))
     sns.despine(ax=ax)
 
 #%%
