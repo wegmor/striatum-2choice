@@ -16,13 +16,11 @@ import figurefirst
 import style
 import analysisStaySwitchDecoding
 import analysisStaySwitchDecodingSupp
-import analysisOftVs2Choice
-from utils import fancyViz
-from utils import readSessions
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator
 #import subprocess
+
 plt.ioff()
 
 
@@ -53,7 +51,7 @@ else:
     P = pd.DataFrame() # action (probability) predictions
     C = pd.DataFrame() # svm coefficients
     
-    for action in ['dL2C','mL2C','pC2L','mC2L','dR2C','mR2C','pC2R','mC2R']:
+    for action in ['dL2C','mL2C','pC2L','mC2L','dR2C','mR2C','pC2R','mC2R','pL2C','pR2C']:
         (rm,rp,rc), (sm,sp,sc) = analysisStaySwitchDecoding.decodeStaySwitch(endoDataPath, action)
         
         for df in [rm,rp,rc,sm,sp,sc]:
@@ -72,36 +70,20 @@ else:
     P.to_pickle(cacheFolder / 'stsw_p.pkl')
     C.to_pickle(cacheFolder / 'stsw_c.pkl')  
     
-#cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
-#if cachedDataPath.is_file():
-#    crossDecoding = pd.read_pickle(cachedDataPath)
-#else:
-#    crossDecoding, shuffleCross = (analysisStaySwitchDecoding
-#                                       .crossDecodeStaySwitch(endoDataPath))
-#    crossDecoding = crossDecoding.set_index(['genotype','animal','date',
-#                                             'testAction','trainAction'])
-#    shuffleCross = shuffleCross.set_index(['genotype','animal','date',
-#                                           'testAction','trainAction'])
-#    crossDecoding['accuracy_shuffle'] = shuffleCross.accuracy
-#    crossDecoding = (crossDecoding[['noNeurons','accuracy','accuracy_shuffle']]
-#                                  .reset_index())
-#    crossDecoding.to_pickle(cachedDataPath)
-
-cachedDataPath = cacheFolder / 'staySwitchAUC.pkl'
+cachedDataPath = cacheFolder / "staySwitchCrossDecoding.pkl"
 if cachedDataPath.is_file():
-    staySwitchAUC = pd.read_pickle(cachedDataPath)
+    crossDecoding = pd.read_pickle(cachedDataPath)
 else:
-    staySwitchAUC = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath)
-    staySwitchAUC.to_pickle(cachedDataPath)
-
-cachedDataPath = cacheFolder / 'staySwitchAUC_shuffled.pkl'
-if cachedDataPath.is_file():
-    staySwitchAUC_shuffled = pd.read_pickle(cachedDataPath)
-else:
-    staySwitchAUC_shuffled = analysisStaySwitchDecoding.getWStayLSwitchAUC(endoDataPath,
-                                                                           n_shuffles=1,
-                                                                           on_shuffled=True)
-    staySwitchAUC_shuffled.to_pickle(cachedDataPath)
+    crossDecoding, shuffleCross = (analysisStaySwitchDecoding
+                                      .crossDecodeStaySwitch(endoDataPath))
+    crossDecoding = crossDecoding.set_index(['genotype','animal','date',
+                                            'testAction','trainAction'])
+    shuffleCross = shuffleCross.set_index(['genotype','animal','date',
+                                          'testAction','trainAction'])
+    crossDecoding['accuracy_shuffle'] = shuffleCross.accuracy
+    crossDecoding = (crossDecoding[['noNeurons','accuracy','accuracy_shuffle']]
+                                  .reset_index())
+    crossDecoding.to_pickle(cachedDataPath)
     
 cachedDataPath = cacheFolder / "staySwitchAcrossDays.pkl"
 if cachedDataPath.is_file():
@@ -134,111 +116,74 @@ layout = figurefirst.FigureLayout(templateFolder / svgName, dpi=600)
 layout.make_mplfigures()
 
 
-#%%
-staySwitch_shuffled = staySwitchAUC_shuffled.copy()
-staySwitch_shuffled['genotype'] = 'shuffled'
-staySwitch = pd.concat([staySwitchAUC, staySwitch_shuffled])
-palette = {gt: style.getColor(gt) for gt in ['d1','a2a','oprm1','shuffled']}
+#%% plot matrices
+cdMeans = analysisStaySwitchDecodingSupp.getStSwCodingDirectionRaster(endoDataPath)
+cmap = (mpl.colors.LinearSegmentedColormap
+           .from_list('wStLSw', [style.getColor('o!'), (1,1,1), style.getColor('r.')], 256))
+cbar = mpl.colors.LinearSegmentedColormap.from_list('test',[style.getColor(c) for c in cdMeans.columns],
+                                                    len(cdMeans.columns))
 
-# plot kde
-for a, adata in staySwitch.groupby('action'):
-    if a.startswith('pL2C') or a.startswith('pR2C'): continue
-    ax = layout.axes['{}_auc_kde'.format(a)]['axis']
-    
-    for gt, agdata in adata.groupby('genotype'):
-#        ax.hist(agdata['auc'], bins=np.arange(-1,1.1,.1), histtype='step',
-#                color=style.getColor(gt), label=gt, density=True,
-#                lw=2, alpha=.8)
-        sns.distplot(agdata['auc'], bins=np.arange(-1,1.1,.1),
-                     ax=ax, color=style.getColor(gt), hist=False,
-                     kde_kws={'clip_on':False, 'alpha':.75,
-                              'zorder':-1 if gt == 'shuffled' else 1})
-    
-    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_ylim((0,4))
-    ax.set_yticks((1,3), minor=True)
-    ax.set_yticks((0,2,4))
-    ax.set_yticklabels(())
-    ax.set_ylabel('')
-    if a == 'mL2C':
-        ax.set_ylabel('density')
-        ax.set_yticklabels(ax.get_yticks())
-    ax.set_xlim((-1,1))
-    ax.set_xticks(())
-    #ax.set_xticks((-1,0,1))
-    #ax.set_xticklabels((-1,0,1))
-    #ax.set_xticks((-.5,.5), minor=True)
-    #ax.set_xlabel('selectivity score')
-    ax.set_xlabel('')
-    sns.despine(bottom=True, trim=True, ax=ax)
-       
-    ax = layout.axes['{}_auc_bp'.format(a)]['axis']
+cax = layout.axes['CDlegend']['axis']
+vMinMax = .1
 
-    sns.boxplot('auc', 'genotype', data=adata, ax=ax, 
-                palette=palette, saturation=.85, showcaps=False, showfliers=False,
-                boxprops={'alpha':0.75, 'lw':0, 'zorder':-99, 'clip_on':False}, 
-                width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
-                medianprops={'c':'k','zorder':99, 'clip_on':False},
-                order=['d1','a2a','oprm1','shuffled'][::-1])
-    
-    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-    ax.set_xlim((-1,1))
-    ax.set_ylim((-.75,3.75))
-    ax.set_xticks((-1,0,1))
-    #ax.set_xticklabels((-1,'',1))
-    ax.set_xticks((-.5,.5), minor=True)
-    ax.set_xlabel('')
+for gt in ['d1','a2a']:
+    ax = layout.axes[gt+'CD']['axis']
+    if gt == 'd1':
+        sns.heatmap(cdMeans.loc[gt].T, center=0, cmap=cmap, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax,
+                    cbar_ax=cax, cbar_kws={'orientation':'horizontal', 'ticks':()})
+    else:
+        sns.heatmap(cdMeans.loc[gt].T, center=0, cmap=cmap, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax,
+                    cbar=False)
+    ax.vlines(np.arange(0,31,5), 0, 10, color='k', clip_on=False)
+    ax.vlines(np.arange(0,31), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines(np.arange(1,10), 0, 30, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines([0,5,10], 0, 30, ls='-', color='k', clip_on=False)
     ax.set_yticks(())
-    ax.set_ylabel('')
-    sns.despine(left=True, trim=True, ax=ax)
-        
-axt = layout.axes['auc_legend']['axis']
-legend_elements = [mpatches.Patch(color=style.getColor(gt), alpha=.75,
-                                 label={'oprm1':'Oprm1', 'a2a':'A2A', 'd1':'D1',
-                                        'shuffled':'shuffled'}[gt])
-                   for gt in ['d1','a2a','oprm1','shuffled']
-                  ]
-axt.legend(handles=legend_elements, ncol=4, loc='center',
-           mode='expand')
-axt.set_title('selectivity score', fontsize=7)
-axt.axis('off')
+    ax.set_xticks(())
+    if gt == 'd1':
+        ax.set_ylabel('coding direction', labelpad=18, fontsize=8)
+    else:
+        ax.set_ylabel('')
+    ax.set_xlabel('trial phase', labelpad=26, fontsize=8)
+    ax.set_title('{}'.format({'d1':'D1+', 'a2a':'A2A+'}[gt]), pad=6)#, loc='left')
+    
+    cbarYAx = layout.axes['{}CD_ybar'.format(gt)]['axis']
+    cbarXAx = layout.axes['{}CD_xbar'.format(gt)]['axis']
+    cbarYAx.pcolormesh((cdMeans.columns.codes / 10)[:,np.newaxis], cmap=cbar)
+    cbarYAx.hlines(np.arange(1,10), 0, 1, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarYAx.hlines([0,5,10], -2, 1, ls='-', color='k', clip_on=False)
+    cbarYAx.set_xlim((0,1))
+    cbarXAx.pcolormesh((cdMeans.loc[gt].index.get_level_values(1).codes / 10)[np.newaxis,:], cmap=cbar)
+    cbarXAx.vlines(np.arange(1,30), 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarXAx.vlines([5,15,25], 1, -2, ls='-', color='k', clip_on=False)
+    cbarXAx.vlines([0,10,20,30], 1, -4, ls='-', color='k', clip_on=False)
+    cbarXAx.set_ylim((0,1))
+    cbarYAx.axis('off')
+    cbarYAx.invert_yaxis()
+    cbarXAx.axis('off')
 
-
-#%%
-#staySwitchAUC['sign'] = (staySwitchAUC.pct > .995).astype('int') - (staySwitchAUC.pct < .005).astype('int')
-#cmap = (mpl.colors.LinearSegmentedColormap
-#                  .from_list('cmap', [sns.color_palette('bright')[4],
-#                                      (.9,.9,.9),
-#                                      sns.color_palette('bright')[2]]))
-#
-#df = staySwitchAUC.query('sign in [1,-1]').copy()
-#    
-#for action, pop_df in df.groupby('action'):
-#    if action.startswith('pL2C') or action.startswith('pR2C'): continue
-#    
-#    axs = [layout.axes['{}_avg'.format(action+tt)]['axis']
-#               for tt in ['r.','o.','o!']]
-#    
-#    if action == 'mL2C':
-#        cax = layout.axes['colorbar']['axis']
-#        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs, cax,
-#                                                    auc_weigh=True, saturation=.2,                         #                                                    smoothing=5.5, cmap=cmap)
-#    else:
-#        analysisStaySwitchDecoding.drawPopAverageFV('data/endoData_2019.hdf', pop_df, axs,
-#                                                    auc_weigh=True, saturation=.2,                         #                                                    smoothing=5.5, cmap=cmap)
+cax.set_xlabel('CD (a.u.)', fontsize=6)
+cax.text(-.025,.5,str(vMinMax), ha='right', va='center', transform=cax.transAxes,
+         fontsize=6)
+cax.text(1.025,.5,str(-vMinMax), ha='left', va='center', transform=cax.transAxes,
+         fontsize=6)
+#cax.tick_params(axis='x', length=0)
+cax.invert_xaxis()
 
 
 #%%
 prob_value_df = (P.set_index(['shuffled','genotype','animal','date','label','actionNo'])
-                  .loc[False, ['action','o!','r.','noNeurons']])
+                  .loc[False, ['action','o!','r.','noNeurons']].copy())
 prob_value_df['value'] = (actionValues.set_index(['genotype','animal','date','label','actionNo'])
-                                      .value)
+                                      .value.shift(-1)) # update on delivery, not return movement
 prob_value_df = prob_value_df.reset_index()
 prob_value_df['stay'] = prob_value_df.label.str.endswith('.').astype('int')
 
   
 ##%%
-for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'])):
+for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'],['pL2C','pR2C'])):
     data = prob_value_df.query('action in @actions').dropna().copy()
     data = data.loc[data.label.str.contains('o!$|o\.$|r\.$')]
     
@@ -308,7 +253,7 @@ def randomShiftValue(ttdata):
     return ttdata
 
 
-for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'])):
+for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'],['pL2C','pR2C'])):
     data = prob_value_df.query('action in @actions').dropna().copy()
     data = data.loc[data.label.str.contains('o!$|o\.$|r\.$')]
     
@@ -361,12 +306,12 @@ for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'])):
             ax.set_yticks((0,.5))
             ax.set_yticklabels(())
             ax.set_yticks((.25,), minor=True)
-            if gt == 'd1' and p == 0:
+            if gt == 'd1' and p in [0,2]:
                 ax.set_ylabel('r')
                 ax.set_yticklabels((.0,.5))
             sns.despine(ax=ax, bottom=True, trim=True)
         elif tt == 'o.':
-            ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[gt])
+            ax.set_title({'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}[gt])
             ax.set_axis_off()
         else:
             ax.set_axis_off()
@@ -403,7 +348,7 @@ toDate = pd.to_datetime(decodingAcrossDays.toDate, format="%y%m%d")
 td = (toDate - fromDate).dt.days
 decodingAcrossDays["dayDifference"] = td
 
-for label in ('mL2C','pC2L','mC2L','dL2C','mR2C','pC2R','mC2R','dR2C'):
+for label in ('pL2C','mL2C','pC2L','mC2L','dL2C','pR2C','mR2C','pC2R','mC2R','dR2C'):
     selection = decodingAcrossDays[decodingAcrossDays.label == label]
     for i,l,h in ((0,1,100),):#((0,1,3), (1,4,13), (2,14,100)):
         g = (selection.query("dayDifference >= {} & dayDifference <= {}".format(l,h))
@@ -427,24 +372,28 @@ for label in ('mL2C','pC2L','mC2L','dL2C','mR2C','pC2R','mC2R','dR2C'):
 
         plt.sca(layout.axes["decodingAcrossDays_{}".format(label)]["axis"])
         
-        # linewidth fails in pdf export?
-        #for r in perAnimal.itertuples():
-        #    plt.plot([0,1], [r.sameDayScore, r.nextDayScore],
-        #             lw=mpl.rcParams['axes.linewidth']*r.nNeurons/400.0, alpha=.25,
-        #             clip_on=False, zorder=-99, color=style.getColor(r.genotype))
+        # # linewidth fails in pdf export?
+        # for r in perAnimal.itertuples():
+        #     plt.plot([0,1], [r.sameDayScore, r.nextDayScore],
+        #             lw=mpl.rcParams['axes.linewidth'],#*r.nNeurons/400.0,
+        #             alpha=.25, clip_on=False, zorder=-99, color=style.getColor(r.genotype))
         for r in perGenotype.itertuples():
             gt = r.Index
             animalsWithGt = perAnimal.query("genotype == '{}'".format(gt))
             sameDaySEM = bootstrapSEM(animalsWithGt.sameDayScore, animalsWithGt.nNeurons)
             nextDaySEM = bootstrapSEM(animalsWithGt.nextDayScore, animalsWithGt.nNeurons)
-            plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
-                         lw=style.lw(), c=style.getColor(gt))
+            e = plt.errorbar([0,1], [r.sameDayScore, r.nextDayScore], [sameDaySEM, nextDaySEM],
+                             lw=style.lw(), c=style.getColor(gt), clip_on=False)
+            for b in e[1]:
+                b.set_clip_on(False)
         
         sameDayShuffledSEM = bootstrapSEM(perAnimal.sameDayShuffled, perAnimal.nNeurons)
         nextDayShuffledSEM = bootstrapSEM(perAnimal.nextDayShuffled, perAnimal.nNeurons)
-        plt.errorbar([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
-                     [sameDayShuffledSEM, nextDayShuffledSEM],
-                     lw=style.lw(), c=style.getColor("shuffled"))
+        e = plt.errorbar([0,1], [shuffleScore.sameDayShuffled, shuffleScore.nextDayShuffled],
+                         [sameDayShuffledSEM, nextDayShuffledSEM],
+                         lw=style.lw(), c=style.getColor("shuffled"), clip_on=False)
+        for b in e[1]:
+            b.set_clip_on(False)
 
         plt.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5,
                     ls=':', clip_on=False)
@@ -454,7 +403,7 @@ for label in ('mL2C','pC2L','mC2L','dL2C','mR2C','pC2R','mC2R','dR2C'):
         plt.xlim(-0.25, 1.25)
         plt.xticks([])
         #plt.xlabel(("1-3", "4-13", "14+")[i] + "\ndays", labelpad=7, fontsize=6)
-        if label in ['pC2L','pC2R']:
+        if label in ['pL2C','pR2C']:
             plt.yticks(np.linspace(.5,1,3), np.linspace(50,100,3,dtype=np.int64))
             #plt.ylabel("decoding accuracy (%)")
         else:
@@ -468,15 +417,76 @@ for label in ('mL2C','pC2L','mC2L','dL2C','mR2C','pC2R','mC2R','dR2C'):
 
 axt = layout.axes['across_days_legend']['axis']
 legend_elements = [mpl.lines.Line2D([0],[0], color=style.getColor(gt),
-                                    label={'oprm1':'Oprm1','a2a':'A2A','d1':'D1',
+                                    label={'oprm1':'Oprm1+','a2a':'A2A+','d1':'D1+',
                                            'shuffled':'shuffled'}[gt])
                    for gt in ['d1','a2a','oprm1','shuffled']]
-axt.legend(handles=legend_elements, loc='center', ncol=4, mode='expand')
+axt.legend(handles=legend_elements, loc='center', ncol=2, mode='expand')
 axt.axis('off')
+
+
+#%%
+acc = P.loc[P.label.str.contains('r\.$|o!$')].copy() # only use win-stay, lose-switch trials
+acc = (acc.groupby(['genotype','animal','date','noNeurons','action', 'shuffled'])
+          .apply(lambda sess: np.mean(sess.prediction == sess.label))
+          .unstack('shuffled'))
+acc = acc.rename(columns={False:'accuracy',True:'accuracy_shuffle'})
+acc.reset_index(inplace=True)
+acc = acc.rename(columns={'action':'trainAction'})
+acc['testAction'] = acc.trainAction
+crossDecoding = crossDecoding.append(acc, sort=True)
+
+order = ['pL2C','mL2C','pC2L','mC2L','dL2C','pR2C','mR2C','pC2R','mC2R','dR2C']
+crossDecoding['dAccuracy'] = crossDecoding['accuracy'] - crossDecoding['accuracy_shuffle']
+difference = (crossDecoding.groupby(['genotype','trainAction','testAction'])
+                           .apply(lambda g: np.average(g.dAccuracy, weights=g.noNeurons))
+                           .unstack('testAction')) * 100
+
+cax = layout.axes['crossDecodingLegend']['axis']
+vMinMax = 50
+for gt in ['d1','a2a','oprm1']:
+    ax = layout.axes['{}CrossDecoding'.format(gt)]['axis']
+    if gt == 'd1':
+        sns.heatmap(difference.loc[gt].loc[order,order], center=0, cmap='RdYlBu_r',
+                    cbar_ax=cax, cbar_kws={'orientation':'horizontal', 'ticks':()},
+                    square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax)
+    else:
+        sns.heatmap(difference.loc[gt].loc[order,order], center=0, cmap='RdYlBu_r',
+                    cbar=False, square=True, vmin=-vMinMax, vmax=vMinMax, ax=ax)
+    
+    ax.vlines(np.arange(0,11,5), 0, 10, color='k', clip_on=False)
+    ax.vlines(np.arange(0,11), 0, 10, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines(np.arange(1,10), 0, 10, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'],
+              clip_on=False)
+    ax.hlines([0,5,10], 0, 10, ls='-', color='k', clip_on=False)
+    ax.set_yticks(())
+    ax.set_xticks(())
+    ax.set_ylabel('trained phase', labelpad=17, fontsize=7)
+    ax.set_xlabel('predicted phase', labelpad=17, fontsize=7)
+    ax.set_title({'a2a':'A2A+', 'd1':'D1+', 'oprm1':'Oprm1+'}[gt], pad=7)
+    
+    cbarYAx = layout.axes['{}CrossDecoding_ybar'.format(gt)]['axis']
+    cbarXAx = layout.axes['{}CrossDecoding_xbar'.format(gt)]['axis']
+    cbarYAx.pcolormesh(np.linspace(0,10,10)[:,np.newaxis], cmap=cbar)
+    cbarXAx.pcolormesh(np.linspace(0,10,10)[np.newaxis,:], cmap=cbar)
+    cbarYAx.hlines(np.arange(1,10), 0, 1, ls='-', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarYAx.hlines([0,5,10], -2, 1, ls='-', color='k', clip_on=False)
+    cbarYAx.set_xlim((0,1))
+    cbarXAx.vlines(np.arange(1,10), 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'])
+    cbarXAx.vlines([5,], 1, -2, ls='-', color='k', clip_on=False)
+    cbarXAx.vlines([0,10], 1, -4, ls='-', color='k', clip_on=False)
+    cbarXAx.set_ylim((0,1))
+    cbarYAx.axis('off')
+    cbarYAx.invert_yaxis()
+    cbarXAx.axis('off')
+
+cax.set_xlabel('observed accuracy (%) - chance accuracy (%)', fontsize=6)
+cax.text(-.025,.5,str(-vMinMax), ha='right', va='center', transform=cax.transAxes,
+         fontsize=6)
+cax.text(1.025,.5,str(vMinMax), ha='left', va='center', transform=cax.transAxes,
+         fontsize=6)
 
 
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
