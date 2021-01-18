@@ -85,7 +85,7 @@ ax.text(120+10, 10, "+0.00s", fontsize=6, va="top",
         color="w")#bbox=dict(facecolor=cmap(0.0), alpha=1.0))
 wallCorners = ofSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/49
-ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False)
+ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
 ax.axis('off')
 
 def getMPLRotationTransform(coords_row, ax, inv=False):
@@ -101,35 +101,26 @@ def getMPLRotationTransform(coords_row, ax, inv=False):
                                                       coords_row.body.y, -rot)
     return rot + t
 
-big_ax = layout.axes['trajectoryIllustration','openField']['axis']
+xy0 = coords.iloc[0]
+ax.plot(np.array([-161, 41, 41, -161, -161])+xy0.body.x,
+        np.array([-61, -61, 41, 41, -61])+xy0.body.y, 'k--')
 for i in range(1, 6):
     xy = coords.iloc[i*5]
     ax = layout.axes['trajectoryIllustration','openField_sub{}'.format(i)]['axis']
-    tr = getMPLRotationTransform(xy, ax)
-    ax.imshow(skimage.exposure.adjust_log(frames[i],1.3), transform=tr)
+    ax.imshow(skimage.exposure.adjust_log(frames[i],1.3))#, transform=tr)
     ax.plot([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
             [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
-            color='yellow', lw=mpl.rcParams['axes.linewidth'], zorder=1, transform=tr)
+            color='yellow', lw=mpl.rcParams['axes.linewidth'], zorder=1)#, transform=tr)
     ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
                [xy.tailBase.y, xy.body.y, 0.5*(xy.leftEar.y + xy.rightEar.y)],
-               color='yellow', s=3, zorder=1, marker='.', transform=tr)
-    ax.set_xlim((xy.body.x-51,xy.body.x+51))
-    ax.set_ylim((xy.body.y+41,xy.body.y-61))
-    #ax.set_xlim((120,709))
-    #ax.set_ylim((590,0))
-    #ax.axhspan(0, 190, color=cmap(i*5/(stop-start)), alpha=.6)
-    #ax.text((120+709)/2, 50, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="top",
-    #        ha="center", color="w")#))
-    ax.fill_between([0, 1], [.75, .75], [1, 1], 
-                    color=cmap(i*5/(stop-start)), alpha=.6, transform=ax.transAxes)
-    ax.text(0.5, .85, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="center",
-            ha="center", color="w", transform=ax.transAxes)
+               color='yellow', s=7, zorder=1, marker='.')#, transform=tr)
+    ax.set_xlim((xy0.body.x-161,xy0.body.x+41))
+    ax.set_ylim((xy0.body.y+41,xy0.body.y-61))
+    ax.fill([0, .8, 0, 0], [1, 1, .55, 1],
+            color=cmap(i*5/(stop-start)), alpha=.6, transform=ax.transAxes)
+    ax.text(0.025, .85, "+{:.2f}s".format(i*5/20.0), fontsize=6, va="center",
+            ha="left", color="w", transform=ax.transAxes)
     ax.axis('off')
-    tr = getMPLRotationTransform(xy, big_ax, inv=True)
-    big_ax.plot(np.array([-51, 51,  51, -51, -51])+xy.body.x,
-                np.array([ 41, 41, -61, -61,  41])+xy.body.y,
-                color=cmap(i*5/(stop-start)), transform=tr)
-
 
 #%% plot example oft turn trajectory
 ax = layout.axes['trajectoryIllustration','turnTrajectory']['axis']
@@ -171,9 +162,9 @@ cb.outline.set_visible(False)
 cax.set_axis_off()
 for t in (0, 0.5, 1.0):
     #text = '+{:.2f}s\n({:.0f}%)'.format(t*(stop-start)/20.0, t*100)
-    text = '+{:.2f}s'.format(t*(stop-start)/20.0)
+    text = '+{:.2f}'.format(t*(stop-start)/20.0)
     cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
-cax.text(0.5, -2, 'time (progess)', ha='center', va="top", fontdict={'fontsize':6})
+cax.text(0.5, -2, 'time (s)', ha='center', va="top", fontdict={'fontsize':6})
 
 
 #%% plot 2 choice frame
@@ -198,7 +189,7 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            color='yellow', zorder=1, marker='.', transform=tr)
 wallCorners = chSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/15
-ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False)
+ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
 ax.axis('off')
 
 
@@ -694,7 +685,7 @@ for gt in gts:
                                        "within 2-choice",
                                        "between tasks"])]
         ax.legend(handles=lines, ncol=3, mode="expand",
-                  bbox_to_anchor=(-1.1, -1.1, 3.35, .1))
+                  bbox_to_anchor=(-1.1, -1.1, 3.25, .1))
     sns.despine(ax=ax)
 
 #%%
