@@ -21,9 +21,9 @@
      id="base"
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
-     inkscape:current-layer="layer2"
-     inkscape:cx="350.2366"
-     inkscape:cy="544.17068"
+     inkscape:current-layer="layer1"
+     inkscape:cx="148.97871"
+     inkscape:cy="566.79418"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -32,12 +32,12 @@
      inkscape:snap-bbox-edge-midpoints="true"
      inkscape:snap-bbox-midpoints="true"
      inkscape:snap-global="true"
-     inkscape:window-height="988"
+     inkscape:window-height="1018"
      inkscape:window-maximized="1"
-     inkscape:window-width="1680"
-     inkscape:window-x="-1686"
-     inkscape:window-y="550"
-     inkscape:zoom="0.98994949"
+     inkscape:window-width="1620"
+     inkscape:window-x="-6"
+     inkscape:window-y="-6"
+     inkscape:zoom="0.35"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -50,37 +50,29 @@
        type="xygrid"
        units="mm" />
     <sodipodi:guide
-       position="111.71866,42.696327"
-       orientation="0,-1"
-       id="guide3506" />
-    <sodipodi:guide
-       position="187.28343,83.547714"
-       orientation="0,-1"
-       id="guide3508" />
-    <sodipodi:guide
        position="19.050001,94.94762"
        orientation="1,0"
        id="guide3510" />
-    <sodipodi:guide
-       position="106.04655,191.67151"
-       orientation="0,-1"
-       id="guide3568" />
-    <sodipodi:guide
-       position="114.56361,137.43387"
-       orientation="0,-1"
-       id="guide3570" />
     <sodipodi:guide
        position="63.882034,257.70414"
        orientation="0,-1"
        id="guide242" />
     <sodipodi:guide
-       position="63.882034,212.8721"
+       position="168.23067,260.34999"
        orientation="0,-1"
        id="guide244" />
     <sodipodi:guide
        position="196.84999,260.34999"
        orientation="1,0"
        id="guide246" />
+    <sodipodi:guide
+       position="167.00647,210.21465"
+       orientation="0,-1"
+       id="guide285" />
+    <sodipodi:guide
+       position="46.015559,129.76356"
+       orientation="1,0"
+       id="guide286" />
   </sodipodi:namedview>
   <defs
      id="defs2">
@@ -585,12 +577,12 @@
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.262115;stroke-linecap:butt;stroke-linejoin:round"
        width="15.876569"
        x="130.00412"
-       y="159.56541">
+       y="156.91962">
       <figurefirst:axis
          figurefirst:name="alluvial_d1" />
     </rect>
     <rect
-       y="159.56541"
+       y="156.91962"
        x="147.45599"
        width="15.876569"
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.262115;stroke-linecap:butt;stroke-linejoin:round"
@@ -605,12 +597,12 @@
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.262115;stroke-linecap:butt;stroke-linejoin:round"
        width="15.876569"
        x="164.90791"
-       y="159.56541">
+       y="156.91962">
       <figurefirst:axis
          figurefirst:name="alluvial_oprm1" />
     </rect>
     <rect
-       y="159.56613"
+       y="156.92033"
        x="180.78452"
        width="14.478001"
        style="display:inline;opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:3.11172;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
@@ -622,54 +614,54 @@
        style="display:inline;opacity:0.1;vector-effect:none;fill:#ff00ff;fill-opacity:1;stroke:none;stroke-width:2.60671;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
        width="10.160001"
        x="119.84409"
-       y="159.56541" />
+       y="156.91962" />
     <rect
-       style="fill:#cccccc;stroke-width:1.00498;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#cccccc;stroke-width:0.964369;stroke-linecap:round;stroke-linejoin:round"
        id="rect1336"
-       width="14.606407"
+       width="13.449782"
        height="19.049999"
        x="84.098167"
-       y="159.56613">
+       y="156.92033">
       <figurefirst:axis
          figurefirst:name="leftTurnPctTuned" />
     </rect>
     <rect
-       y="182.44115"
+       y="179.79535"
        x="84.098167"
        height="19.049999"
-       width="14.606407"
+       width="13.449782"
        id="rect1336-3"
-       style="display:inline;fill:#cccccc;stroke-width:1.00498;stroke-linecap:round;stroke-linejoin:round">
+       style="display:inline;fill:#cccccc;stroke-width:0.964369;stroke-linecap:round;stroke-linejoin:round">
       <figurefirst:axis
          figurefirst:name="leftTurnOvlp" />
     </rect>
     <rect
-       y="159.56613"
-       x="101.54469"
+       y="156.92033"
+       x="100.16317"
        height="19.049999"
-       width="14.606407"
+       width="13.449782"
        id="rect1336-1"
-       style="display:inline;fill:#cccccc;stroke-width:1.00498;stroke-linecap:round;stroke-linejoin:round">
+       style="display:inline;fill:#cccccc;stroke-width:0.964369;stroke-linecap:round;stroke-linejoin:round">
       <figurefirst:axis
          figurefirst:name="rightTurnPctTuned" />
     </rect>
     <rect
-       style="display:inline;fill:#cccccc;stroke-width:1.00498;stroke-linecap:round;stroke-linejoin:round"
+       style="display:inline;fill:#cccccc;stroke-width:0.964369;stroke-linecap:round;stroke-linejoin:round"
        id="rect1336-3-9"
-       width="14.606407"
+       width="13.449782"
        height="19.049999"
-       x="101.54469"
-       y="182.44115">
+       x="100.16317"
+       y="179.79535">
       <figurefirst:axis
          figurefirst:name="rightTurnOvlp" />
     </rect>
     <rect
-       style="fill:#cccccc;stroke-width:1.08889;stroke-linecap:round;stroke-linejoin:round"
+       style="fill:#cccccc;stroke-width:1.04489;stroke-linecap:round;stroke-linejoin:round"
        id="rect1377"
-       width="32.052948"
+       width="29.514799"
        height="2.2912683"
        x="84.09816"
-       y="203.23581">
+       y="200.59001">
       <figurefirst:axis
          figurefirst:name="gt_legend" />
     </rect>
@@ -682,28 +674,28 @@
          id="rect18340-2"
          width="23.846827"
          height="23.846827"
-         x="72.352509"
-         y="48.715767">
+         x="95.635269"
+         y="72.358444">
         <figurefirst:axis
            figurefirst:name="choice" />
       </rect>
       <rect
-         style="display:inline;fill:#b3b3b3;stroke-width:0.295723;stroke-linecap:square;stroke-linejoin:round"
+         style="display:inline;fill:#b3b3b3;stroke-width:0.27551;stroke-linecap:square;stroke-linejoin:round"
          id="rect18340-1"
-         width="31.051203"
-         height="18.123264"
-         x="70.607254"
-         y="75.477448">
+         width="28.928823"
+         height="16.884521"
+         x="93.094269"
+         y="46.06992">
         <figurefirst:axis
            figurefirst:name="turnTrajectory" />
       </rect>
       <figurefirst:figure
          figurefirst:name="trajectoryIllustration" />
       <rect
-         style="fill:#b3b3b3;stroke-width:0.558879;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.592007;stroke-linecap:square"
          id="rect34673"
-         width="44.832031"
-         height="44.832031"
+         width="47.489498"
+         height="47.489498"
          x="23.127937"
          y="48.715771">
         <figurefirst:axis
@@ -714,74 +706,74 @@
          id="rect34696"
          width="23.846825"
          height="1.5392079"
-         x="72.352509"
-         y="96.205269">
+         x="95.635269"
+         y="64.435387">
         <figurefirst:axis
            figurefirst:name="turnTrajectory_colorbar" />
       </rect>
       <rect
-         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.145508;stroke-linecap:square"
          id="rect210"
-         width="7.7903647"
-         height="7.7903647"
-         x="23.127937"
-         y="96.205269">
+         width="16.51"
+         height="8.2521467"
+         x="72.193306"
+         y="48.715771">
         <figurefirst:axis
            figurefirst:name="openField_sub1" />
       </rect>
       <rect
-         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.145508;stroke-linecap:square"
          id="rect212"
-         width="7.7903647"
-         height="7.7903647"
-         x="32.388355"
-         y="96.205269">
+         width="16.51"
+         height="8.2521467"
+         x="72.193306"
+         y="58.525108">
         <figurefirst:axis
            figurefirst:name="openField_sub2" />
       </rect>
       <rect
-         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.145508;stroke-linecap:square"
          id="rect214"
-         width="7.7903647"
-         height="7.7903647"
-         x="41.648773"
-         y="96.205269">
+         width="16.51"
+         height="8.2521467"
+         x="72.193306"
+         y="68.334442">
         <figurefirst:axis
            figurefirst:name="openField_sub3" />
       </rect>
       <rect
-         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.145508;stroke-linecap:square"
          id="rect216"
-         width="7.7903647"
-         height="7.7903647"
-         x="50.909187"
-         y="96.205269">
+         width="16.51"
+         height="8.2521467"
+         x="72.193306"
+         y="78.143791">
         <figurefirst:axis
            figurefirst:name="openField_sub4" />
       </rect>
       <rect
-         style="fill:#b3b3b3;stroke-width:0.0971152;stroke-linecap:square"
+         style="fill:#b3b3b3;stroke-width:0.145508;stroke-linecap:square"
          id="rect218"
-         width="7.7903647"
-         height="7.7903647"
-         x="60.169605"
-         y="96.205269">
+         width="16.51"
+         height="8.2521467"
+         x="72.193306"
+         y="87.953125">
         <figurefirst:axis
            figurefirst:name="openField_sub5" />
       </rect>
     </g>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect34710"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
        y="39.29586">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_leftTurn" />
     </rect>
     <rect
-       y="175.49442"
+       y="172.84862"
        x="19.038273"
        width="22.859999"
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
@@ -795,8 +787,8 @@
        id="rect9681"
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
        width="26.658037"
-       x="47.084145"
-       y="175.49442">
+       x="46.01556"
+       y="173.02875">
       <figurefirst:axis
          figurefirst:name="mean_leftTurn_2choice_a2a" />
     </rect>
@@ -806,13 +798,13 @@
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
        width="22.859999"
        x="19.038288"
-       y="191.49426">
+       y="187.26099">
       <figurefirst:axis
          figurefirst:name="mean_leftTurn_of_oprm1" />
     </rect>
     <rect
-       y="191.49426"
-       x="47.084145"
+       y="187.26099"
+       x="46.015553"
        width="26.658037"
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
        id="rect9669"
@@ -826,13 +818,13 @@
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
        width="22.859999"
        x="19.03825"
-       y="159.49458">
+       y="158.43626">
       <figurefirst:axis
          figurefirst:name="mean_leftTurn_of_d1" />
     </rect>
     <rect
-       y="159.49458"
-       x="47.084145"
+       y="158.43626"
+       x="46.01556"
        width="26.658037"
        style="display:inline;opacity:1;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.40722;stroke-linecap:butt;stroke-linejoin:round"
        id="rect9657"
@@ -845,68 +837,68 @@
        id="rect1951"
        style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.196995;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.196995, 0.393991;stroke-dashoffset:0;stroke-opacity:1"
        width="17.423393"
-       x="31.707815"
-       y="205.35248">
+       x="35.245224"
+       y="202.70668">
       <figurefirst:axis
          figurefirst:name="colorbar_means_1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.243134;stroke-linecap:square;stroke-linejoin:round"
        id="rect277"
-       width="19.049999"
+       width="19.968184"
        height="19.049999"
-       x="177.71686"
-       y="213.45229">
+       x="176.79868"
+       y="217.1564">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_oprm1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.243134;stroke-linecap:square;stroke-linejoin:round"
        id="rect279"
-       width="19.049999"
+       width="19.968184"
        height="19.049999"
-       x="134.03049"
-       y="213.45229">
+       x="131.00668"
+       y="217.1564">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_d1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.237478;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.243134;stroke-linecap:square;stroke-linejoin:round"
        id="rect281"
-       width="19.049999"
+       width="19.968184"
        height="19.049999"
-       x="155.87367"
-       y="213.45229">
+       x="153.90268"
+       y="217.1564">
       <figurefirst:axis
          figurefirst:name="kinematicsVsDeconv_a2a" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.161381;stroke-linecap:square;stroke-linejoin:round"
        id="rect283"
-       width="19.049999"
+       width="19.968184"
        height="8.3927765"
-       x="177.71683"
-       y="236.70724">
+       x="176.79865"
+       y="240.41136">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_oprm1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.161381;stroke-linecap:square;stroke-linejoin:round"
        id="rect285"
-       width="19.049999"
+       width="19.968184"
        height="8.3927765"
-       x="134.03049"
-       y="236.70724">
+       x="131.00668"
+       y="240.41136">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_d1" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.157627;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.161381;stroke-linecap:square;stroke-linejoin:round"
        id="rect287"
-       width="19.049999"
+       width="19.968184"
        height="8.3927765"
-       x="155.87366"
-       y="236.70724">
+       x="153.90266"
+       y="240.41136">
       <figurefirst:axis
          figurefirst:name="kinematicsPairHist_a2a" />
     </rect>
@@ -933,67 +925,67 @@
          figurefirst:projection="3d" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect248"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
-       y="46.890667">
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
+       y="46.912003">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_rightTurn" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect250"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
-       y="54.485474">
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
+       y="54.528149">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mR2C" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect252"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
-       y="62.080284">
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
+       y="62.144299">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mC2L" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect254"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
-       y="69.675095">
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
+       y="69.760445">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mC2R" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.164531;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.147367;stroke-linecap:square;stroke-linejoin:round"
        id="rect256"
-       width="25.4"
-       height="6.8580003"
-       x="170.39168"
-       y="77.269897">
+       width="20.32"
+       height="6.8772688"
+       x="174.6142"
+       y="77.376595">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mL2C" />
     </rect>
     <rect
-       style="display:inline;fill:#b3b3b3;stroke-width:0.587794;stroke-linecap:square;stroke-linejoin:round"
+       style="display:inline;fill:#b3b3b3;stroke-width:0.584085;stroke-linecap:square;stroke-linejoin:round"
        id="rect15964"
-       width="49.590477"
-       height="44.832039"
-       x="107.36182"
+       width="46.226494"
+       height="47.489498"
+       x="121.30915"
        y="39.29586">
       <figurefirst:axis
          figurefirst:name="turnTrajectories" />
     </rect>
     <rect
-       y="148.19559"
+       y="142.90399"
        x="24.619974"
        width="17.423393"
        style="display:inline;opacity:1;vector-effect:none;fill:#808080;fill-opacity:1;stroke:none;stroke-width:0.196995;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:0.196995, 0.393991;stroke-dashoffset:0;stroke-opacity:1"
@@ -1005,7 +997,7 @@
     <g
        id="g1330"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
-       transform="translate(-0.344629,39.16073)">
+       transform="translate(-0.344629,33.86906)">
       <rect
          style="display:inline;vector-effect:none;fill:#cccccc;fill-opacity:1;stroke:none;stroke-width:0.922131;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1"
          id="rect987-7"
@@ -1092,7 +1084,7 @@
     <g
        id="g1340"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
-       transform="translate(-0.344629,39.16073)">
+       transform="translate(-0.344629,33.86906)">
       <rect
          y="65.577774"
          x="140.30331"
@@ -1195,23 +1187,23 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="75.864029"
-       y="12.566132"
+       x="76.922363"
+       y="9.9203005"
        id="text14159-59"><tspan
          sodipodi:role="line"
          id="tspan16658"
-         x="75.864029"
-         y="12.566132">M</tspan></text>
+         x="76.922363"
+         y="9.9203005">M</tspan></text>
     <text
        id="text14159-59-5"
-       y="12.565413"
+       y="9.9195824"
        x="119.61155"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16660"
          x="119.61155"
-         y="12.565413">N</tspan></text>
+         y="9.9195824">N</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
@@ -1225,100 +1217,103 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="65.900932"
+       x="87.596786"
        y="-108.07726"
        id="text3404"><tspan
          y="-108.07726"
-         x="65.900932"
+         x="87.596786"
          id="tspan3402"
          sodipodi:role="line">B</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="65.900932"
-       y="-80.302719"
+       x="87.596786"
+       y="-81.890221"
        id="text3408"><tspan
-         y="-80.302719"
-         x="65.900932"
+         y="-81.890221"
+         x="87.596786"
          id="tspan3406"
          sodipodi:role="line">C</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="105.23792"
+       x="120.86726"
        y="-108.03851"
        id="text3438"><tspan
          y="-108.03851"
-         x="105.23792"
+         x="120.86726"
          id="tspan3436"
          sodipodi:role="line">D</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="167.66068"
+       x="171.89395"
        y="-108.07726"
        id="text3442"><tspan
          y="-108.07726"
-         x="167.66068"
+         x="171.89395"
          id="tspan3440"
          sodipodi:role="line">E</tspan></text>
     <text
        id="text3500"
-       y="62.748108"
-       x="129.52766"
+       y="66.452278"
+       x="127.41101"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16666"
-         x="129.52766"
-         y="62.748108">Q</tspan></text>
+         x="127.41101"
+         y="66.452278">Q</tspan></text>
     <text
        id="text3516"
-       y="66.452278"
-       x="25.693529"
+       y="66.590256"
+       x="18.896523"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16662"
-         x="25.693529"
-         y="66.452278">O</tspan></text>
+         x="18.896523"
+         y="66.590256">O</tspan></text>
     <text
        id="text3522"
-       y="66.452278"
-       x="73.630577"
+       y="66.629013"
+       x="67.110489"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16664"
-         x="73.630577"
-         y="66.452278">P</tspan></text>
+         x="67.110489"
+         y="66.629013">P</tspan></text>
     <path
        inkscape:connector-curvature="0"
        id="path9691"
-       d="m 41.896079,19.159036 h 5.1917"
-       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend)" />
+       d="m 41.905517,18.100751 h 3.798436"
+       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.246018;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend)"
+       sodipodi:nodetypes="cc" />
     <text
        id="text3586"
-       y="12.527372"
-       x="18.958767"
+       y="9.8815413"
+       x="18.817457"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16656"
-         x="18.958767"
-         y="12.527372">L</tspan></text>
+         x="18.817457"
+         y="9.8815413">L</tspan></text>
     <path
-       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker8377)"
-       d="m 41.896049,35.839769 h 5.19171"
+       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.246018;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker8377)"
+       d="m 41.905489,32.513104 h 4.11007"
        id="path9707"
-       inkscape:connector-curvature="0" />
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
     <path
        inkscape:connector-curvature="0"
        id="path9701"
-       d="m 41.896119,52.520499 h 5.19171"
-       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.254;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend-1)" />
+       d="m 41.905554,46.925473 h 4.110005"
+       style="display:inline;opacity:0.776;fill:none;stroke:#000000;stroke-width:0.246018;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#Arrow1Mend-1)"
+       sodipodi:nodetypes="cc" />
     <g
-       transform="translate(0,61.137409)"
+       transform="translate(0,55.845739)"
        id="g14171"
        style="display:inline;stroke-linecap:butt;stroke-linejoin:round">
       <path
@@ -1330,14 +1325,14 @@
       <text
          xml:space="preserve"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-         x="48.607712"
+         x="48.078548"
          y="-102.15479"
          id="text13770"><tspan
            sodipodi:role="line"
            id="tspan13768"
-           x="48.607712"
+           x="48.078548"
            y="-102.15479"
-           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Oprm1 example neuron 1</tspan></text>
+           style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;stroke-width:0.264583">Oprm1+ example neuron 1</tspan></text>
       <path
          inkscape:original-d="m 77.743752,-102.80892 c 9.363279,2.6e-4 18.726468,2.6e-4 28.089578,0"
          inkscape:path-effect="#path-effect13811"
@@ -1353,13 +1348,13 @@
       <text
          id="text13770-4"
          y="-102.1548"
-         x="139.41718"
+         x="138.55931"
          style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
          xml:space="preserve"><tspan
            sodipodi:role="line"
            id="tspan13847"
-           x="139.41718"
-           y="-102.1548">Oprm1 example neuron 2</tspan></text>
+           x="138.55931"
+           y="-102.1548">Oprm1+ example neuron 2</tspan></text>
       <path
          style="display:inline;fill:none;stroke:#000000;stroke-width:0.100352;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
          d="m 168.55321,-102.80892 c 9.36328,0 18.72647,0 28.08958,0"
@@ -1369,84 +1364,106 @@
     </g>
     <text
        id="text14159"
-       y="109.74608"
-       x="19.054653"
+       y="-42.545593"
+       x="18.78738"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       xml:space="preserve"
-       transform="translate(0,-147)"><tspan
+       xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16644"
-         x="19.054653"
-         y="109.74608">F</tspan></text>
+         x="18.78738"
+         y="-42.545593">F</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        x="46.777779"
-       y="109.74608"
-       id="text14159-1"
-       transform="translate(0,-147)"><tspan
+       y="-42.545593"
+       id="text14159-1"><tspan
          sodipodi:role="line"
          id="tspan16646"
          x="46.777779"
-         y="109.74608">G</tspan></text>
+         y="-42.545593">G</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        x="69.816162"
-       y="109.70733"
-       id="text14159-5"
-       transform="translate(0,-147)"><tspan
+       y="-42.584343"
+       id="text14159-5"><tspan
          sodipodi:role="line"
          id="tspan16648"
          x="69.816162"
-         y="109.70733">H</tspan></text>
+         y="-42.584343">H</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
        x="109.58625"
-       y="109.74608"
-       id="text14159-6"
-       transform="translate(0,-147)"><tspan
+       y="-42.545593"
+       id="text14159-6"><tspan
          sodipodi:role="line"
          id="tspan16650"
          x="109.58625"
-         y="109.74608">I</tspan></text>
+         y="-42.545593">I</tspan></text>
     <text
        id="text14159-1-1"
-       y="109.74608"
+       y="-42.545593"
        x="137.48541"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       xml:space="preserve"
-       transform="translate(0,-147)"><tspan
+       xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16652"
          x="137.48541"
-         y="109.74608">J</tspan></text>
+         y="-42.545593">J</tspan></text>
     <text
        id="text14159-5-8"
-       y="109.74608"
+       y="-42.545593"
        x="160.35184"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       xml:space="preserve"
-       transform="translate(0,-147)"><tspan
+       xml:space="preserve"><tspan
          sodipodi:role="line"
          id="tspan16654"
          x="160.35184"
-         y="109.74608">K</tspan></text>
+         y="-42.545593">K</tspan></text>
     <path
-       inkscape:original-d="m 33.331669,124.80518 c 2.64e-4,1.92598 2.64e-4,3.85169 0,5.77714"
+       inkscape:original-d="m 33.331669,-27.48649 c 2.64e-4,1.92598 2.64e-4,3.85169 0,5.77714"
        inkscape:path-effect="#path-effect14249"
        id="path14247"
-       d="m 33.331669,124.80518 c 0,1.92598 0,3.85169 0,5.77714"
-       style="display:inline;fill:none;stroke:#000000;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker14253-6)"
-       transform="translate(0,-147)" />
+       d="m 33.331669,-27.48649 c 0,1.92598 0,3.85169 0,5.77714"
+       style="display:inline;fill:none;stroke:#000000;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker14253-6)" />
     <path
        style="display:inline;fill:none;stroke:#000000;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker14253-4-7)"
-       d="m 123.96973,124.80518 c 0,1.92598 0,3.85169 0,5.77715"
+       d="m 123.96973,-27.48649 c 0,1.92598 0,3.85169 0,5.77715"
        id="path14247-8"
        inkscape:path-effect="#path-effect16642"
-       inkscape:original-d="m 123.96973,124.80518 c 2.6e-4,1.92598 2.6e-4,3.85169 0,5.77715"
-       transform="translate(0,-147)" />
+       inkscape:original-d="m 123.96973,-27.48649 c 2.6e-4,1.92598 2.6e-4,3.85169 0,5.77715" />
+    <text
+       id="text271"
+       y="13.211141"
+       x="18.847736"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan273"
+         x="18.847736"
+         y="13.211141">D1+</tspan></text>
+    <text
+       id="text277"
+       y="27.623489"
+       x="19.041891"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan275"
+         x="19.041891"
+         y="27.623489">A2A+</tspan></text>
+    <text
+       id="text281"
+       y="42.059975"
+       x="18.918917"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       xml:space="preserve"><tspan
+         sodipodi:role="line"
+         id="tspan279"
+         x="18.918917"
+         y="42.059975">Oprm1+</tspan></text>
   </g>
   <g
      transform="scale(0.35277778)"
