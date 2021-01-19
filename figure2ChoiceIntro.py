@@ -20,7 +20,8 @@ import pathlib
 import figurefirst
 import style
 import analysis2ChoiceIntro
-#import subprocess
+import subprocess
+
 plt.ioff()
 style.set_context()
 
@@ -464,5 +465,5 @@ ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='top',
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])

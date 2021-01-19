@@ -17,6 +17,7 @@ import analysisTunings
 import analysisOftVs2Choice
 import analysisKinematicsSupp
 import style
+import subprocess
 
 style.set_context()
 plt.ioff()
@@ -691,5 +692,7 @@ for gt in gts:
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
+
+

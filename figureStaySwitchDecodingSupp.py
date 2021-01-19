@@ -19,7 +19,7 @@ import analysisStaySwitchDecodingSupp
 import matplotlib.patches as mpatches
 import matplotlib.lines as mlines
 from matplotlib.ticker import MultipleLocator
-#import subprocess
+import subprocess
 
 plt.ioff()
 
@@ -490,3 +490,6 @@ cax.text(1.025,.5,str(vMinMax), ha='left', va='center', transform=cax.transAxes,
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
+

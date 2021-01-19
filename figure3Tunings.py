@@ -25,8 +25,10 @@ import style
 import analysisTunings
 import analysisDecoding
 import analysisStaySwitchDecoding
-#import subprocess
+import subprocess
+
 plt.ioff()
+
 
 #%%
 style.set_context()
@@ -786,5 +788,5 @@ print(selection.groupby([pd.cut(selection.dayDifference, (1, 4, 14, 100)), "geno
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])

@@ -20,6 +20,7 @@ import style
 from utils import readSessions
 import analysisStaySwitchDecoding
 import analysisStaySwitchDecodingSupp
+import subprocess
 
 plt.ioff()
 
@@ -616,4 +617,6 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
 

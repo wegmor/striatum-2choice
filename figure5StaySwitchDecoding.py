@@ -20,7 +20,8 @@ import analysisStaySwitchDecoding
 import analysisStaySwitchDecodingSupp
 import analysisOftVs2Choice
 from utils import readSessions, fancyViz, sessionBarPlot
-#import subprocess
+import subprocess
+
 plt.ioff()
 
 
@@ -862,5 +863,5 @@ sns.despine(ax=ax)
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
