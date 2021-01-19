@@ -179,7 +179,7 @@ def processTracking(tracking):
     tracking['bin'] = tracking.progress * 100 // 10
     
     # center & rotate
-    centered = tracking.groupby('actionNo').apply(centerTrackingEvent).droplevel(0)
+    centered = tracking.groupby('actionNo').apply(centerTrackingEvent)#.droplevel(0) # <- needs to be uncommented with newer pandas (?)
     centered = centered.merge(tracking[['behavior','actionNo','bin']], left_index=True, right_index=True)
     centered.set_index(['behavior','actionNo','bin'], inplace=True)
     

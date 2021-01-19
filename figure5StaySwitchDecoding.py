@@ -130,7 +130,7 @@ for a, adata in staySwitch.groupby('action'):
                      kde_kws={'clip_on':False, 'alpha':.75,
                               'zorder':-1 if gt == 'shuffled' else 1})
      
-    ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
     ax.set_ylim((0,4))
     ax.set_yticks((1,3), minor=True)
     ax.set_yticks((0,2,4))
@@ -194,7 +194,7 @@ for tuning in ['stay','switch']:
     ax = layout.axes['perc_{}'.format(tuning)]
     sessionBarPlot.sessionBarPlot(sign_sess_frac, tuning, ax, style.getColor,
                                   weightScale=.0075)
-    ax.axhline(0, ls=':', lw=mpl.rcParams['axes.linewidth'], color='k', alpha=.5,
+    ax.axhline(0, ls=':', lw=mpl.rcParams['axes.linewidth'], color='k', alpha=1,
                clip_on=False)
 #    ax.axvline(0, ls=':', lw=mpl.rcParams['axes.linewidth'], color='k', alpha=.5,
 #               clip_on=False)
@@ -335,7 +335,7 @@ for (gt,a), coefficients in logRegCoef.groupby(['genotype','animal']):
     ax.scatter(0, coefficients['intercept'], color='k', marker='.',
                s=8, label='', edgecolors='none', alpha=.2, clip_on=False)
 
-ax.axhline(0, zorder=-99, ls=':', c='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axhline(0, zorder=-99, ls=':', c='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 
 ax.xaxis.set_minor_locator(MultipleLocator(1))
 ax.set_xticks((0,-7))
@@ -396,9 +396,9 @@ hist = ax.bar(bins[:-1]+.5, stay_hist.switch['mean'],
 
 ax.legend(handles=(eb, hist), labels=('right\nchoice','switch'),
           bbox_to_anchor=(.05,1.04), loc='upper left')
-ax.axvline(0, zorder=-99, ls=':', c='k', alpha=.35,
+ax.axvline(0, zorder=-99, ls=':', c='k', alpha=1,
            lw=mpl.rcParams['axes.linewidth'])
-ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=.35,
+ax.axhline(.5, zorder=-99, ls=':', c='k', alpha=1,
            lw=mpl.rcParams['axes.linewidth'])
 ax.set_ylabel('% trials')
 ax.set_xlabel('action value')
@@ -539,8 +539,8 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                                               data['activity','mean']+data['activity','sem'],
                         color=style.getColor(gt), lw=0, alpha=.35, label=gt, clip_on=False)
         
-    ax.axhline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
-    ax.axvline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axhline(0, ls=':', color='k', alpha=1, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', color='k', alpha=1, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
     ax.set_ylim((-.2,.5))
     ax.set_yticks((0,.5))
     ax.set_yticks((.25,), minor=True)
@@ -565,8 +565,8 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                           facecolors=mean_corrs.reset_index().genotype.apply(style.getColor),
                           lw=.35, alpha=.45, clip_on=False)
     
-    ax.axhline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
-    ax.axvline(0, ls=':', color='k', alpha=.5, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axhline(0, ls=':', color='k', alpha=1, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', color='k', alpha=1, zorder=-99, lw=mpl.rcParams['axes.linewidth'])
     ax.set_aspect('equal')
     ax.set_ylabel('r(activity, value)')
     ax.set_xlabel('r(activity, duration)')
@@ -709,6 +709,7 @@ for p, neuron in enumerate(exNeurons):
     regAx.set_yticks((1,3,5), minor=True)
     regAx.set_title('right to center\nturn', y=.9, fontsize=7)
     regAx.set_xlabel('action value')
+    regAx.set_ylabel('z-score')
     
     for ax in avgAxs:
         ax.set_xlim((4.5,34.5))

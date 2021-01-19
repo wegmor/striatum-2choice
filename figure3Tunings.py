@@ -134,12 +134,12 @@ y0=-2
 sd=6
 x1=start+.3
 sec=2
-axt.vlines(x1, y0, y0+sd, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-axt.text(x1+.25, y0+sd/2, '{}sd'.format(sd), ha='left', va='center',
-         fontdict={'fontsize':6})
-axt.hlines(y0, x1-sec, x1, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-axt.text(x1-sec/2, y0-1, '{}s'.format(sec), ha='center', va='top',
-         fontdict={'fontsize':6})
+axt.vlines(x1, y0, y0+sd, lw=mpl.rcParams['axes.linewidth'], clip_on=False, color='k')
+# axt.text(x1+.25, y0+sd/2, '{}sd'.format(sd), ha='left', va='center',
+#          fontdict={'fontsize':6})
+axt.hlines(y0, x1-sec, x1, lw=mpl.rcParams['axes.linewidth'], clip_on=False, color='k')
+# axt.text(x1-sec/2, y0-1, '{}s'.format(sec), ha='center', va='top',
+#          fontdict={'fontsize':6})
 
 axt = layout.axes['f8_t1']['axis']
 patches = [mpatches.Patch(color=style.getColor(l), label=t, alpha=.15) 
@@ -274,7 +274,7 @@ for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
             ax.set_xlabel("scaled time")
         ax.axvspan(0, 5, color=style.getColor("p"+action[1]), alpha=0.2)
         ax.axvspan(10, 15, color=style.getColor("p"+action[3]), alpha=0.2)
-        ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
+        ax.axhline(0, ls=':', c='k', lw=mpl.rcParams['axes.linewidth'], alpha=1)
         tuningName = portNames[action[1]]+" to "+portNames[action[3]]
         ax.set_title(tuningName+"\ntuned neurons", fontsize=6, pad=1.5)
         #ax.fill_between([1, 2], [.51, .51], [.58, .58],
@@ -295,11 +295,13 @@ for (action, genotype), df in phaseRasterData.groupby(["action", "genotype"]):
                 fontsize=6, color=style.getColor("p"+action[3]))
 genotypeOrder = ("d1", "a2a", "oprm1")
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
-labels = ["D1", "A2A", "Oprm1"]
+labels = ["D1+", "A2A+", "Oprm1+"]
 layout.axes["psth_mC2L"]["axis"].legend(lines, labels, ncol=3, columnspacing=1.2,
                                             bbox_to_anchor=(0.85, 1.55, 1, 0.1))
 print("Panel F:")
 print(phaseRasterData.groupby(level=[0,1]).size().unstack())
+
+
 #%% tuning counts (simple)
 hist_df = analysisTunings.getTunedNoHistData(tuningData)
 
@@ -318,7 +320,7 @@ for g, gdata in hist_df.query('bin != 0').groupby('genotype'):
     ax.bar(avg.index, avg, yerr=sem, color=style.getColor(g),
            lw=0, alpha=.3, zorder=1)
     
-    ax.set_title({'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
+    ax.set_title({'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}[g])
     ax.set_ylim((0,.5))
     ax.set_yticks((0,.25,.5))
     ax.set_yticklabels(())
@@ -354,9 +356,9 @@ for g in ['d1','a2a','oprm1']:
                 color=style.getColor(g), fmt='s', markersize=3,
                 markeredgewidth=mpl.rcParams['axes.linewidth'],
                 markeredgecolor='k', ecolor='k',
-                label={'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}[g])
+                label={'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}[g])
 
-ax.plot([25,75],[25,75], ls=':', color='k', alpha=.5, zorder=-1)    
+ax.plot([25,75],[25,75], ls=':', color='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
 
 ax.set_xlim((25,75))
 ax.set_ylim((25,75))
@@ -368,7 +370,7 @@ ax.set_ylabel('observed')
 ax.text(50, 75, 'μm to nearest\ntuned neighbor', ha='center', va='center',
         fontdict={'fontsize':7})
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles[-3:], labels[-3:], loc='lower right', bbox_to_anchor=(1.1, .05))
+ax.legend(handles[-3:], labels[-3:], loc='lower right', bbox_to_anchor=(1, .05))
 ax.set_aspect('equal')
 sns.despine(ax=ax)
 print("Panel H (sessions):")
@@ -399,7 +401,7 @@ plt.fill_between(savg.index, savg-ssem, savg+ssem, lw=0,
                  color=style.getColor('shuffled'), alpha=.2, zorder=-99)
 
 order = ("d1", "a2a", "oprm1")
-genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+genotypeNames = {'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}
 meanHandles = [mpl.lines.Line2D([], [], color=style.getColor(g), 
                                 label=genotypeNames[g])
                    for g in order]
@@ -462,7 +464,8 @@ plt.sca(layout.axes["movementProgressRaster"]["axis"])
 plt.imshow(avgActivity.iloc[sorting], aspect="auto",
            interpolation="nearest", vmin=-saturation, vmax=saturation, cmap="RdYlBu_r")
 for i, y in enumerate(np.argsort(sorting)[list(exampleNeurons)]):
-    plt.plot([13, 10, 13], [i*110+15, y, (i+1)*110-10], 'k', lw=0.5, ls=':', clip_on=False)
+    plt.plot([13, 10, 13], [i*110+15, y, (i+1)*110-10], color='k', lw=mpl.rcParams['axes.linewidth'],
+             ls=':', alpha=1, clip_on=False)
 plt.xlim((-.5,9.5))
 plt.ylim(len(sorting)-1, 0)
 plt.xticks([])
@@ -507,7 +510,7 @@ means = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.
 #xmeans = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).true.mean()
 stds = exampleSession.groupby(np.floor(exampleSession.true * 10)/10).predicted.std()
 plt.sca(layout.axes["decodingProgressExample"]["axis"])
-plt.plot([0,1], [0, 1], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
+plt.plot([0,1], [0, 1], color='k', ls=':', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 plt.errorbar(means.index, means, yerr=stds, fmt='o-', ms=2.8,
              color=style.getColor("oprm1"), markeredgewidth=0)
 plt.xlim(-0.05,1.00)
@@ -557,7 +560,7 @@ plt.fill_between(r_wX, r_wAvg-r_wSem, r_wAvg+r_wSem,
                  lw=0, alpha=.35, zorder=-2, color=style.getColor('shuffled'))
 plt.plot(r_wX, r_wAvg, color=style.getColor('shuffled'), alpha=.8)
 
-plt.plot([0,1], [0,1], color='k', ls=':', alpha=0.5, lw=mpl.rcParams['axes.linewidth'])
+plt.plot([0,1], [0,1], color='k', ls=':', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 plt.xlim(-.05,1)
 plt.ylim(-.05,1)
 plt.xticks((0,.5,1))#, (0,50,100))
@@ -594,7 +597,7 @@ for gt, gdata in avgCorr.groupby('genotype'):
         ax.plot([0,1], corr[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
                 clip_on=False, zorder=-99, color=style.getColor(gt))
     
-    ax.axhline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.axhline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 
     ax.set_ylim((0,.6))
     ax.set_xlim((-.35,1.35))
@@ -775,7 +778,7 @@ for i,l,h in ((0,1,3), (1,4,13), (2,14,100)):
         plt.ylabel("decoding accuracy (%)")
     else:
         plt.yticks([])#np.linspace(0,1,5), [""]*5)
-    plt.axhline(0, color='k', lw=0.5, alpha=0.5, ls=":")
+    plt.axhline(0, color='k', lw=mpl.rcParams['axes.linewidth'], alpha=1, ls=":")
     sns.despine(ax=plt.gca(), left=(i!=0), bottom=True)
 axt = layout.axes['decodingAcrossDays_2']['axis']
 genotypeNames["shuffled"] = "shuffled"

@@ -49,8 +49,8 @@ sdf = analysis2ChoiceIntro.getPeriSwapChoices(endoDataPath, win_size)
 #%%
 ax = layout.axes['out_swap']['axis']
 
-ax.axhline(.5, color='k', ls=':', zorder=-99, alpha=.5, lw=mpl.rcParams['axes.linewidth'])
-ax.axvline(-.5, color='k', ls=':', zorder=-99, alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axhline(.5, color='k', ls=':', zorder=-99, alpha=1, lw=mpl.rcParams['axes.linewidth'])
+ax.axvline(-.5, color='k', ls=':', zorder=-99, alpha=1, lw=mpl.rcParams['axes.linewidth'])
 
 for animal, adata in sdf.groupby('animal'):
     ax.plot(adata.loc[animal,'R'], color=style.getColor('a2a'), alpha=.2)
@@ -106,7 +106,7 @@ sns.boxplot(data=bstats,
             whiskerprops={'c':'k','zorder':99}, medianprops={'c':'k','zorder':99},
             ax=ax)
 
-ax.axhline(.5, ls=':', alpha=.5, color='k', zorder=-99)
+ax.axhline(.5, ls=':', lw=mpl.rcParams['axes.linewidth'], alpha=1, color='k', zorder=-99)
 ax.set_ylim((0,1))
 ax.set_yticks((0,.25,.5,.75,1))
 ax.set_yticklabels((0,25,50,75,100))
@@ -324,7 +324,7 @@ for action in df.columns.levels[0]:
 axl = layout.axes['bar_legend']['axis']
 axl.axis('off')
 patches = [mpatches.Patch(color=style.getColor(g),
-                          label={'oprm1':'Oprm1','a2a':'A2A','d1':'D1'}[g], alpha=1) 
+                          label={'oprm1':'Oprm1+','a2a':'A2A+','d1':'D1+'}[g], alpha=1) 
                for g in ['d1','a2a','oprm1']]
 axl.legend(handles=patches, ncol=3, mode='expand', frameon=True, framealpha=1,
            edgecolor='w', facecolor='w', borderpad=.1)

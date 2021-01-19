@@ -13,7 +13,7 @@
    viewBox="0 0 215.9 279.4"
    version="1.1"
    id="svg7186"
-   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)"
+   inkscape:version="1.0.2 (e86c870879, 2021-01-15)"
    sodipodi:docname="figure6StaySwitchCD.svg">
   <sodipodi:namedview
      id="base"
@@ -22,22 +22,22 @@
      borderopacity="1.0"
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
-     inkscape:zoom="1.0022997"
-     inkscape:cx="388.40246"
-     inkscape:cy="344.364"
+     inkscape:zoom="12.376072"
+     inkscape:cx="339.13155"
+     inkscape:cy="593.04272"
      inkscape:document-units="mm"
-     inkscape:current-layer="plots"
+     inkscape:current-layer="layer3"
      showgrid="false"
      units="in"
      inkscape:snap-grids="true"
      inkscape:measure-start="135.118,789.921"
      inkscape:measure-end="135.118,675.591"
      inkscape:window-width="1920"
-     inkscape:window-height="1016"
-     inkscape:window-x="0"
-     inkscape:window-y="27"
+     inkscape:window-height="1043"
+     inkscape:window-x="1920"
+     inkscape:window-y="0"
      inkscape:window-maximized="1"
-     showguides="false"
+     showguides="true"
      inkscape:guide-bbox="true"
      inkscape:document-rotation="0"
      inkscape:snap-global="true"
@@ -83,6 +83,22 @@
        position="60.519098,222.12128"
        orientation="0,-1"
        id="guide17201" />
+    <sodipodi:guide
+       position="82.237539,148.93896"
+       orientation="0,-1"
+       id="guide4110" />
+    <sodipodi:guide
+       position="79.512065,135.52019"
+       orientation="0,-1"
+       id="guide4112" />
+    <sodipodi:guide
+       position="79.51207,122.10133"
+       orientation="0,-1"
+       id="guide4114" />
+    <sodipodi:guide
+       position="87.59587,144.28713"
+       orientation="1,0"
+       id="guide4116" />
   </sodipodi:namedview>
   <defs
      id="defs7180">
@@ -5012,7 +5028,7 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
@@ -16251,47 +16267,42 @@
          sodipodi:nodetypes="cc"
          style="display:inline;fill:none;stroke:#000000;stroke-width:0.176389;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;marker-end:url(#marker4587-2-7-7-22-0)" />
     </g>
-    <g
-       id="g20227"
-       style="display:inline;stroke-linecap:butt;stroke-linejoin:round"
-       transform="translate(2.740217,-14.742435)">
-      <text
-         id="text4589"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-         transform="rotate(90)"
-         x="143.75633"
-         xml:space="preserve"
-         y="-83.080742"><tspan
-           id="tspan4587"
-           sodipodi:role="line"
-           style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-           x="143.75633"
-           y="-83.080742">D1</tspan></text>
-      <text
-         id="text11595"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-         transform="rotate(90)"
-         x="156.28824"
-         xml:space="preserve"
-         y="-83.080742"><tspan
-           id="tspan4591"
-           sodipodi:role="line"
-           style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-           x="156.28824"
-           y="-83.080742">A2A</tspan></text>
-      <text
-         id="text4597"
-         style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-         transform="rotate(90)"
-         x="168.4343"
-         xml:space="preserve"
-         y="-83.056625"><tspan
-           id="tspan4595"
-           sodipodi:role="line"
-           style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-           x="168.4343"
-           y="-83.056625">Oprm1</tspan></text>
-    </g>
+    <text
+       id="text4589"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       transform="rotate(90)"
+       x="128.13509"
+       xml:space="preserve"
+       y="-85.820961"><tspan
+         id="tspan4587"
+         sodipodi:role="line"
+         style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+         x="128.13509"
+         y="-85.820961">D1+</tspan></text>
+    <text
+       id="text11595"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       transform="rotate(90)"
+       x="140.89551"
+       xml:space="preserve"
+       y="-85.820961"><tspan
+         id="tspan4591"
+         sodipodi:role="line"
+         style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+         x="140.89551"
+         y="-85.820961">A2A+</tspan></text>
+    <text
+       id="text4597"
+       style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:2.46944px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-feature-settings:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+       transform="rotate(90)"
+       x="152.81317"
+       xml:space="preserve"
+       y="-85.796844"><tspan
+         id="tspan4595"
+         sodipodi:role="line"
+         style="stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
+         x="152.81317"
+         y="-85.796844">Oprm1+</tspan></text>
     <text
        id="text18243"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"

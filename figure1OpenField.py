@@ -12,7 +12,9 @@ import figurefirst
 import style
 import analysisOpenField
 import subprocess
+
 plt.ioff()
+
 
 #%%
 style.set_context()
@@ -28,7 +30,7 @@ svgName = 'figure1OpenField.svg'
 layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
-longGtNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+longGtNames = {'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running',
                  'leftTurn': 'left turn', 'rightTurn': 'right turn'}
 behaviorOrder = ("leftTurn", "rightTurn", "running", "stationary")
@@ -83,8 +85,8 @@ for i, n in enumerate(traceExampleNeurons):
 starttime = timeslice.start / 20.0
 ax.plot(starttime + np.array([1.5, -0.5, -0.5]), [60, 60, 60-6],
         'k', lw=mpl.rcParams['axes.linewidth'])
-ax.text(starttime-0.65, 60-3, '6sd', ha='right', va='center', fontsize=6)
-ax.text(starttime+0.5, 60.5, '2s', ha='center', va='bottom', fontsize=6)
+# ax.text(starttime-0.65, 60-3, '6sd', ha='right', va='center', fontsize=6)
+# ax.text(starttime+0.5, 60.5, '2s', ha='center', va='bottom', fontsize=6)
 ax.axis("off")
 
 #%% Population mean on movement onset and offset
@@ -134,7 +136,7 @@ for fullDf, axName in [(onsets, "avgOnset"), (offsets, "avgOffset")]:
         err = df.sem(axis=0)
         ax.fill_between(m.index*0.05, m-err, m+err, color=style.getColor(gt), alpha=0.25, lw=0)
         ax.plot(m.index*0.05, m, color=style.getColor(gt), label=longGtNames[gt])
-    ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
+    ax.axhline(0, ls=':', c='k', lw=mpl.rcParams['axes.linewidth'], alpha=1)
     ax.set_ylim(-0.04, 0.08)
     ax.set_xlim(-1, 1)
     ax.set_yticks((-0.04, 0.08))
@@ -223,12 +225,12 @@ y0=-2
 sd=6
 x1=start+.3
 sec=2
-axt.vlines(x1, y0, y0+sd, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-axt.text(x1+.25, y0+sd/2, '{}sd'.format(sd), ha='left', va='center',
-         fontdict={'fontsize':6})
-axt.hlines(y0, x1-sec, x1, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-axt.text(x1-sec/2, y0-1, '{}s'.format(sec), ha='center', va='top',
-         fontdict={'fontsize':6})
+axt.vlines(x1, y0, y0+sd, lw=mpl.rcParams['axes.linewidth'], clip_on=False, color='k')
+# axt.text(x1+.25, y0+sd/2, '{}sd'.format(sd), ha='left', va='center',
+#          fontdict={'fontsize':6})
+axt.hlines(y0, x1-sec, x1, lw=mpl.rcParams['axes.linewidth'], clip_on=False, color='k')
+# axt.text(x1-sec/2, y0-1, '{}s'.format(sec), ha='center', va='top',
+#          fontdict={'fontsize':6})
 
 axt = layout.axes['ex_t1']['axis']
 patches = [mpatches.Patch(color=style.getColor(b), label=behaviorNames[b],
@@ -319,7 +321,7 @@ for label in ("leftTurn", "running"):#behaviorOrder:
         ax.plot(np.linspace(-1,1,40), m, color=style.getColor(gt))
         ax.fill_between(np.linspace(-1,1,40), m-s, m+s, color=style.getColor(gt), alpha=0.15, lw=0)
     #ax.axvline(0, color='k', linestyle='--', lw=0.75)
-    ax.axvspan(0, 1, color=style.getColor(label), alpha=.15, zorder=-10)
+    ax.axvspan(0, 1, color=style.getColor(label), alpha=.15 if label == 'leftTurn' else .25, zorder=-10)
     ax.set_title(behaviorNames[label] + ' tuned', pad=4)
     ax.set_xlim(-1, 1)
     ax.set_xticks((-1,0,1))    
@@ -336,7 +338,7 @@ for label in ("leftTurn", "running"):#behaviorOrder:
         ax.set_yticks(np.arange(0, 0.2, 0.05), minor=True)
         ax.set_ylabel("z-score", labelpad=-7)
     ax.set_ylim(-0.05, 0.20)
-    ax.axhline(0, ls=':', c='k', lw=0.5, alpha=0.5)
+    ax.axhline(0, ls=':', c='k', lw=mpl.rcParams['axes.linewidth'], alpha=1)
     sns.despine(ax=ax)
 lines = [mpl.lines.Line2D([], [], color=style.getColor(gt)) for gt in genotypeOrder]
 labels = [longGtNames[gt] for gt in genotypeOrder]
@@ -381,7 +383,7 @@ for g in genotypeOrder:
                 markeredgecolor='k', ecolor='k',
                 label=longGtNames[g])
 
-ax.plot([15,65],[15,65], ls=':', color='k', alpha=.5, zorder=-1)    
+ax.plot([15,65],[15,65], ls=':', color='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])    
 
 ax.set_xlim((15,65))
 ax.set_ylim((15,65))

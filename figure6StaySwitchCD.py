@@ -222,7 +222,7 @@ leftStay = ['pL2C','mL2C','pC2L','mC2L','dL2C']
 rst = cdMeansBinned.loc['oprm1','r.'].loc[leftStay]
 rstSem = cdSEMs.loc['oprm1','r.'].loc[rst.index]
 
-offsets = -np.arange(len(leftStay))*.1
+offsets = -np.arange(len(leftStay))*.1 # square is .1 high and 5 wide
 transY = mpl.transforms.blended_transform_factory(ax.transData, ax.transAxes)
 transX = mpl.transforms.blended_transform_factory(ax.transAxes, ax.transData)
 for p, tuning in enumerate(leftStay):
@@ -243,6 +243,10 @@ ax.hlines(offsets, 0, 1, ls=':', color=[style.getColor(t) for t in leftStay],
           lw=mpl.rcParams['axes.linewidth'], alpha=1, transform=transX)
 ax.hlines(offsets[:-1]-.05, 0, 1, color='k', lw=mpl.rcParams['axes.linewidth'],
           transform=transX, alpha=1)
+
+ax.vlines(-8, 0.1, 0.2, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+ax.hlines(0.1, -8, -3, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+
 ax.set_ylim((-.45,.05))
 ax.set_xlim((-.5,24.5))
 ax.set_xticks(())

@@ -37,7 +37,7 @@ layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 #%%
-genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+genotypeNames = {'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
                  'rightTurn': 'right turn', 'none': 'untuned'}
 phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
@@ -91,7 +91,7 @@ ax.text(120+10, 10, "+0.00s", fontsize=6, va="top",
         color="w")#bbox=dict(facecolor=cmap(0.0), alpha=1.0))
 wallCorners = ofSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/49
-ax.plot([709-5*cm2px, 709], [600, 600], 'k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
+ax.plot([709-5*cm2px, 709], [600, 600], color='k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
 ax.axis('off')
 
 def getMPLRotationTransform(coords_row, ax, inv=False):
@@ -191,7 +191,7 @@ ax.scatter([xy.tailBase.x, xy.body.x, 0.5*(xy.leftEar.x + xy.rightEar.x)],
            color='yellow', zorder=1, marker='.', transform=tr)
 wallCorners = chSess.getWallCorners()
 cm2px = (wallCorners.lowerRight.x - wallCorners.lowerLeft.x)/15
-ax.plot([800-5*cm2px, 800], [770, 770], 'k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
+ax.plot([800-5*cm2px, 800], [770, 770], color='k', clip_on=False, lw=mpl.rcParams["axes.linewidth"])
 ax.axis('off')
 
 
@@ -222,7 +222,7 @@ for (task,behavior), bdf in tracking.groupby(['task','behavior']):
     for an, track in bdf.groupby('actionNo'):
         analysisOftVs2Choice.plotTrackingEvent(track, ax, alpha=.05, color=style.getColor(behavior),
                                                offsets=offsets, lw=mpl.rcParams['axes.linewidth'])
-    analysisOftVs2Choice.plotTrackingEvent(mean, ax, offsets=offsets)
+    analysisOftVs2Choice.plotTrackingEvent(mean, ax, offsets=offsets, lw=mpl.rcParams['axes.linewidth'])
 
 ax.text(0, 22, 'open field', color='k', fontsize=7, va='center', ha='center')
 ax.text(-2, 21, 'left turn', color=style.getColor('leftTurn'), fontsize=6, va='top', ha='right')
@@ -237,7 +237,7 @@ ax.text(-10, 0, 'right to\ncenter turn', color=style.getColor('mR2C'),
 ax.text(10, 0, 'left to\ncenter turn', color=style.getColor('mL2C'),
         fontsize=6, va='top', ha='left')
 ax.hlines(-15, -2.5, 2.5, color='k', lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-ax.text(0, -15.2, '5cm', ha='center', va='top', fontsize=6)
+#ax.text(0, -15.2, '5cm', ha='center', va='top', fontsize=6)
 ax.set_xlim((-17,17))
 ax.set_ylim((-15,23))
 ax.set_aspect('equal')
@@ -265,6 +265,7 @@ for p in phases:
     ax.set_xlim(-150, 150)
     ax.set_ylim(0, 0.04)
     ax.set_xticks([-150,0,150])
+    ax.set_xticks([-100,-50,50,100], minor=True)
     ax.set_yticks([])
     ax.set_ylabel(None)
     title = ("open field "+behaviorNames[p]) if p.endswith("Turn") else ("2-choice "+phaseNames[p])
@@ -305,10 +306,10 @@ for n,neuron in enumerate([86,192]):#[::-1]):
     pIdx = analysisOftVs2Choice.plotTop10Events(ofTrace, ofTracking,
                                                 axs=[topTenEventsAx, topTenTracesAxOf],
                                                 offset=10)
-    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenTracesAxOf.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenTracesAxOf.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenTracesAxOf.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenTracesAxOf.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
 
     # map
     mapAx = layout.axes[('n{}'.format(n),'ofMap')]['axis']
@@ -335,10 +336,10 @@ for n,neuron in enumerate([86,192]):#[::-1]):
     pIdx = analysisOftVs2Choice.plotTop10Events(chTrace, chTracking, 
                                                 axs=[topTenEventsAx, topTenTracesAxCh],
                                                 offset=10)
-    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenTracesAxCh.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
-    topTenTracesAxCh.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], clip_on=False)
+    topTenEventsAx.vlines(-7, -15, -10, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenEventsAx.hlines(-15, -7, -2, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenTracesAxCh.vlines(-2.5, -5, 5, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
+    topTenTracesAxCh.hlines(-5, -2.5, 2.5, lw=mpl.rcParams['axes.linewidth'], color='k', clip_on=False)
 
     # map
     mapAx = layout.axes[('n{}'.format(n),'chMap')]['axis']
@@ -357,13 +358,14 @@ for n,neuron in enumerate([86,192]):#[::-1]):
     topTenTracesAxCh.set_ylim(traceAxLims)
     topTenTracesAxOf.set_ylim(traceAxLims)
 
-cax = layout.axes['second_colorbar']['axis']
-cb = plt.colorbar(img, cax=cax, orientation='horizontal')
-cb.outline.set_visible(False)
-cax.set_axis_off()
-cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
-cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
-cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
+for cbarName in ['second_colorbar','second_colorbar2']: # TODO: UGH!
+    cax = layout.axes[cbarName]['axis']
+    cb = plt.colorbar(img, cax=cax, orientation='horizontal')
+    cb.outline.set_visible(False)
+    cax.set_axis_off()
+    cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
+    cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
+    cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
 
 #%%
@@ -467,8 +469,8 @@ for tuning in ['leftTurn', 'rightTurn']:
                      marker='s', color=style.getColor(gt), clip_on=False)
         ax.plot([[x-.2]*len(df),[x+.2]*len(df)], df.T.values,
                 color=style.getColor(gt), alpha=.25, zorder=-99, clip_on=False)
-        ax.axhline(0, ls=':', alpha=.5, color='k', zorder=-100,
-                   lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(0, ls=':', alpha=1, color='k', zorder=-100,
+                   lw=mpl.rcParams['axes.linewidth'], clip_on=False)
 
     for gt,df in ovlpDf.groupby('genotype'):
         x = {'d1':0,'a2a':1,'oprm1':2}[gt]
@@ -483,8 +485,8 @@ for tuning in ['leftTurn', 'rightTurn']:
                     markerfacecolor='w', ecolor=style.getColor(gt), clip_on=False)
         ax.plot([[x-.2]*len(df),[x+.2]*len(df)], df.T.values,
                 color=style.getColor(gt), alpha=.25, zorder=-99, clip_on=False)
-        ax.axhline(0, ls=':', alpha=.5, color='k', zorder=-100,
-                   lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(0, ls=':', alpha=1, color='k', zorder=-100,
+                   lw=mpl.rcParams['axes.linewidth'], clip_on=False)
 
     for ax in axs:
         ax.set_ylim(0,100)
@@ -593,7 +595,7 @@ ax.scatter(kinematics_of_all.bodyAngleSpeed,
            kinematics_of_all.elongation, s=.5,
            c=[style.getColor(l) for l in kinematics_of_all.label],
            alpha=.2, lw=0, rasterized=True)
-ax.set_title("open field")
+ax.set_title("open field", fontsize=8)
 
 ax = layout.axes['kinematics3d_2choice']['axis']
 ax.view_init(60, -70)#(30, -60)
@@ -606,7 +608,7 @@ ax.scatter(kinematics_tc_all.bodyAngleSpeed[mask],
            kinematics_tc_all.elongation[mask], s=.5,
            c=[style.getColor(l) for l in kinematics_tc_all.label[mask]],
            alpha=.2, lw=0, rasterized=True)
-ax.set_title("2-choice")
+ax.set_title("2-choice", fontsize=8)
 
 for ax in (layout.axes['kinematics3d_openField']['axis'],
            layout.axes['kinematics3d_2choice']['axis']):
@@ -644,24 +646,25 @@ for i, dist in enumerate(dist_list):
         n = nNeurons.loc[s].nNeurons
         ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
         ax.plot(binned.kinematics_dist, binned.deconv_dist, color=cols[i],
-                alpha=np.clip(n/500, 0.1, 1.0), lw=.5)
+                alpha=np.clip(n/500, 0.1, 1.0), lw=mpl.rcParams['axes.linewidth'],
+                clip_on=False)
         mean[gt] += n*binned.deconv_dist
         nPairs[gt] += g.groupby(bins).size()
         nTot[gt] += n
     for gt in gts:
         mean[gt] /= nTot[gt]
         ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
-        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i])
+        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i], clip_on=False)
         ax = layout.axes['kinematicsPairHist_'+gt]['axis']
         nPairs[gt] /= nPairs[gt].sum()
-        ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i])
+        ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i], clip_on=False)
 
 gt_names = {"d1": "D1+", "a2a": "A2A+", "oprm1": "Oprm1+"}
 for gt in gts:
     ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
     ax.set_xlim(0, 4)
-    ax.set_ylim(-0.05, 0.12)
-    ax.axhline(0, color="k", alpha=0.3, lw=0.5, linestyle="--")
+    ax.set_ylim(-0.05, 0.1)
+    ax.axhline(0, color="k", alpha=1, lw=mpl.rcParams['axes.linewidth'], linestyle=':')
     ax.set_title(gt_names[gt])#, color=style.getColor(gt))
     ax.set_yticks(np.arange(-0.05, 0.15, 0.05))
     ax.set_xticklabels([])
@@ -674,8 +677,9 @@ for gt in gts:
     ax = layout.axes['kinematicsPairHist_'+gt]['axis']
     ax.set_xlim(0, 4)
     ax.set_ylim(0, 0.5)
+    ax.set_yticks((0,.25,.5))
     if gt=="d1":
-        ax.set_ylabel("pdf")
+        ax.set_ylabel("density")
     else:
         ax.set_yticklabels([])
     if gt=="a2a":
