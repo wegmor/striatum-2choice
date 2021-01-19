@@ -62,10 +62,15 @@ cmap = sns.cubehelix_palette(start=1.4, rot=.8*np.pi, light=.75, as_cmap=True)
 #%% get example oft turn from example session
 ex_action = (0,80)
 start, stop = segmented.loc[ex_action][["startFrame", "stopFrame"]]
+
+#Segmentation depends on the particle filter, which is stochastic.
+#As a hack to make the plots deterministic, here the exact frames
+#matching ex_action 80 from my run are set
+start, stop = (1551, 1580)
+
 frame_ids = list(range(start, stop+1, 5))
 frames = np.array([open_field_video.get_frame(i) for i in frame_ids])
 coords = tracking.loc[start:stop]
-
 
 #%% plot first oft frame
 ax = layout.axes['trajectoryIllustration','openField']['axis']
@@ -137,7 +142,6 @@ for i,xy in coords.iterrows():
 xlims = ax.get_xlim()
 ylims = ax.get_ylim()
 
-
 plt.sca(ax)
 for i in range(len(frames)):
     frame = frames[i].mean(axis=-1) + i*255 - 255*len(frames)/2# + 256
@@ -154,14 +158,11 @@ ax.vlines(coords.iloc[0].body.x, coords.iloc[0].body.y-60, coords.iloc[0].body.y
 ax.set_xlim(np.array(xlims) + [-40,40])
 ax.set_ylim(np.array(ylims)[::-1] + [20,-40])
 ax.axis('off')
-#sat = 255*len(frames)/2
-#mpl.colors.Normalize(-sat, sat)
 cax = layout.axes['trajectoryIllustration','turnTrajectory_colorbar']['axis']
 cb = plt.colorbar(mpl.cm.ScalarMappable(None, cmap), cax=cax, orientation='horizontal')
 cb.outline.set_visible(False)
 cax.set_axis_off()
 for t in (0, 0.5, 1.0):
-    #text = '+{:.2f}s\n({:.0f}%)'.format(t*(stop-start)/20.0, t*100)
     text = '+{:.2f}'.format(t*(stop-start)/20.0)
     cax.text(t, -0.5, text, ha='center', va='top', fontdict={'fontsize':6})
 cax.text(0.5, -2, 'time (s)', ha='center', va="top", fontdict={'fontsize':6})
@@ -649,7 +650,7 @@ for i, dist in enumerate(dist_list):
     for gt in gts:
         mean[gt] /= nTot[gt]
         ax = layout.axes['kinematicsVsDeconv_'+gt]['axis']
-        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i])#, lw=2)
+        ax.plot(binned.kinematics_dist, mean[gt], color=cols[i])
         ax = layout.axes['kinematicsPairHist_'+gt]['axis']
         nPairs[gt] /= nPairs[gt].sum()
         ax.plot(binned.kinematics_dist, nPairs[gt]*4, color=cols[i])
@@ -667,8 +668,6 @@ for gt in gts:
         ax.set_ylabel("ensamble correlation")
     else:
         ax.set_yticklabels([])
-    #if gt=="a2a":
-    #    #'center right')
     sns.despine(ax=ax)
 
     ax = layout.axes['kinematicsPairHist_'+gt]['axis']
