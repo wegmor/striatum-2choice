@@ -711,7 +711,7 @@ for i in range(3):
     axbg.set_xlim((0,1))
     axbg.set_axis_off()
 
-cax = layout.axes['colorbar']['axis']
+cax = layout.axes['colorbar_followNeurons']['axis']
 cb = plt.colorbar(img, cax=cax, orientation='horizontal')
 cb.outline.set_visible(False)
 cax.set_axis_off()
