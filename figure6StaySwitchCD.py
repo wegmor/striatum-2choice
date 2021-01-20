@@ -129,7 +129,7 @@ ax.plot(np.arange(x*4,x*5), rst-mean, c=style.getColor('r.'))
 ax.plot(np.arange(x*4,x*5), ost-mean, c=style.getColor('o.'))
 ax.plot(np.arange(x*4,x*5), osw-mean, c=style.getColor('o!'))
 ax.hlines([0,0,0], [-.2*x,1.8*x,3.8*x], [1.2*x,3.2*x,5.2*x], ls=':', 
-          color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+          color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.vlines(np.array([1/3,2/3,2+1/3,2+2/3,4+1/3,4+2/3])*x-.5, -.35, .85, ls=':', color='k',
           lw=mpl.rcParams['axes.linewidth'], zorder=-99)
 ax.text(x*1.5, .225, '−', ha='center', va='center', fontsize=10)
@@ -206,7 +206,7 @@ ax.fill_between(np.arange(len(osw)),
 trans = mpl.transforms.blended_transform_factory(ax.transData, ax.transAxes)
 ax.vlines(np.arange(5,25,5)-.5, 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
           transform=trans)
-ax.axhline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], alpha=.5,
+ax.axhline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], alpha=1,
            zorder=-99)
 ax.set_yticks((-.1,0,.1))
 ax.set_ylim((-.2,.2))
@@ -348,7 +348,7 @@ for p, tuning in enumerate(leftStay):
                     rst[tuning].values-rstSem[tuning].values+offset,
                     color='k', alpha=.35, lw=0)
 ax.hlines(offsets, 0, 1, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'],
-          alpha=.25, transform=transX)
+          alpha=.5, transform=transX)
 ax.set_ylim((-.45,.05))
 ax.set_xlim((-.5,24.5))
 ax.axis('off')
@@ -391,7 +391,7 @@ for (gt, a), gdata in acc.groupby(['genotype','action']):
                 color=style.getColor(a), alpha=.2,zorder=-99,
                 lw=.5, clip_on=False)
     
-    ax.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5, ls=':', clip_on=False)
+    ax.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=1, ls=':', clip_on=False)
     
     ax.set_ylim((.5,1))
     ax.set_xlim((-.35,2.35))
@@ -462,8 +462,8 @@ for (gt,label), gdata in data.groupby(['genotype','action']):
         ax.fill_between(value_wAvg, stsw_wAvg-stsw_wSem, stsw_wAvg+stsw_wSem,
                         lw=0, alpha=.35, zorder=-1, color=style.getColor(tt))
     
-    ax.axhline(.5, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
-    ax.axvline(0, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
+    ax.axhline(.5, ls=':', c='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
+    ax.axvline(0, ls=':', c='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
     
     ax.set_ylim((0,1))
     ax.set_xlim((-5,5))
@@ -509,7 +509,7 @@ for gt, gdata in data.groupby('genotype'):
                            color=style.getColor(tt), alpha=.35, lw=0,
                            clip_on=False)
     
-    axkde.axvline(0, ls=':', c='k', alpha=.35, zorder=-1,
+    axkde.axvline(0, ls=':', c='k', alpha=1, zorder=-1,
                   lw=mpl.rcParams['axes.linewidth'])
     
     axkde.set_xlim((-5,5))
@@ -601,7 +601,8 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
         ax.plot([0,1], c[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
                 clip_on=False, zorder=-99, color=style.getColor(tt))
     
-    ax.axhline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+    ax.axhline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'],
+               clip_on=False)
 
     ax.set_ylim((0,.5))    
     ax.set_xlim((-.35,1.35))

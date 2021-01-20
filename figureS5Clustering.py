@@ -19,6 +19,8 @@ import scipy.cluster
 import scipy.ndimage
 from sklearn.metrics import silhouette_samples
 import style
+import subprocess
+
 plt.ioff()
 
 
@@ -33,7 +35,8 @@ if not outputFolder.is_dir():
     outputFolder.mkdir()
 
 #%%
-layout = figurefirst.FigureLayout(templateFolder / "clusteringSupp.svg")
+svgName = 'figureS5Clustering.svg'
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
 
 #%% Figure A
@@ -43,7 +46,7 @@ ax.set_xscale("log")
 norm = signalHistogram.iloc[1:].sum() * 0.05
 ax.fill_between(signalHistogram.iloc[1:].index, 0, signalHistogram.iloc[1:] / norm, color="C1")
 ax.set_xlabel("signal value (sd)")
-ax.set_ylabel("pdf")
+ax.set_ylabel("density")
 ax.set_xlim(10**-2, 10**1.5)
 ax.set_ylim(0, 1.2)
 sns.despine(ax=ax)
@@ -65,10 +68,13 @@ binnedFrac = pd.cut(unsmoothed.numNeuronsIncluded / unsmoothed.totNeurons, np.li
 genotypes = unsmoothed.session.str.split("_").str[0]
 for gt, means in unsmoothed.groupby([genotypes, binnedFrac]).fracVarExplained.mean().groupby(level=0):
     ax.plot(np.arange(2.5,100, 5), means*100, c=style.getColor(gt), lw=1)
+ax.plot([0,100], [0,100], ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
+ax.set_xticks(np.arange(0,101,25))
+ax.set_yticks(np.arange(0,101,25))
 ax.set_xlabel("PCs included (%)")
 ax.set_ylabel("variance explained (%)")
 handles = [mpl.lines.Line2D([0], [0], lw=1, c=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
-ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
+ax.legend(handles, ("D1+", "A2A+", "Oprm1+"), loc="lower right")
 ax.set_xlim(0,100)
 ax.set_ylim(0,100)
 sns.despine(ax=ax)
@@ -84,8 +90,13 @@ ax.set_ylabel("number of PCs")
 ax.set_title("PCs required to explain\n90% of the variance")
 ax.set_xlim(0, 700)
 ax.set_ylim(0, 700)
+ax.set_xticks((0,350,700))
+ax.set_xticks(np.arange(0,700,50), minor=True)
+ax.set_yticks((0,350,700))
+ax.set_yticks(np.arange(0,700,50), minor=True)
+ax.plot([0,700], [0,700], ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
 handles = [mpl.lines.Line2D([0], [0], ls='', marker='o', color=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
-ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
+ax.legend(handles, ("D1+", "A2A+", "Oprm1+"), loc="lower right")
 sns.despine(ax=ax)
 
 #%% Figure D
@@ -95,8 +106,11 @@ binnedFrac = pd.cut(varExplained.numNeuronsIncluded / varExplained.totNeurons,
 for sigma, means in varExplained.groupby(["sigma", binnedFrac]).fracVarExplained.mean().groupby(level=0):
     ax.plot(np.arange(2.5,100, 5), means*100, label="$\sigma={}$ms".format(sigma*50))
 ax.legend(title="smoothing")
+ax.plot([0,100], [0,100], ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
 ax.set_xlim(0,100)
 ax.set_ylim(0,100)
+ax.set_xticks(np.arange(0,101,25))
+ax.set_yticks(np.arange(0,101,25))
 ax.set_xlabel("PCs included (%)")
 ax.set_ylabel("variance explained (%)")
 sns.despine(ax=ax)
@@ -109,9 +123,12 @@ ax = layout.axes['topological_dim']['axis']
 ax.scatter(meanDim.nNeurons, meanDim.dimensionality, c=color)
 ax.set_xlabel("number of neurons")
 ax.set_ylabel("dimensionality")
-ax.set_ylim(0, 100)
+ax.set_ylim((0, 100))
+ax.set_xlim((0,700))
+ax.set_xticks((0,350,700))
+ax.set_xticks(np.arange(0,700,50), minor=True)
 handles = [mpl.lines.Line2D([0], [0], ls='', marker='o', color=style.getColor(c)) for c in ("d1", "a2a", "oprm1")]
-ax.legend(handles, ("D1", "A2A", "Oprm1"), loc="lower right")
+ax.legend(handles, ("D1+", "A2A+", "Oprm1+"), loc="lower right")
 sns.despine(ax=ax)
 
 #%%
@@ -145,11 +162,11 @@ ax.set_xlim((-1,1))
 ax.set_ylim((0,4))
 ax.set_yticks((0,2,4))
 ax.set_yticks((1,3), minor=True)
-ax.axvline(0, color='k', ls=':', zorder=-99, alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axvline(0, color='k', ls=':', zorder=-99, alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.set_xticks(())
 ax.set_xlabel('')
 ax.set_ylabel('density')
-ax.legend(['A2A','D1','Oprm1'], loc='upper left', bbox_to_anchor=(.06,.95))
+ax.legend(['A2A+','D1+','Oprm1+'], loc='upper left', bbox_to_anchor=(.06,.95))
 sns.despine(bottom=True, trim=True, ax=ax)
 
 
@@ -162,7 +179,7 @@ sns.boxplot('coef', 'genotype', data=silhouette_df, ax=ax,
             width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
             medianprops={'c':'k','zorder':99, 'clip_on':False})
 
-ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axvline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.set_xlim((-1,1))
 ax.set_ylim((-.75,2.75))
 ax.set_xticks((-1,0,1))
@@ -193,7 +210,7 @@ ax.set_xlim((-1,1))
 ax.set_ylim((0,4))
 ax.set_yticks((0,2,4))
 ax.set_yticks((1,3), minor=True)
-ax.axvline(0, color='k', ls=':', zorder=-99, alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axvline(0, color='k', ls=':', zorder=-99, alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.set_xticks(())
 ax.set_xlabel('')
 ax.set_ylabel('density')
@@ -209,7 +226,7 @@ sns.boxplot('coef', data=silhouette_df, ax=ax, color='k',
             width=.75, whiskerprops={'c':'k','zorder':99, 'clip_on':False},
             medianprops={'c':'k','zorder':99, 'clip_on':False})
 
-ax.axvline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+ax.axvline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 ax.set_xlim((-1,1))
 ax.set_ylim((-1.2,1.2))
 ax.set_xticks((-1,0,1))
@@ -245,7 +262,7 @@ for gt, gt_scores in score_df.groupby('genotype'):
     ax.set_xticks((2,25,50))
     ax.set_xlabel('number of clusters')
     ax.set_ylabel('silhouette score')
-    ax.legend(labels=['A2A','D1','Oprm1'], loc='upper right', bbox_to_anchor=(1,.95))
+    ax.legend(labels=['A2A+','D1+','Oprm1+'], loc='upper right', bbox_to_anchor=(1,.95))
     sns.despine(ax=ax)
 
 #%%
@@ -290,7 +307,7 @@ plt.xticks(rotation=90, fontsize=6)
 plt.yticks(fontsize=6)
 sns.despine(ax=plt.gca(), bottom=True, left=False, trim=False)
 plt.ylim(0,80)
-plt.ylabel("Distance")
+plt.ylabel("distance")
 plt.title("agglomerative clustering of pooled mean\npopulation activity in all task phases", pad=6)
 
 #%% TSNE - moved here from tuning figure
@@ -324,4 +341,7 @@ ax.axis('off')
 
 #%%
 layout.insert_figures('plots')
-layout.write_svg(outputFolder / "clusteringSupp.svg")
+layout.write_svg(outputFolder / svgName)
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
+

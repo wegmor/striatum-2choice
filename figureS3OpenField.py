@@ -15,6 +15,7 @@ from matplotlib.ticker import MultipleLocator
 import analysisOpenField #, analysisTunings
 import style
 from utils import readSessions, fancyViz
+import subprocess
 
 style.set_context()
 plt.ioff()
@@ -29,16 +30,16 @@ templateFolder = pathlib.Path("templates")
 if not outputFolder.is_dir():
     outputFolder.mkdir()
 
-layout = figurefirst.FigureLayout(templateFolder / "openFieldSupp.svg")
+svgName = "figureS3OpenField.svg"
+layout = figurefirst.FigureLayout(templateFolder / svgName)
 layout.make_mplfigures()
-svgName = "openFieldSupp.svg"
 
 
-genotypeNames = {'d1':'D1','a2a':'A2A','oprm1':'Oprm1'}
+genotypeNames = {'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
                  'rightTurn': 'right turn'}
 
-#All 4-behavior panels    
+#%% All 4-behavior panels    
 segmentedBehavior = analysisOpenField.segmentAllOpenField(endoDataPath)
 
 
@@ -219,7 +220,7 @@ for i in range(3):
     for tick in ticks:
         cax.text(-0.5, tick/ticks[-1], tick, ha='right', va='center', fontsize=6,
                  transform=cax.transAxes)
-    label = ("turned\nangle ($\circ\:$)", "total angle\nof turn ($\circ\:$)",
+    label = ("turned\nangle (°)", "total angle\nof turn (°)",
              "turn\nprogress (%)")[i]
     cax.text(3.5, 0.5, label, ha='center', va='center', fontdict={'fontsize':6},
              transform=cax.transAxes, rotation=90)
@@ -255,9 +256,10 @@ cax.set_axis_off()
 cax.text(-1.05, -.3, '-1', ha='right', va='center', fontdict={'fontsize':6})
 cax.text(1.05, -.3, '1', ha='left', va='center', fontdict={'fontsize':6})
 cax.text(0, 1.1, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
-    
-
-layout.insert_figures('target_layer_name')
+   
+ 
+#%%
+layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
-#subprocess.check_call(['inkscape', '-f', outputFolder / svgName,
-#                                   '-A', outputFolder / (svgName[:-3]+'pdf')])
+subprocess.check_call(['inkscape', outputFolder / svgName,
+                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])

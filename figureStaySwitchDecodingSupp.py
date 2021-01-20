@@ -212,8 +212,8 @@ for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'],['p
             ax.fill_between(value_wAvg, stsw_wAvg-stsw_wSem, stsw_wAvg+stsw_wSem,
                             lw=0, alpha=.35, zorder=-1, color=style.getColor(tt))
         
-        ax.axhline(.5, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
-        ax.axvline(0, ls=':', c='k', alpha=.35, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(.5, ls=':', c='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
+        ax.axvline(0, ls=':', c='k', alpha=1, zorder=-1, lw=mpl.rcParams['axes.linewidth'])
         
         ax.set_ylim((0,1))
         ax.set_xlim((-5,5))
@@ -224,7 +224,7 @@ for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'],['p
             ax.set_xlabel('action value')
             ax.set_xticklabels([-5,0,5])
         ax.set_yticks((0,.5,1))
-        if (gt == 'd1') & (p == 0):
+        if (gt == 'd1') & (p in [0,2]):
             ax.set_yticklabels((0,50,100))
             #ax.set_ylabel('SVM prediction\nP(win-stay)')
         else:
@@ -297,7 +297,7 @@ for p, actions in enumerate((['pC2L','pC2R'],['mC2L','mC2R'],['dL2C','dR2C'],['p
             ax.plot([0,1], c[:2], lw=mpl.rcParams['axes.linewidth'], alpha=.2,
                     clip_on=False, zorder=-99, color=style.getColor(tt))
 
-        ax.axhline(0, ls=':', color='k', alpha=.5, lw=mpl.rcParams['axes.linewidth'])
+        ax.axhline(0, ls=':', color='k', alpha=1, lw=mpl.rcParams['axes.linewidth'])
 
         ax.set_ylim((0,.5))    
         ax.set_xlim((-.35,1.35))
@@ -395,7 +395,7 @@ for label in ('pL2C','mL2C','pC2L','mC2L','dL2C','pR2C','mR2C','pC2R','mC2R','dR
         for b in e[1]:
             b.set_clip_on(False)
 
-        plt.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=.5,
+        plt.axhline(0.5, lw=mpl.rcParams['axes.linewidth'], c='k', alpha=1,
                     ls=':', clip_on=False)
         
         

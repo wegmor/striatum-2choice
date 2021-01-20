@@ -9,6 +9,7 @@ def set_context():
                 'xtick.labelsize': 6,
                 'ytick.labelsize': 6,
                 'legend.fontsize': 6,
+                'legend.title_fontsize': 7,
                 'axes.linewidth': .5,
                 'axes.labelpad': 1.25,
                 'axes.titlepad': 0,
