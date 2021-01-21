@@ -427,6 +427,7 @@ def plot3D(train_fits, test_fits, azimuth, angle, lims=None, bins=4, order=['r.'
     ax.set_zticklabels(())
     #ax.set_zlabel('PC3')
     
+    ax.autoscale_view(tight=True)
     #ax.set_rasterized(True)
 
 
@@ -447,6 +448,7 @@ ax.text(-2.5,0,2.5, 'PC2', fontsize=7, ha='center', va='top',
         bbox=dict(facecolor='w', alpha=.75, pad=0))
 ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='center',
         bbox=dict(facecolor='w', alpha=.75, pad=0))
+ax.set_box_aspect([1,1,1])
 
 ax = layout.axes['trajectory2']['axis']
 plot3D(train_fits, test_fits.loc[test_fits.trialType.str.slice(0,4) == 'pR2C'],
@@ -460,10 +462,11 @@ ax.text(-2.5,0,2.5, 'PC2', fontsize=7, ha='center', va='top',
         bbox=dict(facecolor='w', alpha=.75, pad=0))
 ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='top',
         bbox=dict(facecolor='w', alpha=.75, pad=0))
-
+ax.set_box_aspect([1,1,1])
 
 #%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
 subprocess.check_call(['inkscape', outputFolder / svgName,
-                           '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
+                            '--export-pdf={}pdf'.format(outputFolder / svgName[:-3])])
+
