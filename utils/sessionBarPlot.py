@@ -37,9 +37,12 @@ def sessionBarPlot(df, yCol, ax, colorFunc, genotypeCol="genotype", animalCol="a
     elif xlabels==animalCol:
         xticks = xCoord.drop_duplicates()
         ax.set_xticks(xticks)
-        xticks = xticks[~xticks.index.str.endswith("shuffled")]
+        #xticks = xticks[~xticks.index.str.endswith("shuffled")]
+        xticklabels = pd.Series(xticks.index.values)
+        xticklabels[~xticklabels.str.endswith('shuffled')] = '#' + xticklabels[~xticklabels.str.endswith('shuffled')].str.slice(0,4)
+        xticklabels[xticklabels.str.endswith('shuffled')] = ''
         #xticks = xticks.append(pd.Series([3], ["(shuffled)"]))
-        ax.set_xticklabels("#"+xticks.index.str[:4], rotation=90)
+        ax.set_xticklabels(xticklabels, rotation=90)
     else:
         ax.set_xticks([])
         

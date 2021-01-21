@@ -40,8 +40,8 @@ layout.make_mplfigures()
 genotypeNames = {'d1':'D1+','a2a':'A2A+','oprm1':'Oprm1+'}
 behaviorNames = {'stationary': 'stationary', 'running': 'running', 'leftTurn': 'left turn',
                  'rightTurn': 'right turn', 'none': 'untuned'}
-phaseNames = {'mC2L': 'center-to-left', 'mC2R': 'center-to-right', 'mL2C': 'left-to-center',
-              'mR2C': 'right-to-center', 'pC': 'center port', 'pL2C': 'left port',
+phaseNames = {'mC2L': 'center to left', 'mC2R': 'center to right', 'mL2C': 'left to center',
+              'mR2C': 'right to center', 'pC': 'center port', 'pL2C': 'left port',
               'pR2C': 'right port', 'none': 'untuned'}
 
 #%% example session

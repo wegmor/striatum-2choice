@@ -204,11 +204,12 @@ def getPDistData(dataFilePath, tuningData, no_shuffles=1000):
 
 
 #%%
+@cachedDataFrame('distVsCorrData.pkl')
 def getPDistVsCorrData(dataFilePath):
     dist_cc_df = pd.DataFrame()
     
-    for s in readSessions.findSessions(dataFilePath, task='2choice'):    
-        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True).iloc[:30*60*20]
+    for s in readSessions.findSessions(dataFilePath, task=['openField','2choice']): #, task='2choice'):    
+        deconv = s.readDeconvolvedTraces(rScore=True).reset_index(drop=True).iloc[:30*60*20] # first 30 min
         # drop everything but top 20% biggest events
         #pct80 = np.nanpercentile(deconv[deconv != 0], 80, axis=0)
         #deconv = deconv[deconv >= pct80].fillna(0)
