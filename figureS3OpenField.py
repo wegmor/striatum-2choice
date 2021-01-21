@@ -63,6 +63,7 @@ for gt, behavior in itertools.product(genotypeNames.keys(), behaviorNames.keys()
     sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
     ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
     ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor(behavior), bottom=none_hist)
+    ax.axvline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
     #ax.text(20,0.05,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
     #        color=style.getColor(behavior))
     ax.text(0,0.435,behaviorNames[behavior]+' tuning',ha='center',va='center',

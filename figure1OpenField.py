@@ -258,6 +258,7 @@ none_hist = np.histogram(hdata.loc[~hdata['signp'], 'tuning'], bins=bins)[0] / l
 sign_hist = np.histogram(hdata.loc[hdata['signp'], 'tuning'], bins=bins)[0] / len(hdata.tuning)
 ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
 ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor('leftTurn'), bottom=none_hist)
+ax.axvline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
 
 ax.text(17,0.05,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
         color=style.getColor('leftTurn'))

@@ -180,6 +180,7 @@ ax.bar((bins+.5)[:-1], none_hist, lw=0, color='gray', alpha=.6)
 #ax.hist(hdata.loc[hdata.signp,'tuning'], bins=bins, lw=0,
 #        histtype='stepfilled', color=style.getColor('mC2L'), align='mid')
 ax.bar((bins+.5)[:-1], sign_hist, lw=0, color=style.getColor('mC2L'), bottom=none_hist)
+ax.axvline(0, ls=':', color='k', lw=mpl.rcParams['axes.linewidth'], zorder=-99)
 
 #ax.text(30,45,'significant\ntuning',ha='right',va='bottom',fontdict={'fontsize':7},
 #        color=style.getColor('mC2L'))
