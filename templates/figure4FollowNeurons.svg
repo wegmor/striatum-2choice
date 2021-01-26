@@ -22,8 +22,8 @@
      inkscape:bbox-nodes="true"
      inkscape:bbox-paths="true"
      inkscape:current-layer="layer2"
-     inkscape:cx="219.45394"
-     inkscape:cy="821.51458"
+     inkscape:cx="113.96091"
+     inkscape:cy="88.197261"
      inkscape:document-units="in"
      inkscape:guide-bbox="true"
      inkscape:pageopacity="0.0"
@@ -37,7 +37,7 @@
      inkscape:window-width="1920"
      inkscape:window-x="1920"
      inkscape:window-y="0"
-     inkscape:zoom="1.2952867"
+     inkscape:zoom="7.9968906"
      pagecolor="#ffffff"
      showgrid="false"
      showguides="true"
@@ -58,13 +58,25 @@
        orientation="1,0"
        id="guide1219" />
     <sodipodi:guide
-       position="43.956921,96.305692"
+       position="121.11221,258.03851"
        orientation="1,0"
        id="guide1221" />
     <sodipodi:guide
        position="132.94779,100.80118"
        orientation="0,-1"
        id="guide1241" />
+    <sodipodi:guide
+       position="138.49945,260.34999"
+       orientation="0,-1"
+       id="guide1203" />
+    <sodipodi:guide
+       position="196.84998,201.63443"
+       orientation="1,0"
+       id="guide1205" />
+    <sodipodi:guide
+       position="148.89947,259.17488"
+       orientation="1,0"
+       id="guide1207" />
   </sodipodi:namedview>
   <defs
      id="defs2">
@@ -759,8 +771,8 @@
        id="rect34710"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
-       y="39.29586">
+       x="123.58134"
+       y="39.295864">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_leftTurn" />
     </rect>
@@ -921,8 +933,8 @@
        id="rect248"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
-       y="46.912003">
+       x="123.58134"
+       y="46.912006">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_rightTurn" />
     </rect>
@@ -931,8 +943,8 @@
        id="rect250"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
-       y="54.528149">
+       x="123.58134"
+       y="54.528152">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mR2C" />
     </rect>
@@ -941,8 +953,8 @@
        id="rect252"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
-       y="62.144299">
+       x="123.58134"
+       y="62.144302">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mC2L" />
     </rect>
@@ -951,7 +963,7 @@
        id="rect254"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
+       x="123.58134"
        y="69.760445">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mC2R" />
@@ -961,7 +973,7 @@
        id="rect256"
        width="20.32"
        height="6.8772688"
-       x="174.6142"
+       x="123.58134"
        y="77.376595">
       <figurefirst:axis
          figurefirst:name="turnSpeedHist_mL2C" />
@@ -971,7 +983,7 @@
        id="rect15964"
        width="48.801979"
        height="50.135349"
-       x="120.26078"
+       x="148.04802"
        y="36.650009">
       <figurefirst:axis
          figurefirst:name="turnTrajectories" />
@@ -1209,11 +1221,11 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="18.805058"
+       x="19.054651"
        y="-108.07726"
        id="text3400"><tspan
          y="-108.07726"
-         x="18.805058"
+         x="19.054651"
          id="tspan3398"
          sodipodi:role="line">A</tspan></text>
     <text
@@ -1239,23 +1251,23 @@
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="120.86726"
-       y="-108.03851"
+       x="148.64832"
+       y="-108.07726"
        id="text3438"><tspan
-         y="-108.03851"
-         x="120.86726"
-         id="tspan3436"
-         sodipodi:role="line">D</tspan></text>
+         sodipodi:role="line"
+         id="tspan1211"
+         x="148.64832"
+         y="-108.07726">E</tspan></text>
     <text
        xml:space="preserve"
        style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.175px;line-height:1.25;font-family:Arial;-inkscape-font-specification:'Arial, Normal';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;display:inline;stroke-width:0.264583;stroke-linecap:butt;stroke-linejoin:round"
-       x="171.89395"
+       x="120.86726"
        y="-108.07726"
        id="text3442"><tspan
-         y="-108.07726"
-         x="171.89395"
-         id="tspan3440"
-         sodipodi:role="line">E</tspan></text>
+         sodipodi:role="line"
+         id="tspan1209"
+         x="120.86726"
+         y="-108.07726">D</tspan></text>
     <text
        id="text3500"
        y="63.806442"

@@ -669,7 +669,7 @@ for gt in gts:
     ax.set_yticks(np.arange(-0.05, 0.15, 0.05))
     ax.set_xticklabels([])
     if gt=="d1":
-        ax.set_ylabel("ensamble correlation")
+        ax.set_ylabel("population correlation")
     else:
         ax.set_yticklabels([])
     sns.despine(ax=ax)
