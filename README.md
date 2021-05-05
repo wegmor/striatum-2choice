@@ -11,8 +11,8 @@ Create an isolated python environment and install the required packages using [c
 ```bash
 $ conda create -n striatum-2choice python=3.8.3
 $ conda activate striatum-2choice
-$ conda install -c conda-forge cython numpy pandas scipy scikit-learn statsmodels h5py tqdm scikit-image \
-  pillow matplotlib seaborn deprecated pytables opencv pip
+$ conda install -c conda-forge cython numpy pandas scipy scikit-learn statsmodels h5py \
+  tqdm scikit-image pillow matplotlib seaborn deprecated pytables opencv pip
 $ pip install cmocean figurefirst
 ```
 
@@ -45,6 +45,32 @@ To see which script creates what figure, refer to the list below:
 - **Fig. S8:**  `figureFollowNeuronsSupp.py`
 - **Fig. S9:**  `figureStaySwitchDecodingSupp.py`
 - **Fig. S10:** `figureQlearning.py`
+
+
+### Software requirements
+
+The code was tested with the following versions of the python packages used:
+
+package       | version
+--------------|--------------
+python        | 3.8.3
+cython        | 0.29.14
+numpy         | 1.18.4
+pandas        | 0.25.3
+scipy         | 1.4.1
+scikit-learn  | 0.22.1
+statsmodels   | 0.11.0
+h5py          | 2.9.0
+tqdm          | 4.45.0
+scikit-image  | 0.16.2
+pillow        | 7.0.0
+matplotlib    | 3.2.1
+seaborn       | 0.9.0
+deprecated    | 1.2.10
+pytables      | 3.6.1
+opencv        | 4.4.0
+cmocean       | 2.0
+figurefirst   | 0.0.6
 
 
 ### Reference

@@ -45,8 +45,9 @@ cdef list optimize(np.float_t[:] x, np.float_t[:] y, np.float_t[:] bodyDirection
     cdef np.float_t angle, dx, dy, distance
     cdef np.float_t[4] candidates
     for i in range(N):
+        angle = 0
         for j in range(i+1, min(N, i+2000)):
-            angle = dirDiff(bodyDirection[i], bodyDirection[j])
+            angle += dirDiff(bodyDirection[j-1], bodyDirection[j])
             dx = x[i] - x[j]
             dy = y[i] - y[j]
             distance = sqrt(dx*dx + dy*dy)
