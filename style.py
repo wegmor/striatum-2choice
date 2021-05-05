@@ -2,6 +2,7 @@ import seaborn as sns
 import matplotlib as mpl
 
 def set_context():
+    np.random.seed(7) # hacky attempt to make randomization (shuffles etc.) reproducible
     sns.set(context='paper', style='ticks', font_scale=.7, palette='tab10',
             rc={'font.size': 7,
                 'axes.labelsize': 7,
