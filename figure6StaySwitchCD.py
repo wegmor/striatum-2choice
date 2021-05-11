@@ -620,6 +620,11 @@ for (gt,tt), cs in (valueProbCorrs.query('trialType in ["r.","o.","o!"]')
         
         
 #%%
+print('Panels F-H:')
+print(acc.loc['activity',False].groupby(['genotype','action']).size())
+print(valueProbCorrs.groupby(['genotype','trialType']).size())
+
+#%%
 layout.insert_figures('plots')
 layout.write_svg(outputFolder / svgName)
 subprocess.check_call(['inkscape', outputFolder / svgName,

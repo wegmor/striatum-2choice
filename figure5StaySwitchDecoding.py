@@ -177,6 +177,9 @@ axt.legend(handles=legend_elements, ncol=2, loc='center',
            mode='expand')
 axt.axis('off')
 
+print('Panel B:')
+print(staySwitch.groupby('genotype').size())
+
 
 #%% session bar plots showing fractions of stay-switch tuned neurons per session
 action_aucs = staySwitchAUC.query('action == "mR2C"').copy()
@@ -211,6 +214,9 @@ for tuning in ['stay','switch']:
     sns.despine(ax=ax, trim=False, bottom=True)
 #    if tuning == 'switch':
 #        ax.invert_xaxis()
+
+print('Panel C:')
+print(sign_sess_frac.groupby('genotype').size())
 
 
 #%% pie charts
@@ -346,6 +352,9 @@ ax.legend(bbox_to_anchor=(.05,1.04), loc='upper left')
 ax.set_xlabel('trials back')
 ax.set_ylabel('coefficient')
 sns.despine(ax=ax)
+
+print('Panel G:')
+print(len(logRegCoef))
 
 
 #%% logistic regression plot
@@ -519,11 +528,14 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
                                                             pkl_suffix=stsw)
     actionMeans.set_index(['genotype','animal','date','neuron'], inplace=True)
 
+    print('Panel J ({}):'.format(stsw))
+    print(actionMeans.groupby(['genotype','animal','date','neuron']).first().groupby('genotype').size())
+
     actionMeans['bin'] = pd.cut(actionMeans.value * (1 if 'R' in action else -1),
                                 [-10,0,1,2,3,4,10])
     
     # v per neuron bin-average activity and value
-    means = actionMeans.groupby(['genotype','animal','neuron','bin'])[['activity','value']].mean()
+    means = actionMeans.groupby(['genotype','animal','date','neuron','bin'])[['activity','value']].mean()
     # v per genotype
     means = means.groupby(['genotype','bin']).agg(['mean','sem'])
     
@@ -586,12 +598,17 @@ for stsw, aucs in zip(['stay','switch'],[stay_aucs, switch_aucs]):
         sns.despine(ax=ax, trim=False)
         ax.set_xticks((-.2,0,.2))
         ax.set_yticks((0,.2,.4))
+        
+    print('Panel K ({}):'.format(stsw))
+    print(mean_corrs.groupby('genotype').size())
  
     
  #%% value coding neuron example plots
 def avRegPlot(means, phase='mS2C', ax=None):
     inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
     data = means.loc[means.label.isin(inclLabels)]
+    print('Panel P:')
+    print(data.groupby('label').size())
     for l, ldata in data.groupby('label'):
         ax.scatter(ldata['value'], ldata['trialMean'],
                    facecolor='w', edgecolor=style.getColor(l[-2:]),
@@ -625,6 +642,8 @@ def avRegPlot(means, phase='mS2C', ax=None):
 
 def avAvgTracePlot(wins, axs, phase='mR2C'):
     inclLabels = analysisStaySwitchDecodingSupp.getPhaseLabels(phase)
+    print('Panel Q:')
+    print(wins.loc[wins.label.isin(inclLabels)].groupby('label').size())
     for l,ldata in wins.loc[wins.label.isin(inclLabels)].groupby('label'):
         ax = axs[{'o!':0,'o.':1,'r.':2}[l[-2:]]]
         x = np.array(ldata['frameNo'].columns.values, dtype='float')
@@ -859,6 +878,11 @@ ax.set_yticks((0,2,4))
 ax.set_yticks((1,3), minor=True)
 ax.set_ylabel('density')
 sns.despine(ax=ax)
+
+print('Panel U:')
+print('win-stay: {}'.format(rst.actionNo.nunique()))
+print('lose-stay: {}'.format(ost.actionNo.nunique()))
+print('lose-switch: {}'.format(osw.actionNo.nunique()))
 
 
 #%%

@@ -18,6 +18,7 @@ import analysisOftVs2Choice
 import analysisKinematicsSupp
 import style
 import subprocess
+from collections import defaultdict
 
 style.set_context()
 plt.ioff()
@@ -389,6 +390,7 @@ for key in itertools.product(('d1', 'a2a', 'oprm1'), labels):
                                 linewidth=mpl.rcParams['axes.linewidth'],
                                 smoothing=3, saturation=saturation)
 
+noTunedDict = defaultdict(int)
 for sess in readSessions.findSessions(endoDataPath, task=["2choice", "openField"]):
     shortKey = (sess.meta.animal, sess.meta.date)
     if shortKey not in openFieldTunings.index:
@@ -408,6 +410,7 @@ for sess in readSessions.findSessions(endoDataPath, task=["2choice", "openField"
             tuned = openFieldTunings.loc[shortKey+(label,)].signp
         for neuron in traces.columns:
             if tuned[neuron]:
+                noTunedDict[(task,genotype,label)] += 1
                 fvs[(task, genotype, label)].addTraceToBuffer(traces[neuron])
 for task, gt, label in itertools.product(("openField", "2choice"),
                                          ("d1", "a2a", "oprm1"), labels):
@@ -423,6 +426,8 @@ for i in range(1,2):#4):
     cax.text(0.325, -.1, "{:.1f}".format(saturation), ha='left', va='center', fontsize=6)
     cax.text(0, 0.5, 'z-score', ha='center', va='bottom', fontdict={'fontsize':6})
 
+print('Panel L:')
+print(pd.Series(noTunedDict))
 
 #%% oft vs choice left/right tuning comparison
 ofTuningData = analysisOpenField.getTuningData(endoDataPath)
@@ -520,6 +525,9 @@ legend_elements = [mpl.patches.Patch(color=style.getColor(gt), alpha=1,
                   ]
 axt.legend(handles=legend_elements, ncol=3, loc='center')
 axt.axis('off')
+
+print('Panel M:')
+print(data.groupby(['genotype','animal','date']).first().groupby('genotype').size())
 
 
 #%% alluvial plot

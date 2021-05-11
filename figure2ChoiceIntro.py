@@ -340,6 +340,10 @@ cax.text(.25, -.05, '-1', ha='center', va='top', fontdict={'fontsize':6},
 cax.text(3.45, .5, 'peak-normalized\naverage', ha='center', va='center', fontdict={'fontsize':7},
          rotation=90, transform=cax.transAxes)
 
+print('Panel G:')
+print(df.groupby('genotype').size())
+print('total neurons: {}'.format(len(df)))
+
 
 #%%
 # https://stackoverflow.com/questions/22867620/putting-arrowheads-on-vectors-in-matplotlibs-3d-plot
@@ -463,6 +467,12 @@ ax.text(-2.5,0,2.5, 'PC2', fontsize=7, ha='center', va='top',
 ax.text(-2.5,-2.5,0, 'PC3', fontsize=7, ha='center', va='top',
         bbox=dict(facecolor='w', alpha=.75, pad=0))
 ax.set_box_aspect([1,1,1])
+
+#%%
+trajData = analysis2ChoiceIntro.getTrajectoryData('data/endoData_2019.hdf')
+print('Panel H:')
+print(trajData.groupby(['genotype','animal','date','neuron']).first().groupby(['genotype']).size())
+
 
 #%%
 layout.insert_figures('plots')

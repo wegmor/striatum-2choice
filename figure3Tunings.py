@@ -572,6 +572,9 @@ plt.xlabel("true scaled\ntime")
 #plt.ylabel("predicted", labelpad=-2.25)
 sns.despine(ax=plt.gca())
 
+#%%
+print('Panel M:')
+print(decodingMovementProgress.groupby('genotype').sess.nunique())
 
 #%% Panel N
 avgCorr = decodingMovementProgress.groupby(['shuffle','genotype','animal','date']).apply(calcCorr)
@@ -787,7 +790,7 @@ legend_elements = [mpl.lines.Line2D([0], [0], color=style.getColor(g), label=gen
 axt.legend(handles=legend_elements, loc=(-0.7, 1.08), ncol=2)
 
 print("Panel Q:")
-print(selection.groupby([pd.cut(selection.dayDifference, (1, 4, 14, 100)), "genotype"]).size())
+print(selection.groupby([pd.cut(selection.dayDifference, (1, 4, 14, 100), right=False), "genotype"]).size())
 
 #%%
 layout.insert_figures('plots')
